@@ -12,7 +12,7 @@
 
         <service id="PrintessEditor\Subscriber\ProductViewSubscriber" >
                 <argument type="service" id="PrintessEditor\Core\Content\PrintessEditor\SalesChannel\PrintessProductInfoRoute"/>
-                <tag name="kernel.event_subscriber" event="productpage.loaded" />
+                <tag name="kernel.event_subscriber"/>
         </service>
         <service id="PrintessEditor\Subscriber\LineItemAddedSubscriber" >
                 <argument type="service" id="request_stack"/>
