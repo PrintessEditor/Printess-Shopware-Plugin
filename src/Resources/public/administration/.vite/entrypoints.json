@@ -1,0 +1,27 @@
+{
+  "base": "/bundles/printesseditor/administration/",
+  "entryPoints": {
+    "printess-editor": {
+      "css": [
+        "/bundles/printesseditor/administration/assets/printess-editor-C-ohE-0V.css"
+      ],
+      "dynamic": [
+        "/bundles/printesseditor/administration/assets/index-C1UBk32u.js"
+      ],
+      "js": [
+        "/bundles/printesseditor/administration/assets/printess-editor-ekqLw5P7.js"
+      ],
+      "legacy": false,
+      "preload": []
+    }
+  },
+  "legacy": false,
+  "metadatas": {},
+  "version": [
+    "7.1.0",
+    7,
+    1,
+    0
+  ],
+  "viteServer": null
+}

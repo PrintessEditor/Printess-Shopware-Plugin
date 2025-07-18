@@ -1,0 +1,20 @@
+{
+  "main.js": {
+    "file": "assets/printess-editor-ekqLw5P7.js",
+    "name": "printess-editor",
+    "src": "main.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "sw-order-detail-printess/index.js"
+    ],
+    "css": [
+      "assets/printess-editor-C-ohE-0V.css"
+    ]
+  },
+  "sw-order-detail-printess/index.js": {
+    "file": "assets/index-C1UBk32u.js",
+    "name": "index",
+    "src": "sw-order-detail-printess/index.js",
+    "isDynamicEntry": true
+  }
+}

@@ -155,17 +155,17 @@ class CustomFieldsInstaller
                             'en-GB' => 'Userinterface Version'
                         ],
                         'helpText' => [
-                            'de-DE' => 'Wähle Klassich für die alte Benutzeroberfläche. Wähle Panel für die neue Version.',
-                            'en-GB' => 'Choose Classic UI for the (old) legacy UI. Choose Panel UI for the new Panel UI.'
+                            'de-DE' => 'Wähle Klassich für die veraltete Benutzeroberfläche.',
+                            'en-GB' => 'Choose Classic UI for the deprecated legacy UI.'
                         ],
                         'options' =>
                         [
                             [
                                 'label' => [
-                                    'en-GB' => 'Classic UI',
-                                    'de-DE' => 'Klassisch'
+                                    'en-GB' => 'Default (Panel Ui)',
+                                    'de-DE' => 'Default (Panel Ui)'
                                 ],
-                                'value' => 'classic'
+                                'value' => ''
                             ],
                             [
                                 'label' => [
@@ -173,7 +173,14 @@ class CustomFieldsInstaller
                                     'de-DE' => 'Panel',
                                 ],
                                 'value' => 'panel'
-                            ]
+                            ],
+                            [
+                                'label' => [
+                                    'en-GB' => 'Classic UI (deprecated)',
+                                    'de-DE' => 'Klassisch (veraltet)'
+                                ],
+                                'value' => 'classic'
+                            ],
                         ],
                         'customFieldPosition' => 8
                     ]

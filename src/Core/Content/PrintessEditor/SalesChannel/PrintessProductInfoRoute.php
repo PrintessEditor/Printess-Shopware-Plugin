@@ -75,7 +75,7 @@ class PrintessProductInfoRoute extends AbstractPrintessProductInfoRoute
       $ret["metaData"] = array();
       $ret["options"] = array();
       $ret["properties"] = array();
-      
+
       if($product->translated !== null) {
         if(array_key_exists("name", $product->translated)) {
           $ret["name"] = $product->translated["name"];
@@ -178,11 +178,11 @@ class PrintessProductInfoRoute extends AbstractPrintessProductInfoRoute
         }
       };
 
-      $uiVersion = "classic";
+      $uiVersion = "panelui";
 
       if(array_key_exists("metaData", $product) && array_key_exists("PrintessUIVersion", $product["metaData"])) {
-        if($product["metaData"]["PrintessUIVersion"] != null && !empty($product["metaData"]["PrintessUIVersion"]) && strtolower($product["metaData"]["PrintessUIVersion"]) === "panel") {
-          $uiVersion = "bcui";
+        if($product["metaData"]["PrintessUIVersion"] != null && strtolower($product["metaData"]["PrintessUIVersion"]) === "classic") {
+          $uiVersion = "";
         }
       }
 
@@ -238,7 +238,7 @@ class PrintessProductInfoRoute extends AbstractPrintessProductInfoRoute
       {
         $priceSettings["legalText"] = $legalText;
       }
-            
+
       return new PrintessProductInfoResponse($product, $variants, $settings, $priceSettings);
   }
 }
