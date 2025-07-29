@@ -2,10 +2,11 @@ import template from './sw-order-detail-general.html.twig';
 import "./sw-order-detail-general.scss"
 
 const { mapState } = Shopware.Component.getComponentHelper();
+const { Utils, Mixin, Store } = Shopware;
 
 Shopware.Component.override('sw-order-detail-general', {
     template,
-    createdComponent: function() {
+    createdComponent: function () {
         this.$super('createdComponent');
 
         console.log("Printess Component Loaded");
@@ -14,42 +15,40 @@ Shopware.Component.override('sw-order-detail-general', {
         "printessAdminOrderService"
     ],
     computed: {
-        ...mapState('swOrderDetail', [
-            'order'
-        ]),
+        order: () => Store.get('swOrderDetail').order,
         personalizedItems() {
             const ret = [];
             const that = this;
 
             that.order.lineItems.forEach((item => {
-                if(item && item.payload && item.payload.hasOwnProperty("_printessSaveToken") && item.payload["_printessSaveToken"]) {
+                if (item && item.payload && item.payload.hasOwnProperty("_printessSaveToken") && item.payload["_printessSaveToken"]) {
                     ret.push(item);
                 }
             }));
 
             that.printessAdminOrderService.getOrderPrintStatus(that.order.id).then((status) => {
-                if(status && status.data) {
-                    for(const lineItemId in status.data) {
-                        if(status.data.hasOwnProperty(lineItemId)) {
+                if (status && status.data) {
+                    for (const lineItemId in status.data) {
+                        if (status.data.hasOwnProperty(lineItemId)) {
                             const lineItemNode = document.getElementById("printessResult" + lineItemId);
 
-                            if(lineItemNode) {
+                            if (lineItemNode) {
                                 const details = status.data[lineItemId];
                                 const isFinished = details.isFinalStatus === true && details.isSuccess;
                                 const notFound = !details.isFinalStatus && !details.isSuccess && !details.enqueuedOn;
                                 const isError = details.errorDetails !== null;
                                 const statusNode = lineItemNode.querySelector(".print-status > .value");
 
-                                if(statusNode) {
-                                    if(isError) {
+                                if (statusNode) {
+                                    if (isError) {
                                         statusNode.innerText = "Error: " + details.errorDetails;
-                                    } else if(notFound) {
+                                    } else if (notFound) {
                                         statusNode.innerText = "Printjob not found";
-                                    } else if(isFinished) {
+                                    } else if (isFinished) {
                                         const pdfList = document.createElement("ul");
 
-                                        for(const docName in details.result.r) {
-                                            if(details.result.r.hasOwnProperty(docName)) {
+                                        for (const docName in details.result.r) {
+                                            if (details.result.r.hasOwnProperty(docName)) {
                                                 const liNode = document.createElement("li");
                                                 liNode.classList.add("print-document");
                                                 const docNameNode = document.createElement("span");
@@ -71,8 +70,8 @@ Shopware.Component.override('sw-order-detail-general', {
                                             }
                                         }
 
-                                        if(details.result.p) {
-                                            for(let i = 0; i < details.result.p.length; ++i) {
+                                        if (details.result.p) {
+                                            for (let i = 0; i < details.result.p.length; ++i) {
                                                 const liNode = document.createElement("li");
                                                 liNode.classList.add("print-document");
                                                 const docNameNode = document.createElement("span");
