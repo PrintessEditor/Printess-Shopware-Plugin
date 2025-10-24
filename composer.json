@@ -10,11 +10,8 @@
         }
     ],
     "type": "shopware-platform-plugin",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "license": "MIT",
-    "require": {
-        "shopware/core": "~6.7.0.1"
-    },
     "extra": {
         "shopware-plugin-class": "PrintessEditor\\PrintessEditor",
         "label": {
