@@ -29,8 +29,8 @@
         </input-field>
 
         <input-field type="checkbox">
-            <name>ShowStartupAnimation (Old deprecated iFrame Ui only)</name>
-            <label>Show startup star animation</label>
+            <name>ShowStartupAnimation</name>
+            <label>Show startup star animation (Old deprecated iFrame Ui only)</label>
             <defaultValue>true</defaultValue>
         </input-field>
         <input-field type="text">
