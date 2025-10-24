@@ -24,12 +24,12 @@
 
         <input-field type="text">
             <name>StartupLogoUrl</name>
-            <label>Startup logo URL</label>
+            <label>Startup logo URL (Old deprecated iFrame Ui only)</label>
             <defaultValue></defaultValue>
         </input-field>
 
         <input-field type="checkbox">
-            <name>ShowStartupAnimation</name>
+            <name>ShowStartupAnimation (Old deprecated iFrame Ui only)</name>
             <label>Show startup star animation</label>
             <defaultValue>true</defaultValue>
         </input-field>
