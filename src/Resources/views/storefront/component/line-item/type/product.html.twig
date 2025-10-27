@@ -17,10 +17,10 @@
       }
     </script>
 
-    <div data-printess-line-item-id="{{lineItem.id | raw}}" data-printess-line-item-product-id="{{lineItem.referencedId | raw}}" data-printess-line-item="{{ lineItem | json_encode }}" style="cursor: pointer;" data-printess-product-infos="{{ page.extensions.printess_product_infos | json_encode }}">
+    <button type="button" data-printess-line-item-id="{{lineItem.id | raw}}" data-printess-line-item-product-id="{{lineItem.referencedId | raw}}" data-printess-line-item="{{ lineItem | json_encode }}" data-printess-product-infos="{{ page.extensions.printess_product_infos | json_encode }}" class="printess-cart-edit-button">
       <span class="label">{{ 'frontend.edit'|trans|striptags }}</span>
-    </div>
-    <form action="/checkout/line-item/update" method="post" data-form-submit-loader="true" id="printessupdateLineItem{{lineItem.id}}" data-form-submit-loader-options="{&quot;skipLoadingIndicator&quot;:true}" class="">
+    </button>
+    <form action="/checkout/line-item/update" method="post" data-form-submit-loader="true" id="printessupdateLineItem{{lineItem.id}}" data-form-submit-loader-options="{&quot;skipLoadingIndicator&quot;:true}" class="printess-cart-edit-form">
       <input type="hidden" name="redirectTo" value="frontend.checkout.cart.page">
       <input type="hidden" name="redirectParameters" value="">
       <input type="hidden" name="lineItems[0][id]" value="">
