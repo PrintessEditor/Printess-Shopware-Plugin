@@ -1,62 +1,1152 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
     <card>
-        <title>Printess Editor</title>
-        <input-field type="text">
-            <name>ShopToken</name>
-            <label>Shop token</label>
+        <title>Authentication</title>
+        <title lang="de-DE">Authentifizierung</title>
+
+        <input-field type="password">
+            <name>serviceToken</name>
+            <label>Printess Service Token</label>
+            <label lang="de-DE">Printess Service-Token</label>
+            <helpText>Used for server-to-server calls against the Printess Backend API. Keep this secret.</helpText>
+            <helpText lang="de-DE">Wird für Server-zu-Server-Aufrufe der Printess Backend-API verwendet. Geheim halten.</helpText>
         </input-field>
-        <input-field type="text">
-            <name>ServiceToken</name>
-            <label>Service token</label>
+
+        <input-field type="password">
+            <name>shopToken</name>
+            <label>Printess Shop Token</label>
+            <label lang="de-DE">Printess Shop-Token</label>
+            <helpText>Used by the buyer-side editor running in the storefront.</helpText>
+            <helpText lang="de-DE">Wird vom Buyer-Side-Editor im Storefront verwendet.</helpText>
         </input-field>
+    </card>
+
+    <card>
+        <title>Editor</title>
+        <title lang="de-DE">Editor</title>
+
         <input-field type="text">
-            <name>EditorHost</name>
-            <label>Editor host name</label>
+            <name>editorDomain</name>
+            <label>Editor domain</label>
+            <label lang="de-DE">Editor-Domain</label>
             <defaultValue>editor.printess.com</defaultValue>
         </input-field>
+
+        <input-field type="single-select">
+            <name>templateVersion</name>
+            <label>Version</label>
+            <label lang="de-DE">Version</label>
+            <helpText>Which template version the editor should load. Choose "Custom" to enter your own version identifier.</helpText>
+            <helpText lang="de-DE">Welche Template-Version der Editor laden soll. Wähle "Benutzerdefiniert", um eine eigene Versionskennung einzugeben.</helpText>
+            <defaultValue>live</defaultValue>
+            <options>
+                <option>
+                    <id>live</id>
+                    <name>Live version</name>
+                    <name lang="de-DE">Live-Version</name>
+                </option>
+                <option>
+                    <id>nightly</id>
+                    <name>Nightly version</name>
+                    <name lang="de-DE">Nightly-Version</name>
+                </option>
+                <option>
+                    <id>custom</id>
+                    <name>Custom</name>
+                    <name lang="de-DE">Benutzerdefiniert</name>
+                </option>
+            </options>
+        </input-field>
+
         <input-field type="text">
-            <name>ApiHost</name>
-            <label>Api host name</label>
+            <name>customTemplateVersion</name>
+            <label>Custom version</label>
+            <label lang="de-DE">Benutzerdefinierte Version</label>
+            <helpText>Only used when Version is set to "Custom".</helpText>
+            <helpText lang="de-DE">Wird nur verwendet, wenn bei Version "Benutzerdefiniert" ausgewählt ist.</helpText>
+        </input-field>
+
+        <input-field type="text">
+            <name>defaultTheme</name>
+            <label>Default buyer-side editor theme</label>
+            <label lang="de-DE">Standard-Theme des Buyer-Side-Editors</label>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>editorLanguage</name>
+            <label>Editor language</label>
+            <label lang="de-DE">Editor-Sprache</label>
+            <helpText>Language of the editor's own UI text. "Automatic" lets the editor pick a language based on the visitor's browser.</helpText>
+            <helpText lang="de-DE">Sprache der Oberflächentexte des Editors. "Automatisch" lässt den Editor eine Sprache anhand des Browsers des Besuchers wählen.</helpText>
+            <defaultValue>auto</defaultValue>
+            <options>
+                <option>
+                    <id>auto</id>
+                    <name>Automatic (browser language)</name>
+                    <name lang="de-DE">Automatisch (Browsersprache)</name>
+                </option>
+                <option>
+                    <id>aa</id>
+                    <name>Afar (aa)</name>
+                    <name lang="de-DE">Afar (aa)</name>
+                </option>
+                <option>
+                    <id>ab</id>
+                    <name>Abkhazian (ab)</name>
+                    <name lang="de-DE">Abchasisch (ab)</name>
+                </option>
+                <option>
+                    <id>ae</id>
+                    <name>Avestan (ae)</name>
+                    <name lang="de-DE">Avestisch (ae)</name>
+                </option>
+                <option>
+                    <id>af</id>
+                    <name>Afrikaans (af)</name>
+                    <name lang="de-DE">Afrikaans (af)</name>
+                </option>
+                <option>
+                    <id>ak</id>
+                    <name>Akan (ak)</name>
+                    <name lang="de-DE">Akan (ak)</name>
+                </option>
+                <option>
+                    <id>am</id>
+                    <name>Amharic (am)</name>
+                    <name lang="de-DE">Amharisch (am)</name>
+                </option>
+                <option>
+                    <id>an</id>
+                    <name>Aragonese (an)</name>
+                    <name lang="de-DE">Aragonesisch (an)</name>
+                </option>
+                <option>
+                    <id>ar</id>
+                    <name>Arabic (ar)</name>
+                    <name lang="de-DE">Arabisch (ar)</name>
+                </option>
+                <option>
+                    <id>as</id>
+                    <name>Assamese (as)</name>
+                    <name lang="de-DE">Assamesisch (as)</name>
+                </option>
+                <option>
+                    <id>av</id>
+                    <name>Avaric (av)</name>
+                    <name lang="de-DE">Awarisch (av)</name>
+                </option>
+                <option>
+                    <id>ay</id>
+                    <name>Aymara (ay)</name>
+                    <name lang="de-DE">Aymara (ay)</name>
+                </option>
+                <option>
+                    <id>az</id>
+                    <name>Azerbaijani (az)</name>
+                    <name lang="de-DE">Aserbaidschanisch (az)</name>
+                </option>
+                <option>
+                    <id>ba</id>
+                    <name>Bashkir (ba)</name>
+                    <name lang="de-DE">Baschkirisch (ba)</name>
+                </option>
+                <option>
+                    <id>be</id>
+                    <name>Belarusian (be)</name>
+                    <name lang="de-DE">Belarussisch (be)</name>
+                </option>
+                <option>
+                    <id>bg</id>
+                    <name>Bulgarian (bg)</name>
+                    <name lang="de-DE">Bulgarisch (bg)</name>
+                </option>
+                <option>
+                    <id>bi</id>
+                    <name>Bislama (bi)</name>
+                    <name lang="de-DE">Bislama (bi)</name>
+                </option>
+                <option>
+                    <id>bm</id>
+                    <name>Bambara (bm)</name>
+                    <name lang="de-DE">Bambara (bm)</name>
+                </option>
+                <option>
+                    <id>bn</id>
+                    <name>Bangla (bn)</name>
+                    <name lang="de-DE">Bengalisch (bn)</name>
+                </option>
+                <option>
+                    <id>bo</id>
+                    <name>Tibetan (bo)</name>
+                    <name lang="de-DE">Tibetisch (bo)</name>
+                </option>
+                <option>
+                    <id>br</id>
+                    <name>Breton (br)</name>
+                    <name lang="de-DE">Bretonisch (br)</name>
+                </option>
+                <option>
+                    <id>bs</id>
+                    <name>Bosnian (bs)</name>
+                    <name lang="de-DE">Bosnisch (bs)</name>
+                </option>
+                <option>
+                    <id>ca</id>
+                    <name>Catalan (ca)</name>
+                    <name lang="de-DE">Katalanisch (ca)</name>
+                </option>
+                <option>
+                    <id>ce</id>
+                    <name>Chechen (ce)</name>
+                    <name lang="de-DE">Tschetschenisch (ce)</name>
+                </option>
+                <option>
+                    <id>ch</id>
+                    <name>Chamorro (ch)</name>
+                    <name lang="de-DE">Chamorro (ch)</name>
+                </option>
+                <option>
+                    <id>co</id>
+                    <name>Corsican (co)</name>
+                    <name lang="de-DE">Korsisch (co)</name>
+                </option>
+                <option>
+                    <id>cr</id>
+                    <name>Cree (cr)</name>
+                    <name lang="de-DE">Cree (cr)</name>
+                </option>
+                <option>
+                    <id>cs</id>
+                    <name>Czech (cs)</name>
+                    <name lang="de-DE">Tschechisch (cs)</name>
+                </option>
+                <option>
+                    <id>cu</id>
+                    <name>Church Slavic (cu)</name>
+                    <name lang="de-DE">Kirchenslawisch (cu)</name>
+                </option>
+                <option>
+                    <id>cv</id>
+                    <name>Chuvash (cv)</name>
+                    <name lang="de-DE">Tschuwaschisch (cv)</name>
+                </option>
+                <option>
+                    <id>cy</id>
+                    <name>Welsh (cy)</name>
+                    <name lang="de-DE">Walisisch (cy)</name>
+                </option>
+                <option>
+                    <id>da</id>
+                    <name>Danish (da)</name>
+                    <name lang="de-DE">Dänisch (da)</name>
+                </option>
+                <option>
+                    <id>de</id>
+                    <name>German (de)</name>
+                    <name lang="de-DE">Deutsch (de)</name>
+                </option>
+                <option>
+                    <id>dv</id>
+                    <name>Divehi (dv)</name>
+                    <name lang="de-DE">Dhivehi (dv)</name>
+                </option>
+                <option>
+                    <id>dz</id>
+                    <name>Dzongkha (dz)</name>
+                    <name lang="de-DE">Dzongkha (dz)</name>
+                </option>
+                <option>
+                    <id>ee</id>
+                    <name>Ewe (ee)</name>
+                    <name lang="de-DE">Ewe (ee)</name>
+                </option>
+                <option>
+                    <id>el</id>
+                    <name>Greek (el)</name>
+                    <name lang="de-DE">Griechisch (el)</name>
+                </option>
+                <option>
+                    <id>en</id>
+                    <name>English (en)</name>
+                    <name lang="de-DE">Englisch (en)</name>
+                </option>
+                <option>
+                    <id>eo</id>
+                    <name>Esperanto (eo)</name>
+                    <name lang="de-DE">Esperanto (eo)</name>
+                </option>
+                <option>
+                    <id>es</id>
+                    <name>Spanish (es)</name>
+                    <name lang="de-DE">Spanisch (es)</name>
+                </option>
+                <option>
+                    <id>et</id>
+                    <name>Estonian (et)</name>
+                    <name lang="de-DE">Estnisch (et)</name>
+                </option>
+                <option>
+                    <id>eu</id>
+                    <name>Basque (eu)</name>
+                    <name lang="de-DE">Baskisch (eu)</name>
+                </option>
+                <option>
+                    <id>fa</id>
+                    <name>Persian (fa)</name>
+                    <name lang="de-DE">Persisch (fa)</name>
+                </option>
+                <option>
+                    <id>ff</id>
+                    <name>Fula (ff)</name>
+                    <name lang="de-DE">Ful (ff)</name>
+                </option>
+                <option>
+                    <id>fi</id>
+                    <name>Finnish (fi)</name>
+                    <name lang="de-DE">Finnisch (fi)</name>
+                </option>
+                <option>
+                    <id>fj</id>
+                    <name>Fijian (fj)</name>
+                    <name lang="de-DE">Fidschi (fj)</name>
+                </option>
+                <option>
+                    <id>fo</id>
+                    <name>Faroese (fo)</name>
+                    <name lang="de-DE">Färöisch (fo)</name>
+                </option>
+                <option>
+                    <id>fr</id>
+                    <name>French (fr)</name>
+                    <name lang="de-DE">Französisch (fr)</name>
+                </option>
+                <option>
+                    <id>fy</id>
+                    <name>Western Frisian (fy)</name>
+                    <name lang="de-DE">Westfriesisch (fy)</name>
+                </option>
+                <option>
+                    <id>ga</id>
+                    <name>Irish (ga)</name>
+                    <name lang="de-DE">Irisch (ga)</name>
+                </option>
+                <option>
+                    <id>gd</id>
+                    <name>Scottish Gaelic (gd)</name>
+                    <name lang="de-DE">Gälisch (Schottland) (gd)</name>
+                </option>
+                <option>
+                    <id>gl</id>
+                    <name>Galician (gl)</name>
+                    <name lang="de-DE">Galicisch (gl)</name>
+                </option>
+                <option>
+                    <id>gn</id>
+                    <name>Guarani (gn)</name>
+                    <name lang="de-DE">Guaraní (gn)</name>
+                </option>
+                <option>
+                    <id>gu</id>
+                    <name>Gujarati (gu)</name>
+                    <name lang="de-DE">Gujarati (gu)</name>
+                </option>
+                <option>
+                    <id>gv</id>
+                    <name>Manx (gv)</name>
+                    <name lang="de-DE">Manx (gv)</name>
+                </option>
+                <option>
+                    <id>ha</id>
+                    <name>Hausa (ha)</name>
+                    <name lang="de-DE">Haussa (ha)</name>
+                </option>
+                <option>
+                    <id>he</id>
+                    <name>Hebrew (he)</name>
+                    <name lang="de-DE">Hebräisch (he)</name>
+                </option>
+                <option>
+                    <id>hi</id>
+                    <name>Hindi (hi)</name>
+                    <name lang="de-DE">Hindi (hi)</name>
+                </option>
+                <option>
+                    <id>ho</id>
+                    <name>Hiri Motu (ho)</name>
+                    <name lang="de-DE">Hiri-Motu (ho)</name>
+                </option>
+                <option>
+                    <id>hr</id>
+                    <name>Croatian (hr)</name>
+                    <name lang="de-DE">Kroatisch (hr)</name>
+                </option>
+                <option>
+                    <id>ht</id>
+                    <name>Haitian Creole (ht)</name>
+                    <name lang="de-DE">Haiti-Kreolisch (ht)</name>
+                </option>
+                <option>
+                    <id>hu</id>
+                    <name>Hungarian (hu)</name>
+                    <name lang="de-DE">Ungarisch (hu)</name>
+                </option>
+                <option>
+                    <id>hy</id>
+                    <name>Armenian (hy)</name>
+                    <name lang="de-DE">Armenisch (hy)</name>
+                </option>
+                <option>
+                    <id>hz</id>
+                    <name>Herero (hz)</name>
+                    <name lang="de-DE">Herero (hz)</name>
+                </option>
+                <option>
+                    <id>ia</id>
+                    <name>Interlingua (ia)</name>
+                    <name lang="de-DE">Interlingua (ia)</name>
+                </option>
+                <option>
+                    <id>id</id>
+                    <name>Indonesian (id)</name>
+                    <name lang="de-DE">Indonesisch (id)</name>
+                </option>
+                <option>
+                    <id>ie</id>
+                    <name>Interlingue (ie)</name>
+                    <name lang="de-DE">Interlingue (ie)</name>
+                </option>
+                <option>
+                    <id>ig</id>
+                    <name>Igbo (ig)</name>
+                    <name lang="de-DE">Igbo (ig)</name>
+                </option>
+                <option>
+                    <id>ii</id>
+                    <name>Sichuan Yi (ii)</name>
+                    <name lang="de-DE">Yi (ii)</name>
+                </option>
+                <option>
+                    <id>ik</id>
+                    <name>Inupiaq (ik)</name>
+                    <name lang="de-DE">Inupiak (ik)</name>
+                </option>
+                <option>
+                    <id>io</id>
+                    <name>Ido (io)</name>
+                    <name lang="de-DE">Ido (io)</name>
+                </option>
+                <option>
+                    <id>is</id>
+                    <name>Icelandic (is)</name>
+                    <name lang="de-DE">Isländisch (is)</name>
+                </option>
+                <option>
+                    <id>it</id>
+                    <name>Italian (it)</name>
+                    <name lang="de-DE">Italienisch (it)</name>
+                </option>
+                <option>
+                    <id>iu</id>
+                    <name>Inuktitut (iu)</name>
+                    <name lang="de-DE">Inuktitut (iu)</name>
+                </option>
+                <option>
+                    <id>ja</id>
+                    <name>Japanese (ja)</name>
+                    <name lang="de-DE">Japanisch (ja)</name>
+                </option>
+                <option>
+                    <id>jv</id>
+                    <name>Javanese (jv)</name>
+                    <name lang="de-DE">Javanisch (jv)</name>
+                </option>
+                <option>
+                    <id>ka</id>
+                    <name>Georgian (ka)</name>
+                    <name lang="de-DE">Georgisch (ka)</name>
+                </option>
+                <option>
+                    <id>kg</id>
+                    <name>Kongo (kg)</name>
+                    <name lang="de-DE">Kongolesisch (kg)</name>
+                </option>
+                <option>
+                    <id>ki</id>
+                    <name>Kikuyu (ki)</name>
+                    <name lang="de-DE">Kikuyu (ki)</name>
+                </option>
+                <option>
+                    <id>kj</id>
+                    <name>Kuanyama (kj)</name>
+                    <name lang="de-DE">Kwanyama (kj)</name>
+                </option>
+                <option>
+                    <id>kk</id>
+                    <name>Kazakh (kk)</name>
+                    <name lang="de-DE">Kasachisch (kk)</name>
+                </option>
+                <option>
+                    <id>kl</id>
+                    <name>Kalaallisut (kl)</name>
+                    <name lang="de-DE">Grönländisch (kl)</name>
+                </option>
+                <option>
+                    <id>km</id>
+                    <name>Khmer (km)</name>
+                    <name lang="de-DE">Khmer (km)</name>
+                </option>
+                <option>
+                    <id>kn</id>
+                    <name>Kannada (kn)</name>
+                    <name lang="de-DE">Kannada (kn)</name>
+                </option>
+                <option>
+                    <id>ko</id>
+                    <name>Korean (ko)</name>
+                    <name lang="de-DE">Koreanisch (ko)</name>
+                </option>
+                <option>
+                    <id>kr</id>
+                    <name>Kanuri (kr)</name>
+                    <name lang="de-DE">Kanuri (kr)</name>
+                </option>
+                <option>
+                    <id>ks</id>
+                    <name>Kashmiri (ks)</name>
+                    <name lang="de-DE">Kaschmiri (ks)</name>
+                </option>
+                <option>
+                    <id>ku</id>
+                    <name>Kurdish (ku)</name>
+                    <name lang="de-DE">Kurdisch (ku)</name>
+                </option>
+                <option>
+                    <id>kv</id>
+                    <name>Komi (kv)</name>
+                    <name lang="de-DE">Komi (kv)</name>
+                </option>
+                <option>
+                    <id>kw</id>
+                    <name>Cornish (kw)</name>
+                    <name lang="de-DE">Kornisch (kw)</name>
+                </option>
+                <option>
+                    <id>ky</id>
+                    <name>Kyrgyz (ky)</name>
+                    <name lang="de-DE">Kirgisisch (ky)</name>
+                </option>
+                <option>
+                    <id>la</id>
+                    <name>Latin (la)</name>
+                    <name lang="de-DE">Latein (la)</name>
+                </option>
+                <option>
+                    <id>lb</id>
+                    <name>Luxembourgish (lb)</name>
+                    <name lang="de-DE">Luxemburgisch (lb)</name>
+                </option>
+                <option>
+                    <id>lg</id>
+                    <name>Ganda (lg)</name>
+                    <name lang="de-DE">Ganda (lg)</name>
+                </option>
+                <option>
+                    <id>li</id>
+                    <name>Limburgish (li)</name>
+                    <name lang="de-DE">Limburgisch (li)</name>
+                </option>
+                <option>
+                    <id>ln</id>
+                    <name>Lingala (ln)</name>
+                    <name lang="de-DE">Lingala (ln)</name>
+                </option>
+                <option>
+                    <id>lo</id>
+                    <name>Lao (lo)</name>
+                    <name lang="de-DE">Laotisch (lo)</name>
+                </option>
+                <option>
+                    <id>lt</id>
+                    <name>Lithuanian (lt)</name>
+                    <name lang="de-DE">Litauisch (lt)</name>
+                </option>
+                <option>
+                    <id>lu</id>
+                    <name>Luba-Katanga (lu)</name>
+                    <name lang="de-DE">Luba-Katanga (lu)</name>
+                </option>
+                <option>
+                    <id>lv</id>
+                    <name>Latvian (lv)</name>
+                    <name lang="de-DE">Lettisch (lv)</name>
+                </option>
+                <option>
+                    <id>mg</id>
+                    <name>Malagasy (mg)</name>
+                    <name lang="de-DE">Malagasy (mg)</name>
+                </option>
+                <option>
+                    <id>mh</id>
+                    <name>Marshallese (mh)</name>
+                    <name lang="de-DE">Marschallesisch (mh)</name>
+                </option>
+                <option>
+                    <id>mi</id>
+                    <name>Māori (mi)</name>
+                    <name lang="de-DE">Māori (mi)</name>
+                </option>
+                <option>
+                    <id>mk</id>
+                    <name>Macedonian (mk)</name>
+                    <name lang="de-DE">Mazedonisch (mk)</name>
+                </option>
+                <option>
+                    <id>ml</id>
+                    <name>Malayalam (ml)</name>
+                    <name lang="de-DE">Malayalam (ml)</name>
+                </option>
+                <option>
+                    <id>mn</id>
+                    <name>Mongolian (mn)</name>
+                    <name lang="de-DE">Mongolisch (mn)</name>
+                </option>
+                <option>
+                    <id>mr</id>
+                    <name>Marathi (mr)</name>
+                    <name lang="de-DE">Marathi (mr)</name>
+                </option>
+                <option>
+                    <id>ms</id>
+                    <name>Malay (ms)</name>
+                    <name lang="de-DE">Malaiisch (ms)</name>
+                </option>
+                <option>
+                    <id>mt</id>
+                    <name>Maltese (mt)</name>
+                    <name lang="de-DE">Maltesisch (mt)</name>
+                </option>
+                <option>
+                    <id>my</id>
+                    <name>Burmese (my)</name>
+                    <name lang="de-DE">Birmanisch (my)</name>
+                </option>
+                <option>
+                    <id>na</id>
+                    <name>Nauru (na)</name>
+                    <name lang="de-DE">Nauruisch (na)</name>
+                </option>
+                <option>
+                    <id>nb</id>
+                    <name>Norwegian Bokmål (nb)</name>
+                    <name lang="de-DE">Norwegisch (Bokmål) (nb)</name>
+                </option>
+                <option>
+                    <id>nd</id>
+                    <name>North Ndebele (nd)</name>
+                    <name lang="de-DE">Nord-Ndebele (nd)</name>
+                </option>
+                <option>
+                    <id>ne</id>
+                    <name>Nepali (ne)</name>
+                    <name lang="de-DE">Nepalesisch (ne)</name>
+                </option>
+                <option>
+                    <id>ng</id>
+                    <name>Ndonga (ng)</name>
+                    <name lang="de-DE">Ndonga (ng)</name>
+                </option>
+                <option>
+                    <id>nl</id>
+                    <name>Dutch (nl)</name>
+                    <name lang="de-DE">Niederländisch (nl)</name>
+                </option>
+                <option>
+                    <id>nn</id>
+                    <name>Norwegian Nynorsk (nn)</name>
+                    <name lang="de-DE">Norwegisch (Nynorsk) (nn)</name>
+                </option>
+                <option>
+                    <id>no</id>
+                    <name>Norwegian (no)</name>
+                    <name lang="de-DE">Norwegisch (no)</name>
+                </option>
+                <option>
+                    <id>nr</id>
+                    <name>South Ndebele (nr)</name>
+                    <name lang="de-DE">Süd-Ndebele (nr)</name>
+                </option>
+                <option>
+                    <id>nv</id>
+                    <name>Navajo (nv)</name>
+                    <name lang="de-DE">Navajo (nv)</name>
+                </option>
+                <option>
+                    <id>ny</id>
+                    <name>Nyanja (ny)</name>
+                    <name lang="de-DE">Nyanja (ny)</name>
+                </option>
+                <option>
+                    <id>oc</id>
+                    <name>Occitan (oc)</name>
+                    <name lang="de-DE">Okzitanisch (oc)</name>
+                </option>
+                <option>
+                    <id>oj</id>
+                    <name>Ojibwa (oj)</name>
+                    <name lang="de-DE">Ojibwa (oj)</name>
+                </option>
+                <option>
+                    <id>om</id>
+                    <name>Oromo (om)</name>
+                    <name lang="de-DE">Oromo (om)</name>
+                </option>
+                <option>
+                    <id>or</id>
+                    <name>Odia (or)</name>
+                    <name lang="de-DE">Oriya (or)</name>
+                </option>
+                <option>
+                    <id>os</id>
+                    <name>Ossetic (os)</name>
+                    <name lang="de-DE">Ossetisch (os)</name>
+                </option>
+                <option>
+                    <id>pa</id>
+                    <name>Punjabi (pa)</name>
+                    <name lang="de-DE">Punjabi (pa)</name>
+                </option>
+                <option>
+                    <id>pi</id>
+                    <name>Pali (pi)</name>
+                    <name lang="de-DE">Pali (pi)</name>
+                </option>
+                <option>
+                    <id>pl</id>
+                    <name>Polish (pl)</name>
+                    <name lang="de-DE">Polnisch (pl)</name>
+                </option>
+                <option>
+                    <id>ps</id>
+                    <name>Pashto (ps)</name>
+                    <name lang="de-DE">Paschtu (ps)</name>
+                </option>
+                <option>
+                    <id>pt</id>
+                    <name>Portuguese (pt)</name>
+                    <name lang="de-DE">Portugiesisch (pt)</name>
+                </option>
+                <option>
+                    <id>qu</id>
+                    <name>Quechua (qu)</name>
+                    <name lang="de-DE">Quechua (qu)</name>
+                </option>
+                <option>
+                    <id>rm</id>
+                    <name>Romansh (rm)</name>
+                    <name lang="de-DE">Rätoromanisch (rm)</name>
+                </option>
+                <option>
+                    <id>rn</id>
+                    <name>Rundi (rn)</name>
+                    <name lang="de-DE">Rundi (rn)</name>
+                </option>
+                <option>
+                    <id>ro</id>
+                    <name>Romanian (ro)</name>
+                    <name lang="de-DE">Rumänisch (ro)</name>
+                </option>
+                <option>
+                    <id>ru</id>
+                    <name>Russian (ru)</name>
+                    <name lang="de-DE">Russisch (ru)</name>
+                </option>
+                <option>
+                    <id>rw</id>
+                    <name>Kinyarwanda (rw)</name>
+                    <name lang="de-DE">Kinyarwanda (rw)</name>
+                </option>
+                <option>
+                    <id>sa</id>
+                    <name>Sanskrit (sa)</name>
+                    <name lang="de-DE">Sanskrit (sa)</name>
+                </option>
+                <option>
+                    <id>sc</id>
+                    <name>Sardinian (sc)</name>
+                    <name lang="de-DE">Sardisch (sc)</name>
+                </option>
+                <option>
+                    <id>sd</id>
+                    <name>Sindhi (sd)</name>
+                    <name lang="de-DE">Sindhi (sd)</name>
+                </option>
+                <option>
+                    <id>se</id>
+                    <name>Northern Sami (se)</name>
+                    <name lang="de-DE">Nordsamisch (se)</name>
+                </option>
+                <option>
+                    <id>sg</id>
+                    <name>Sango (sg)</name>
+                    <name lang="de-DE">Sango (sg)</name>
+                </option>
+                <option>
+                    <id>sh</id>
+                    <name>Serbo-Croatian (sh)</name>
+                    <name lang="de-DE">Serbo-Kroatisch (sh)</name>
+                </option>
+                <option>
+                    <id>si</id>
+                    <name>Sinhala (si)</name>
+                    <name lang="de-DE">Singhalesisch (si)</name>
+                </option>
+                <option>
+                    <id>sk</id>
+                    <name>Slovak (sk)</name>
+                    <name lang="de-DE">Slowakisch (sk)</name>
+                </option>
+                <option>
+                    <id>sl</id>
+                    <name>Slovenian (sl)</name>
+                    <name lang="de-DE">Slowenisch (sl)</name>
+                </option>
+                <option>
+                    <id>sm</id>
+                    <name>Samoan (sm)</name>
+                    <name lang="de-DE">Samoanisch (sm)</name>
+                </option>
+                <option>
+                    <id>sn</id>
+                    <name>Shona (sn)</name>
+                    <name lang="de-DE">Shona (sn)</name>
+                </option>
+                <option>
+                    <id>so</id>
+                    <name>Somali (so)</name>
+                    <name lang="de-DE">Somali (so)</name>
+                </option>
+                <option>
+                    <id>sq</id>
+                    <name>Albanian (sq)</name>
+                    <name lang="de-DE">Albanisch (sq)</name>
+                </option>
+                <option>
+                    <id>sr</id>
+                    <name>Serbian (sr)</name>
+                    <name lang="de-DE">Serbisch (sr)</name>
+                </option>
+                <option>
+                    <id>ss</id>
+                    <name>Swati (ss)</name>
+                    <name lang="de-DE">Swazi (ss)</name>
+                </option>
+                <option>
+                    <id>st</id>
+                    <name>Southern Sotho (st)</name>
+                    <name lang="de-DE">Süd-Sotho (st)</name>
+                </option>
+                <option>
+                    <id>su</id>
+                    <name>Sundanese (su)</name>
+                    <name lang="de-DE">Sundanesisch (su)</name>
+                </option>
+                <option>
+                    <id>sv</id>
+                    <name>Swedish (sv)</name>
+                    <name lang="de-DE">Schwedisch (sv)</name>
+                </option>
+                <option>
+                    <id>sw</id>
+                    <name>Swahili (sw)</name>
+                    <name lang="de-DE">Suaheli (sw)</name>
+                </option>
+                <option>
+                    <id>ta</id>
+                    <name>Tamil (ta)</name>
+                    <name lang="de-DE">Tamil (ta)</name>
+                </option>
+                <option>
+                    <id>te</id>
+                    <name>Telugu (te)</name>
+                    <name lang="de-DE">Telugu (te)</name>
+                </option>
+                <option>
+                    <id>tg</id>
+                    <name>Tajik (tg)</name>
+                    <name lang="de-DE">Tadschikisch (tg)</name>
+                </option>
+                <option>
+                    <id>th</id>
+                    <name>Thai (th)</name>
+                    <name lang="de-DE">Thailändisch (th)</name>
+                </option>
+                <option>
+                    <id>ti</id>
+                    <name>Tigrinya (ti)</name>
+                    <name lang="de-DE">Tigrinya (ti)</name>
+                </option>
+                <option>
+                    <id>tk</id>
+                    <name>Turkmen (tk)</name>
+                    <name lang="de-DE">Turkmenisch (tk)</name>
+                </option>
+                <option>
+                    <id>tl</id>
+                    <name>Tagalog (tl)</name>
+                    <name lang="de-DE">Tagalog (tl)</name>
+                </option>
+                <option>
+                    <id>tn</id>
+                    <name>Tswana (tn)</name>
+                    <name lang="de-DE">Tswana (tn)</name>
+                </option>
+                <option>
+                    <id>to</id>
+                    <name>Tongan (to)</name>
+                    <name lang="de-DE">Tongaisch (to)</name>
+                </option>
+                <option>
+                    <id>tr</id>
+                    <name>Turkish (tr)</name>
+                    <name lang="de-DE">Türkisch (tr)</name>
+                </option>
+                <option>
+                    <id>ts</id>
+                    <name>Tsonga (ts)</name>
+                    <name lang="de-DE">Tsonga (ts)</name>
+                </option>
+                <option>
+                    <id>tt</id>
+                    <name>Tatar (tt)</name>
+                    <name lang="de-DE">Tatarisch (tt)</name>
+                </option>
+                <option>
+                    <id>tw</id>
+                    <name>Twi (tw)</name>
+                    <name lang="de-DE">Twi (tw)</name>
+                </option>
+                <option>
+                    <id>ty</id>
+                    <name>Tahitian (ty)</name>
+                    <name lang="de-DE">Tahitisch (ty)</name>
+                </option>
+                <option>
+                    <id>ug</id>
+                    <name>Uyghur (ug)</name>
+                    <name lang="de-DE">Uigurisch (ug)</name>
+                </option>
+                <option>
+                    <id>uk</id>
+                    <name>Ukrainian (uk)</name>
+                    <name lang="de-DE">Ukrainisch (uk)</name>
+                </option>
+                <option>
+                    <id>ur</id>
+                    <name>Urdu (ur)</name>
+                    <name lang="de-DE">Urdu (ur)</name>
+                </option>
+                <option>
+                    <id>uz</id>
+                    <name>Uzbek (uz)</name>
+                    <name lang="de-DE">Usbekisch (uz)</name>
+                </option>
+                <option>
+                    <id>ve</id>
+                    <name>Venda (ve)</name>
+                    <name lang="de-DE">Venda (ve)</name>
+                </option>
+                <option>
+                    <id>vi</id>
+                    <name>Vietnamese (vi)</name>
+                    <name lang="de-DE">Vietnamesisch (vi)</name>
+                </option>
+                <option>
+                    <id>vo</id>
+                    <name>Volapük (vo)</name>
+                    <name lang="de-DE">Volapük (vo)</name>
+                </option>
+                <option>
+                    <id>wa</id>
+                    <name>Walloon (wa)</name>
+                    <name lang="de-DE">Wallonisch (wa)</name>
+                </option>
+                <option>
+                    <id>wo</id>
+                    <name>Wolof (wo)</name>
+                    <name lang="de-DE">Wolof (wo)</name>
+                </option>
+                <option>
+                    <id>xh</id>
+                    <name>Xhosa (xh)</name>
+                    <name lang="de-DE">Xhosa (xh)</name>
+                </option>
+                <option>
+                    <id>yi</id>
+                    <name>Yiddish (yi)</name>
+                    <name lang="de-DE">Jiddisch (yi)</name>
+                </option>
+                <option>
+                    <id>yo</id>
+                    <name>Yoruba (yo)</name>
+                    <name lang="de-DE">Yoruba (yo)</name>
+                </option>
+                <option>
+                    <id>za</id>
+                    <name>Zhuang (za)</name>
+                    <name lang="de-DE">Zhuang (za)</name>
+                </option>
+                <option>
+                    <id>zh</id>
+                    <name>Chinese (zh)</name>
+                    <name lang="de-DE">Chinesisch (zh)</name>
+                </option>
+                <option>
+                    <id>zu</id>
+                    <name>Zulu (zu)</name>
+                    <name lang="de-DE">Zulu (zu)</name>
+                </option>
+            </options>
+        </input-field>
+
+        <input-field type="int">
+            <name>basketThumbnailMaxWidth</name>
+            <label>Basket thumbnail max width (px)</label>
+            <label lang="de-DE">Max. Breite des Warenkorb-Vorschaubilds (px)</label>
+            <helpText>Maximum width, in pixels, of the design thumbnail the editor generates for the basket/cart. Leave empty to use the editor's own default. Capped at 1000px regardless of what's entered here.</helpText>
+            <helpText lang="de-DE">Maximale Breite in Pixeln des vom Editor für den Warenkorb erzeugten Design-Vorschaubilds. Leer lassen, um die Standardeinstellung des Editors zu verwenden. Unabhängig von der Eingabe auf 1000px begrenzt.</helpText>
+        </input-field>
+
+        <input-field type="int">
+            <name>basketThumbnailMaxHeight</name>
+            <label>Basket thumbnail max height (px)</label>
+            <label lang="de-DE">Max. Höhe des Warenkorb-Vorschaubilds (px)</label>
+            <helpText>Maximum height, in pixels, of the design thumbnail the editor generates for the basket/cart. Leave empty to use the editor's own default. Capped at 1000px regardless of what's entered here.</helpText>
+            <helpText lang="de-DE">Maximale Höhe in Pixeln des vom Editor für den Warenkorb erzeugten Design-Vorschaubilds. Leer lassen, um die Standardeinstellung des Editors zu verwenden. Unabhängig von der Eingabe auf 1000px begrenzt.</helpText>
+        </input-field>
+    </card>
+
+    <card>
+        <title>API</title>
+        <title lang="de-DE">API</title>
+
+        <input-field type="text">
+            <name>apiDomain</name>
+            <label>Printess API domain</label>
+            <label lang="de-DE">Printess API-Domain</label>
             <defaultValue>api.printess.com</defaultValue>
         </input-field>
+    </card>
 
-        <input-field type="text">
-            <name>StartupLogoUrl</name>
-            <label>Startup logo URL (Old deprecated iFrame Ui only)</label>
-            <defaultValue></defaultValue>
-        </input-field>
+    <card>
+        <title>Production</title>
+        <title lang="de-DE">Produktion</title>
 
-        <input-field type="checkbox">
-            <name>ShowStartupAnimation</name>
-            <label>Show startup star animation (Old deprecated iFrame Ui only)</label>
-            <defaultValue>true</defaultValue>
+        <component name="printess-print-setting-select">
+            <name>printSettingName</name>
+            <label>Print setting</label>
+            <label lang="de-DE">Druckeinstellung</label>
+            <helpText>Output/print setting (format, resolution, ...) used when producing PDFs/images for orders, configured in Printess. Leave as "No setting" to use Printess's own defaults. Can be overridden per product.</helpText>
+            <helpText lang="de-DE">Ausgabe-/Druckeinstellung (Format, Auflösung, ...), die bei der PDF-/Bildproduktion für Bestellungen verwendet wird, konfiguriert in Printess. Bei "Keine Einstellung" werden die Standardwerte von Printess verwendet. Kann pro Produkt überschrieben werden.</helpText>
+        </component>
+
+        <component name="printess-dropshipping-select">
+            <name>dropshippingConfig</name>
+            <label>Dropshipping</label>
+            <label lang="de-DE">Dropshipping</label>
+            <helpText>Whether orders should be routed to a Printess dropshipper for production, and if so, which dropship product definition to use. Can be overridden per product.</helpText>
+            <helpText lang="de-DE">Ob Bestellungen zur Produktion an einen Printess-Dropshipper weitergeleitet werden sollen und, falls ja, welche Dropship-Produktdefinition verwendet wird. Kann pro Produkt überschrieben werden.</helpText>
+        </component>
+
+        <input-field type="bool">
+            <name>approveDesignsBeforeProduction</name>
+            <label>Approve designs before production</label>
+            <label lang="de-DE">Designs vor der Produktion freigeben</label>
+            <helpText>If enabled, designs inside paid order line items must be manually approved before PDF/image production starts.</helpText>
+            <helpText lang="de-DE">Wenn aktiviert, müssen Designs in bezahlten Bestellpositionen manuell freigegeben werden, bevor die PDF-/Bildproduktion startet.</helpText>
+            <defaultValue>false</defaultValue>
         </input-field>
-        <input-field type="text">
-            <name>Theme</name>
-            <label>Theme</label>
-            <defaultValue></defaultValue>
+    </card>
+
+    <card>
+        <title>Product settings</title>
+        <title lang="de-DE">Produkteinstellungen</title>
+
+        <input-field type="bool">
+            <name>perLanguageProductSettings</name>
+            <label>Allow different Printess settings per language</label>
+            <label lang="de-DE">Unterschiedliche Printess-Einstellungen pro Sprache erlauben</label>
+            <helpText>A product's Printess template, form fields, merge templates, print setting and dropshipping configuration are stored per language. If disabled (default), the shop's default language version of these settings is always used and shown, regardless of which language is currently being edited or ordered in. Enable this only if you actually need these settings to differ between languages.</helpText>
+            <helpText lang="de-DE">Das Printess-Template, die Formularfelder, Merge-Templates, die Druckeinstellung und die Dropshipping-Konfiguration eines Produkts werden pro Sprache gespeichert. Wenn deaktiviert (Standard), wird immer die Version dieser Einstellungen in der Standardsprache des Shops verwendet und angezeigt, unabhängig davon, welche Sprache gerade bearbeitet wird oder bestellt wurde. Nur aktivieren, wenn diese Einstellungen tatsächlich je Sprache unterschiedlich sein müssen.</helpText>
+            <defaultValue>false</defaultValue>
         </input-field>
-        <input-field type="checkbox">
-            <name>ShowPricesInEditor</name>
-            <label>Show prices in editor</label>
-            <defaultValue>true</defaultValue>
+    </card>
+
+    <card>
+        <title>Saved designs</title>
+        <title lang="de-DE">Gespeicherte Designs</title>
+
+        <input-field type="bool">
+            <name>enableDesignSaving</name>
+            <label>Allow customers to save designs to their account</label>
+            <label lang="de-DE">Kunden erlauben, Designs im Konto zu speichern</label>
+            <helpText>When enabled, the "Save" option inside the editor lets a customer save their current design to their account and come back to it later, prompting them to log in or register first if needed. Only affects the product page for now.</helpText>
+            <helpText lang="de-DE">Wenn aktiviert, kann ein Kunde sein aktuelles Design über die "Speichern"-Option im Editor im eigenen Konto speichern und später fortsetzen; falls nötig, wird er vorher zur Anmeldung oder Registrierung aufgefordert. Betrifft vorerst nur die Produktseite.</helpText>
+            <defaultValue>false</defaultValue>
         </input-field>
-        <input-field type="text">
-            <name>LegalGrossPriceInfo</name>
-            <label>Legal gross price info</label>
-            <defaultValue>excl. taxes</defaultValue>
-        </input-field>
-        <input-field type="text">
-            <name>LegalNetPriceInfo</name>
-            <label>Legal net price info</label>
-            <defaultValue>incl. taxes</defaultValue>
-        </input-field>
-        <input-field type="checkbox">
-            <name>ShowProductNameInEditor</name>
-            <label>Show product name in editor</label>
+    </card>
+
+    <card>
+        <title>Order confirmation email</title>
+        <title lang="de-DE">Bestellbestätigungs-E-Mail</title>
+
+        <input-field type="bool">
+            <name>orderMailThumbnailReplacementEnabled</name>
+            <label>Show the personalized design instead of the product image</label>
+            <label lang="de-DE">Personalisiertes Design statt Produktbild anzeigen</label>
+            <helpText>When enabled (default), a personalized order line item automatically shows its actual design thumbnail instead of the product's regular image in order-related emails (e.g. the order confirmation) - for every language, and even if you have customized your email templates yourself. You do not need to change anything in your templates for this: it works by swapping the image behind the existing "{{ nestedItem.cover.url }}" (or however your template's loop variable is named, e.g. "{{ item.cover.url }}") right before the email is sent, not by editing the template text. Only reference "{{ nestedItem.payload._printessThumbnailUrl }}" yourself if you want to handle personalized items differently on purpose (e.g. an extra "Personalized" badge): it holds the design thumbnail's URL on a personalized line item, but is empty on a regular product - so always guard it with a fallback to "{{ nestedItem.cover.url }}" (via an if/else) rather than using it on its own, since used alone it would show a broken image for every non-personalized item. Disable this toggle if the automatic replacement ever causes a problem with your specific email templates.</helpText>
+            <helpText lang="de-DE">Wenn aktiviert (Standard), zeigt eine personalisierte Bestellposition in Bestell-E-Mails (z. B. der Bestellbestätigung) automatisch das tatsächliche Design-Vorschaubild anstelle des regulären Produktbilds an - für jede Sprache und selbst wenn du deine E-Mail-Vorlagen selbst angepasst hast. Du musst dafür nichts an deinen Vorlagen ändern: Es funktioniert, indem das Bild hinter dem vorhandenen "{{ nestedItem.cover.url }}" (bzw. wie auch immer die Schleifenvariable deiner Vorlage heißt, z. B. "{{ item.cover.url }}") direkt vor dem Versand ausgetauscht wird, nicht durch Bearbeiten des Vorlagentexts. Verwende "{{ nestedItem.payload._printessThumbnailUrl }}" nur dann selbst, wenn du personalisierte Artikel bewusst anders behandeln möchtest (z. B. ein zusätzliches Badge "Personalisiert"): Sie enthält bei einer personalisierten Bestellposition die URL des Design-Vorschaubilds, ist bei einem regulären Produkt aber leer - sichere sie daher immer mit einem Fallback auf "{{ nestedItem.cover.url }}" ab (über if/else), statt sie allein zu verwenden, da sie allein verwendet bei jedem nicht personalisierten Artikel ein defektes Bild anzeigen würde. Deaktiviere diesen Schalter, falls die automatische Ersetzung bei deinen konkreten E-Mail-Vorlagen jemals zu Problemen führt.</helpText>
             <defaultValue>true</defaultValue>
         </input-field>
     </card>
-</config> 
+
+    <card>
+        <title>Debugging</title>
+        <title lang="de-DE">Fehlerbehebung</title>
+
+        <input-field type="bool">
+            <name>debugMode</name>
+            <label>Enable storefront debug logging</label>
+            <label lang="de-DE">Storefront-Debug-Protokollierung aktivieren</label>
+            <helpText>If enabled, the buyer-side editor integration logs details to the browser console: the form field values/merge templates sent to the editor, form field change callbacks, and which variant is switched to (with all variant option values used). Intended for troubleshooting only.</helpText>
+            <helpText lang="de-DE">Wenn aktiviert, protokolliert die Buyer-Side-Editor-Integration Details in der Browser-Konsole: die an den Editor gesendeten Formularfeldwerte/Merge-Templates, Formularfeldänderungen sowie zu welcher Variante gewechselt wird (mit allen verwendeten Variantenwerten). Nur für die Fehlerbehebung gedacht.</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+    </card>
+</config>

@@ -1,0 +1,125 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% block printess_dropshipping_select %}
+<div class="printess-dropshipping-select">
+    <mt-select
+        label=""
+        class="printess-dropshipping-select__mode"
+        :model-value="mode"
+        :options="modeOptions"
+        :disabled="disabled"
+        @update:model-value="onModeChange"
+    />
+
+    <mt-banner
+        v-if="mode === 'dropshipping' && loadError"
+        variant="critical"
+        class="printess-dropshipping-select__error"
+    >
+        {{ loadError }}
+    </mt-banner>
+
+    <div
+        v-else-if="mode === 'dropshipping'"
+        class="printess-dropshipping-select__product-definition-combobox"
+    >
+        <div
+            class="mt-field mt-field--text printess-dropshipping-select__product-definition"
+            :class="{ 'has--focus': isProductDefinitionDropdownOpen, 'is--disabled': disabled || isLoading }"
+        >
+            <div class="mt-block-field__block">
+                <input
+                    type="text"
+                    class="printess-dropshipping-select__product-definition-input"
+                    autocomplete="off"
+                    :disabled="disabled || isLoading"
+                    :placeholder="isLoading
+                        ? $t('printess-shopware-integration.dropshippingSelect.loadingProductDefinitions')
+                        : $t('printess-shopware-integration.dropshippingSelect.selectProductDefinitionPlaceholder')"
+                    :value="productDefinitionInputValue"
+                    role="combobox"
+                    aria-haspopup="listbox"
+                    :aria-expanded="isProductDefinitionDropdownOpen"
+                    @focus="openProductDefinitionDropdown"
+                    @input="onProductDefinitionSearchInput"
+                    @keydown="onProductDefinitionSearchKeydown"
+                >
+
+                <div class="mt-field__addition">
+                    <mt-icon name="regular-chevron-down-xs" size="12px" color="var(--color-icon-primary-default)" />
+                </div>
+            </div>
+
+            <div
+                v-if="isProductDefinitionDropdownOpen"
+                class="printess-dropshipping-select__product-definition-popover"
+                role="listbox"
+            >
+                <template v-if="filteredGroupedProductDefinitions.length > 0">
+                    <ul
+                        v-for="group in filteredGroupedProductDefinitions"
+                        :key="group.name"
+                        class="printess-dropshipping-select__product-definition-group"
+                    >
+                        <li class="printess-dropshipping-select__product-definition-group-label">
+                            {{ group.name }}
+                        </li>
+
+                        <li
+                            v-for="definition in group.definitions"
+                            :key="definition.id"
+                            class="printess-dropshipping-select__product-definition-option"
+                            :class="{
+                                'is--active': definition.id === highlightedDefinitionId,
+                                'is--selected': definition.id === productDefinitionId,
+                            }"
+                            role="option"
+                            :aria-selected="definition.id === productDefinitionId"
+                            @mouseenter="highlightedDefinitionId = definition.id"
+                            @mousedown.prevent="selectProductDefinition(definition)"
+                        >
+                            {{ definition.label }}
+                        </li>
+                    </ul>
+                </template>
+
+                <p v-else class="printess-dropshipping-select__product-definition-empty">
+                    {{ $t('printess-shopware-integration.dropshippingSelect.noProductDefinitionsFound') }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <mt-banner
+        v-else-if="mode === 'template'"
+        variant="attention"
+        class="printess-dropshipping-select__template-hint"
+    >
+        {{ $t('printess-shopware-integration.dropshippingSelect.templateSettingsHint') }}
+    </mt-banner>
+</div>
+{% endblock %}

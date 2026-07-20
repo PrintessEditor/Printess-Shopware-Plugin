@@ -1,1 +1,0 @@
-"use strict";(window["webpackJsonpPluginprintess-editor"]=window["webpackJsonpPluginprintess-editor"]||[]).push([[567],{567:function(n,e,t){t.r(e),t.d(e,{default:function(){return s}});var s=Shopware.Component.wrapComponentConfig("sw-order-detail-printess",{template:"<span>Printess</span>"})}}]);

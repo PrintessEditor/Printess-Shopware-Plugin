@@ -1,32 +1,27 @@
 {
-    "name": "printess-editor/printess-editor",
-    "description": "printess-editor/printess-editor",
+    "name": "printess/printess-shopware-integration",
+    "description": "Printess personalized editor integration for Shopware",
     "authors": [
         {
             "name": "Printess GmbH & Co. Kg"
-        },
-        {
-            "name": "Alexander Oser"
         }
     ],
     "type": "shopware-platform-plugin",
-    "version": "1.0.8",
+    "version": "1.0.0",
     "license": "MIT",
+    "require": {
+        "shopware/core": "6.7.*"
+    },
     "extra": {
-        "shopware-plugin-class": "PrintessEditor\\PrintessEditor",
+        "shopware-plugin-class": "PrintessShopwareIntegration\\PrintessShopwareIntegration",
         "label": {
-            "de-DE": "Printess Editor",
-            "en-GB": "Printess Editor"
+            "de-DE": "Printess Shopware Integration",
+            "en-GB": "Printess Shopware Integration"
         }
     },
     "autoload": {
         "psr-4": {
-            "PrintessEditor\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "PrintessEditor\\Tests\\": "tests/"
+            "PrintessShopwareIntegration\\": "src/"
         }
     }
 }

@@ -1,0 +1,53 @@
+{
+    "printess": {
+        "cartItem": {
+            "editButton": "Design bearbeiten",
+            "reorderButton": "Erneut bestellen",
+            "priceBreakdown": {
+                "additionalPages": "{1} 1 zusätzliche Seite|[0,Inf[ %count% zusätzliche Seiten"
+            }
+        },
+        "cartItemEditor": {
+            "title": "Bearbeite dein Design"
+        },
+        "savedDesignResume": {
+            "title": "Setze dein gespeichertes Design fort",
+            "notFoundError": "Wir konnten kein gespeichertes Design zum Fortsetzen finden. Bitte starte erneut auf der Produktseite.",
+            "updateModalTitle": "Gespeichertes Design aktualisieren?",
+            "updateModalBody": "Möchtest du diese Änderungen auch in deinem gespeicherten Design speichern? Andernfalls werden sie nur in dem Artikel im Warenkorb übernommen.",
+            "updateModalConfirm": "Ja, mein gespeichertes Design aktualisieren",
+            "updateModalDecline": "Nein, nur in den Warenkorb legen"
+        },
+        "savedDesigns": {
+            "navLink": "Meine gespeicherten Designs",
+            "title": "Meine gespeicherten Designs",
+            "emptyState": "Du hast noch keine Designs gespeichert.",
+            "savedOnLabel": "Gespeichert am %date%",
+            "expiresOnLabel": "Verfügbar bis %date%",
+            "deleteButton": "Löschen",
+            "deleteConfirm": "Möchtest du dieses gespeicherte Design wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
+            "deleteSuccess": "Dein gespeichertes Design wurde gelöscht.",
+            "deleteError": "Das gespeicherte Design konnte nicht gelöscht werden. Bitte versuche es erneut.",
+            "renameLabel": "Umbenennen",
+            "renameSuccess": "Dein gespeichertes Design wurde umbenannt.",
+            "renameError": "Das gespeicherte Design konnte nicht umbenannt werden. Bitte versuche es erneut.",
+            "renameModalTitle": "Gespeichertes Design umbenennen",
+            "renameModalLabel": "Designname",
+            "renameModalSave": "Speichern",
+            "renameModalCancel": "Abbrechen",
+            "searchLabel": "Gespeicherte Designs durchsuchen",
+            "searchPlaceholder": "Nach Produkt- oder Designname suchen",
+            "noResults": "Keine gespeicherten Designs entsprechen deiner Suche.",
+            "editTokenLabel": "Save Token bearbeiten",
+            "editTokenModalTitle": "Save Token bearbeiten",
+            "editTokenModalHint": "Admin-Werkzeug: Dies verweist dieses gespeicherte Design auf einen anderen Save Token/Thumbnail. Es wird ein neuer Eintrag mit den untenstehenden Werten angelegt, anschließend wird der ursprüngliche Eintrag endgültig gelöscht.",
+            "editTokenModalSaveTokenLabel": "Save Token",
+            "editTokenModalThumbnailUrlLabel": "Thumbnail-URL",
+            "editTokenModalCancel": "Abbrechen",
+            "editTokenModalSave": "Speichern",
+            "editTokenSaveTokenRequired": "Ein Save Token ist erforderlich.",
+            "editTokenSaving": "Gespeichertes Design wird umgeleitet…",
+            "editTokenError": "Etwas ist schiefgelaufen - Details in der Browser-Konsole."
+        }
+    }
+}

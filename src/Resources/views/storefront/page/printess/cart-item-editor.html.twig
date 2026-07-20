@@ -1,0 +1,55 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% sw_extends '@Storefront/storefront/base.html.twig' %}
+
+{% block base_content %}
+    <div class="printess-cart-item-editor container">
+        <h1 class="printess-cart-item-editor__title">
+            {{ 'printess.cartItemEditor.title'|trans|sw_sanitize }}
+        </h1>
+
+        <div
+            class="printess-cart-item-editor__container"
+            data-printess-cart-item-editor="true"
+            data-printess-loader-url="{{ loaderScriptUrl }}"
+            data-printess-shop-token="{{ shopToken }}"
+            {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
+            {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
+            {% if basketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ basketThumbnailMaxWidth }}"{% endif %}
+            {% if basketThumbnailMaxHeight %}data-printess-basket-thumbnail-max-height="{{ basketThumbnailMaxHeight }}"{% endif %}
+            {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}
+            data-printess-save-token="{{ saveToken }}"
+            data-printess-price-url="{{ path('frontend.printess.product.price', { productId: parentProductId }) }}"
+            data-printess-configurator-options="{{ configuratorOptions|json_encode|e('html_attr') }}"
+            data-printess-current-selection="{{ currentSelection|json_encode|e('html_attr') }}"
+            data-printess-update-url="{{ updateUrl }}"
+            data-printess-cart-url="{{ path('frontend.checkout.cart.page') }}"
+            data-printess-back-url="{{ backUrl }}"
+        >
+        </div>
+    </div>
+{% endblock %}

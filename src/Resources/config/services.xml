@@ -1,58 +1,203 @@
 <?xml version="1.0" ?>
 
+<!--
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+-->
+
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="PrintessEditor\Service\CustomFieldsInstaller">
-            <argument type="service" id="custom_field_set.repository"/>
-            <argument type="service" id="custom_field_set_relation.repository"/>
-        </service>
 
-        <service id="PrintessEditor\Subscriber\ProductViewSubscriber" >
-                <argument type="service" id="PrintessEditor\Core\Content\PrintessEditor\SalesChannel\PrintessProductInfoRoute"/>
-                <tag name="kernel.event_subscriber"/>
-        </service>
-        <service id="PrintessEditor\Subscriber\LineItemAddedSubscriber" >
-                <argument type="service" id="request_stack"/>
-                <tag name="kernel.event_subscriber" event="checkout.cart.add" />
-        </service>
-
-        <service id="PrintessEditor\Subscriber\OrderPlacedSubscriber" >
-                <argument type="service" id="request_stack"/>
-                <argument type="service" id="product.repository"/>
-                <argument type="service" id="sales_channel.repository"/>
-                <argument type="service" id="country.repository" />
-                <argument type="service" id="country_state.repository" />
-                <argument type="service" id="shipping_method.repository"/>
-                <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-                <argument type="service" id="customer.repository"/>
-                
-                <tag name="kernel.event_subscriber" event="checkout.cart.converted" />
-        </service>
-
-        <service id="PrintessEditor\Core\Content\PrintessEditor\SalesChannel\PrintessProductInfoRoute" >
-            <argument type="service" id="product.repository" />
-            <argument type="service" id="currency.repository" />
-            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
-        </service>
-
-        <service id="PrintessEditor\Core\Content\PrintessEditor\SalesChannel\PrintessOrderRoute"  public="true" >
-            <argument type="service" id="order.repository"/>
+        <service id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-             <tag name="api.printess.order.status"/>
-             <!-- <call method="setContainer">
-                <argument type="service" id="service_container"/>
-            </call> -->
         </service>
-        <service id="PrintessEditor\Core\Content\PrintessEditor\SalesChannel\PrintessOrderController" public="true">
-            <argument type="service" id="order.repository"/>
-            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-            <argument type="service" id="sales_channel.repository"/>
+
+        <service id="PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService">
+            <argument type="service" id="property_group_option.repository"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Product\ProductConfiguratorGroupNameResolver">
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Product\PrintessProductPropertyResolver">
+            <argument type="service" id="product.repository"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="product.repository"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Pricing\PrintessPriceCalculatorService"/>
+
+        <service id="PrintessShopwareIntegration\Service\Customer\PrintessCustomerVariableResolver"/>
+
+        <service id="PrintessShopwareIntegration\Service\Customer\PrintessCustomerShopUserIdResolver">
+            <argument type="service" id="customer.repository"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Pricing\PrintessPriceConfigCollector">
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <tag name="shopware.cart.collector" priority="5000"/>
+        </service>
+
+        <!--
+        Must run AFTER `Shopware\Core\Content\Product\Cart\ProductCartProcessor` (registered at
+        priority 5000 in Shopware core's cart.xml) so the surcharge is added on top of the price it
+        already computed for the line item, and BEFORE `PromotionProcessor` (priority 4900) so
+        percentage-off promotions apply to the surcharged total.
+        -->
+        <service id="PrintessShopwareIntegration\Service\Pricing\PrintessSurchargeCartProcessor">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\Price\AbsolutePriceCalculator"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Pricing\PrintessPriceCalculatorService"/>
+            <tag name="shopware.cart.processor" priority="4950"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Cart\PrintessCartLineItemService">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\FindVariant\FindProductVariantRoute"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductConfiguratorGroupNameResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Api\PrintessTemplateController" public="true">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="http_client"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductConfiguratorGroupNameResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductPropertyResolver"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>
         </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Storefront\PrintessPriceController" public="true">
+            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\FindVariant\FindProductVariantRoute"/>
+            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Detail\ProductDetailRoute"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Pricing\PrintessPriceCalculatorService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Storefront\PrintessCartItemController" public="true">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Cart\PrintessCartLineItemService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Storefront\PrintessOrderLineItemController" public="true">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Cart\PrintessCartLineItemService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Storefront\PrintessSavedDesignController" public="true">
+            <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Cart\PrintessCartLineItemService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductConfiguratorGroupNameResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Customer\PrintessCustomerShopUserIdResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\SavedDesigns\PrintessSavedDesignsApiClient"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Twig\PrintessExtension">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Customer\PrintessCustomerVariableResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductPropertyResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Customer\PrintessCustomerShopUserIdResolver"/>
+            <tag name="twig.extension"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Subscriber\LineItemAddedSubscriber">
+            <argument type="service" id="request_stack"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Subscriber\OrderMailThumbnailSubscriber">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Production\ProductionDropshippingResolver">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\SavedDesigns\PrintessSavedDesignsApiClient">
+            <argument type="service" id="http_client"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Production\PrintessProductionService">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\ProductionDropshippingResolver"/>
+            <argument type="service" id="http_client"/>
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="order_line_item.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument>%env(APP_URL)%</argument>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Subscriber\OrderTransactionPaidSubscriber">
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessProductionService"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Api\PrintessProductionController" public="true">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessProductionService"/>
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="order_line_item.repository"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
     </services>
 </container>

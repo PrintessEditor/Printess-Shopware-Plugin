@@ -1,0 +1,68 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% block printess_photobook_theme_select %}
+<div class="printess-photobook-theme-select">
+    <mt-banner v-if="loadError" variant="critical" class="printess-photobook-theme-select__error">
+        {{ loadError }}
+    </mt-banner>
+
+    <mt-select
+        v-else
+        label=""
+        class="printess-photobook-theme-select__select"
+        :model-value="value || ''"
+        :options="selectOptions"
+        :is-loading="isLoading"
+        :disabled="disabled"
+        @update:model-value="onChange"
+    >
+        <template #result-label-property="{ item }">
+            <span class="printess-photobook-theme-select__option">
+                <img
+                    v-if="item.thumbnailUrl"
+                    :src="item.thumbnailUrl"
+                    class="printess-photobook-theme-select__thumbnail"
+                    alt=""
+                >
+                {{ item.label }}
+            </span>
+        </template>
+
+        <template #selection-label-property="{ item }">
+            <span class="printess-photobook-theme-select__option">
+                <img
+                    v-if="item.thumbnailUrl"
+                    :src="item.thumbnailUrl"
+                    class="printess-photobook-theme-select__thumbnail"
+                    alt=""
+                >
+                {{ item.label }}
+            </span>
+        </template>
+    </mt-select>
+</div>
+{% endblock %}

@@ -1,22 +1,157 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
 {% sw_extends '@Storefront/storefront/component/buy-widget/buy-widget-form.html.twig' %}
 
-{% block buy_widget_buy_button_container %}
-    {{ parent() }}
+{% block buy_widget_buy_button %}
+    {% set printessTemplateName = printess_product_custom_field(product, 'PrintessTemplateName') %}
 
-    <script id="printess_script{{product.id}}">
-        function getPrintessInfo{{product.id}}() {
-            let printessInfo = null;
+    {% set printessFormFields = printessTemplateName and product.optionIds is defined
+        ? printess_product_option_form_fields(product.optionIds)
+        : [] %}
 
-            {% if page.extensions.printess_product_info %}
-                printessInfo = {{ page.extensions.printess_product_info.content | raw }}
-            {% endif %}
+    {% set printessVariantFieldNames = [] %}
+    {% for field in printessFormFields %}
+        {% set printessVariantFieldNames = printessVariantFieldNames|merge([field.name]) %}
+    {% endfor %}
 
-            return printessInfo;
-        }
-    </script>
+    {# Non-variant properties (e.g. "Material", "Target Group") are no longer pushed automatically
+       under their own group name - an admin instead adds them explicitly as a "Preselected form
+       field value" below with source "Product property", choosing both the property group and the
+       form field name it's pushed as. #}
 
-    <span data-printess-button data-product-id="{{ product.id }}" class="btn btn-primary" style="display:none">{{ 'frontend.editDesign'|trans|striptags }}</span>
+    {% set printessCustomFormFieldsRaw = printessTemplateName ? printess_product_custom_field(product, 'PrintessFormFields') : null %}
+    {% set printessCustomFormFields = printessCustomFormFieldsRaw is iterable ? printessCustomFormFieldsRaw : [] %}
+
+    {% for field in printessCustomFormFields %}
+        {% if field.name is defined and field.name not in printessVariantFieldNames %}
+            {% set printessFormFields = printessFormFields|merge([{ name: field.name, value: printess_resolve_form_field_value(field, context.customer, product) }]) %}
+        {% endif %}
+    {% endfor %}
+
+    {# The photobook theme applies on every page that loads the editor (unlike the rest of this
+       block, which only applies on the product page) - see cart-item-editor.html.twig and
+       sw-order-line-item-printess-editor for the other two. #}
+    {% set printessPhotobookTheme = printess_product_custom_field(product, 'PrintessPhotobookTheme') %}
+    {% if printessPhotobookTheme and 'PHOTOBOOK_THEME' not in printessVariantFieldNames %}
+        {% set printessFormFields = printessFormFields|merge([{ name: 'PHOTOBOOK_THEME', value: printessPhotobookTheme }]) %}
+    {% endif %}
+
+    {% set printessMergeTemplatesRaw = printess_product_custom_field(product, 'PrintessMergeTemplates') %}
+    {% set printessMergeTemplates = printessMergeTemplatesRaw is not null ? printessMergeTemplatesRaw : '' %}
+
+    {# Book layout settings (spine, hinge, edge/bleed, min/max pages, ...) passed to the editor's
+       adjustBook API once loaded - see printess-design-now.plugin.js. Only pushed here (the product
+       page's "Design now" button), not the cart-item/reorder editor or the admin order line item
+       editor. Gated behind its own "PrintessMagicPhotobookEnabled" toggle (sw-product-detail-printess)
+       so an admin can configure these values ahead of time without them taking effect yet, and so
+       "is this feature active" doesn't have to be inferred from whether a value happens to be set. #}
+    {% set printessMagicPhotobookEnabled = printessTemplateName ? printess_product_custom_field(product, 'PrintessMagicPhotobookEnabled') : false %}
+    {% set printessBookSettingsRaw = printessMagicPhotobookEnabled ? printess_product_custom_field(product, 'PrintessBookSettings') : null %}
+
+    {# The fixed inside page count (setBookInsidePages) - a regular (non-Magic-Photobook) book
+       setting, product page only. Gated behind its own "PrintessBookInsidePageCountEnabled" toggle,
+       same reasoning as above. The admin UI already prevents enabling both this and Magic Photobook
+       settings at once, but printess-design-now.plugin.js still enforces the mutual exclusion itself
+       at the point of actually calling the API, as a second line of defense. #}
+    {% set printessInsidePageCountEnabled = printessTemplateName ? printess_product_custom_field(product, 'PrintessBookInsidePageCountEnabled') : false %}
+    {% set printessInsidePageCount = printessInsidePageCountEnabled ? printess_product_custom_field(product, 'PrintessBookInsidePageCount') : null %}
+
+    <div class="{% if showQuantitySelect %}col-8{% else %}col-12{% endif %}">
+        {% block buy_widget_buy_button_add_to_cart %}
+            <div class="d-grid{% if printessTemplateName %} d-none{% endif %}">
+                <button class="btn btn-primary btn-buy"
+                        type="submit"
+                        title="{{ 'detail.addProduct'|trans|striptags }}"
+                        aria-label="{{ 'detail.addProduct'|trans|striptags }}">
+                    {{ 'detail.addProduct'|trans|sw_sanitize }}
+                </button>
+            </div>
+        {% endblock %}
+
+        {% if printessTemplateName %}
+            {% block buy_widget_buy_button_printess_design_now %}
+                <div class="d-grid">
+                    <button type="button"
+                            class="btn btn-primary btn-buy"
+                            data-printess-design-now="true"
+                            data-printess-loader-url="{{ printess_editor_loader_url(context.salesChannelId) }}"
+                            data-printess-shop-token="{{ printess_shop_token(context.salesChannelId) }}"
+                            data-printess-template-name="{{ printessTemplateName }}"
+                            data-printess-theme="{{ printess_default_theme(context.salesChannelId) }}"
+                            data-printess-editor-language="{{ printess_editor_language(context.salesChannelId) }}"
+                            {% set printessBasketThumbnailMaxWidth = printess_basket_thumbnail_max_width(context.salesChannelId) %}
+                            {% if printessBasketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ printessBasketThumbnailMaxWidth }}"{% endif %}
+                            {% set printessBasketThumbnailMaxHeight = printess_basket_thumbnail_max_height(context.salesChannelId) %}
+                            {% if printessBasketThumbnailMaxHeight %}data-printess-basket-thumbnail-max-height="{{ printessBasketThumbnailMaxHeight }}"{% endif %}
+                            data-printess-form-fields="{{ printessFormFields|json_encode|e('html_attr') }}"
+                            data-printess-merge-templates="{{ printessMergeTemplates|e('html_attr') }}"
+                            {% if printessBookSettingsRaw %}data-printess-book-settings="{{ printessBookSettingsRaw|e('html_attr') }}"{% endif %}
+                            {% if printessInsidePageCount %}data-printess-inside-page-count="{{ printessInsidePageCount }}"{% endif %}
+                            data-printess-price-url="{{ path('frontend.printess.product.price', { productId: product.id }) }}"
+                            data-printess-debug="{{ printess_debug_mode() ? 'true' : 'false' }}"
+                            {% if printess_design_saving_enabled(context.salesChannelId) %}
+                                {% set printessParentProductId = product.parentId ?: product.id %}
+                                data-printess-design-saving-enabled="true"
+                                data-printess-shop-id="{{ context.salesChannelId }}"
+                                {% set printessShopUserId = printess_shop_user_id(context.customer, context.context) %}
+                                {% if printessShopUserId %}data-printess-shop-user-id="{{ printessShopUserId }}"{% endif %}
+                                {% if context.customer %}data-printess-shop-user-display="{{ (context.customer.firstName ~ ' ' ~ context.customer.lastName)|trim }}"{% endif %}
+                                data-printess-parent-product-id="{{ printessParentProductId }}"
+                                data-printess-variant-product-id="{{ product.id }}"
+                                data-printess-product-display-name="{{ product.translated.name }}"
+                                {% if product.cover.media.url %}data-printess-product-thumbnail-url="{{ product.cover.media.url }}"{% endif %}
+                                data-printess-product-shop-url="{{ path('frontend.detail.page', { productId: printessParentProductId }) }}"
+                                data-printess-pending-url="{{ path('frontend.printess.saved_design.pending.store') }}"
+                                data-printess-login-url="{{ path('frontend.account.login.page') }}"
+                                data-printess-register-url="{{ path('frontend.account.register.page') }}"
+                            {% endif %}
+                            title="{{ 'printess-shopware-integration.detail.designNowButton'|trans|striptags }}"
+                            aria-label="{{ 'printess-shopware-integration.detail.designNowButton'|trans|striptags }}">
+                        {{ 'printess-shopware-integration.detail.designNowButton'|trans|sw_sanitize }}
+                    </button>
+                </div>
+
+                <input type="hidden"
+                       name="lineItems[{{ product.id }}][_printessSaveToken]"
+                       value=""
+                       data-printess-save-token-input="true">
+                <input type="hidden"
+                       name="lineItems[{{ product.id }}][_printessThumbnailUrl]"
+                       value=""
+                       data-printess-thumbnail-url-input="true">
+                <input type="hidden"
+                       name="lineItems[{{ product.id }}][_printessPageCount]"
+                       value=""
+                       data-printess-page-count-input="true">
+                <input type="hidden"
+                       name="lineItems[{{ product.id }}][_printessPriceRelevantFormFields]"
+                       value=""
+                       data-printess-price-relevant-form-fields-input="true">
+            {% endblock %}
+        {% endif %}
+    </div>
 {% endblock %}
-
-
- 

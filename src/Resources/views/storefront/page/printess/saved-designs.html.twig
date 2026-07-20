@@ -1,0 +1,293 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% sw_extends '@Storefront/storefront/page/account/_page.html.twig' %}
+
+{% block page_account_main_content %}
+    <div class="printess-saved-designs"
+         {% if isImpersonating %}
+             data-printess-saved-design-admin-editor="true"
+             data-printess-loader-url="{{ loaderScriptUrl }}"
+             data-printess-shop-token="{{ shopToken }}"
+             data-printess-shop-id="{{ shopId }}"
+             data-printess-shop-user-id="{{ shopUserId }}"
+             data-printess-delete-saved-design-url="{{ deleteSavedDesignUrl }}"
+             data-printess-text-save-token-required="{{ 'printess.savedDesigns.editTokenSaveTokenRequired'|trans|e('html_attr') }}"
+             data-printess-text-saving="{{ 'printess.savedDesigns.editTokenSaving'|trans|e('html_attr') }}"
+             data-printess-text-error="{{ 'printess.savedDesigns.editTokenError'|trans|e('html_attr') }}"
+         {% endif %}>
+        {% block page_account_printess_saved_designs_welcome %}
+            <div class="account-welcome">
+                <h1>{{ 'printess.savedDesigns.title'|trans|sw_sanitize }}</h1>
+            </div>
+        {% endblock %}
+
+        {% block page_account_printess_saved_designs_content %}
+            {% if productGroups is empty %}
+                {% block page_account_printess_saved_designs_empty %}
+                    <p class="printess-saved-designs__empty">
+                        {{ 'printess.savedDesigns.emptyState'|trans|sw_sanitize }}
+                    </p>
+                {% endblock %}
+            {% else %}
+                {% block page_account_printess_saved_designs_search %}
+                    <div class="printess-saved-designs__search mb-4">
+                        <label for="printess-saved-designs-search" class="form-label">
+                            {{ 'printess.savedDesigns.searchLabel'|trans|sw_sanitize }}
+                        </label>
+                        <input type="search"
+                               id="printess-saved-designs-search"
+                               class="form-control"
+                               data-printess-saved-designs-search="true"
+                               placeholder="{{ 'printess.savedDesigns.searchPlaceholder'|trans|striptags }}">
+                    </div>
+                {% endblock %}
+
+                {% block page_account_printess_saved_designs_no_results %}
+                    <p class="printess-saved-designs__no-results d-none" data-printess-saved-designs-no-results="true">
+                        {{ 'printess.savedDesigns.noResults'|trans|sw_sanitize }}
+                    </p>
+                {% endblock %}
+
+                {% for productGroup in productGroups %}
+                    {% set productLoopIndex = loop.index %}
+                    {% block page_account_printess_saved_designs_product %}
+                        <div class="card printess-saved-designs__product mb-4"
+                             data-printess-search-product-name="{{ productGroup.product.displayName }}">
+                            {% block page_account_printess_saved_designs_product_header %}
+                                <div class="card-header printess-saved-designs__product-header d-flex flex-wrap align-items-center">
+                                    {% if productGroup.product.thumbnailUrl %}
+                                        <img class="printess-saved-designs__product-thumbnail"
+                                             src="{{ productGroup.product.thumbnailUrl }}"
+                                             alt="{{ productGroup.product.displayName }}">
+                                    {% endif %}
+
+                                    <h2 class="printess-saved-designs__product-title mb-0">
+                                        {% if productGroup.product.shopUrl %}
+                                            <a href="{{ productGroup.product.shopUrl }}">{{ productGroup.product.displayName }}</a>
+                                        {% else %}
+                                            {{ productGroup.product.displayName }}
+                                        {% endif %}
+                                    </h2>
+                                </div>
+                            {% endblock %}
+
+                            {% block page_account_printess_saved_designs_product_designs %}
+                                <div class="card-body printess-saved-designs__designs-container">
+                                    <div class="row printess-saved-designs__designs">
+                                        {% for design in productGroup.designs %}
+                                            {% set renameModalId = 'printess-rename-modal-' ~ productLoopIndex ~ '-' ~ loop.index %}
+                                        {% set editTokenModalId = 'printess-edit-save-token-modal-' ~ productLoopIndex ~ '-' ~ loop.index %}
+                                            {% block page_account_printess_saved_designs_design %}
+                                                <div class="col-6 col-md-4 col-lg-3 printess-saved-designs__design mb-4"
+                                                     data-printess-search-design-name="{{ design.displayName ?: productGroup.product.displayName }}">
+                                                    <a class="printess-saved-designs__design-link text-decoration-none" href="{{ design.editUrl }}">
+                                                        {% if design.thumbnailUrl %}
+                                                            <img class="printess-saved-designs__design-thumbnail img-fluid mb-2"
+                                                                 src="{{ design.thumbnailUrl }}"
+                                                                 alt="{{ design.displayName ?: productGroup.product.displayName }}">
+                                                        {% endif %}
+
+                                                        <div class="printess-saved-designs__design-name">
+                                                            {{ design.displayName ?: productGroup.product.displayName }}
+                                                        </div>
+
+                                                        {% if design.savedOn %}
+                                                            <div class="printess-saved-designs__design-saved-on text-muted small">
+                                                                {{ 'printess.savedDesigns.savedOnLabel'|trans({ '%date%': design.savedOn|date('Y-m-d H:i') })|sw_sanitize }}
+                                                            </div>
+                                                        {% endif %}
+
+                                                        {% if design.expiresOn %}
+                                                            <div class="printess-saved-designs__design-expires-on text-muted small">
+                                                                {{ 'printess.savedDesigns.expiresOnLabel'|trans({ '%date%': design.expiresOn|date('Y-m-d H:i') })|sw_sanitize }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </a>
+
+                                                    <div class="printess-saved-designs__design-actions d-flex align-items-center flex-wrap mt-1">
+                                                        {% block page_account_printess_saved_designs_design_rename %}
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-link p-0 printess-saved-designs__design-rename-button"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#{{ renameModalId }}">
+                                                                {% sw_icon 'paper-pencil' style {'size': 'xs'} %}
+                                                                {{ 'printess.savedDesigns.renameLabel'|trans|sw_sanitize }}
+                                                            </button>
+                                                        {% endblock %}
+
+                                                        {% block page_account_printess_saved_designs_design_delete %}
+                                                            <form method="post"
+                                                                  class="printess-saved-designs__design-delete-form"
+                                                                  action="{{ path('frontend.account.printess.saved_designs.delete') }}"
+                                                                  onsubmit="return confirm('{{ 'printess.savedDesigns.deleteConfirm'|trans|e('js') }}')">
+                                                                <input type="hidden" name="productId" value="{{ productGroup.product.id }}">
+                                                                <input type="hidden" name="sortKey" value="{{ design.sortKey }}">
+                                                                <button type="submit" class="btn btn-sm btn-link p-0 text-danger printess-saved-designs__design-delete-button">
+                                                                    {% sw_icon 'trash' style {'size': 'xs'} %}
+                                                                    {{ 'printess.savedDesigns.deleteButton'|trans|sw_sanitize }}
+                                                                </button>
+                                                            </form>
+                                                        {% endblock %}
+
+                                                        {% if isImpersonating %}
+                                                            {% block page_account_printess_saved_designs_design_edit_token %}
+                                                                <button type="button"
+                                                                        class="btn btn-sm btn-link p-0 printess-saved-designs__design-edit-token-button"
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#{{ editTokenModalId }}">
+                                                                    {% sw_icon 'cog' style {'size': 'xs'} %}
+                                                                    {{ 'printess.savedDesigns.editTokenLabel'|trans|sw_sanitize }}
+                                                                </button>
+                                                            {% endblock %}
+                                                        {% endif %}
+                                                    </div>
+
+                                                    {% block page_account_printess_saved_designs_design_rename_modal %}
+                                                        <div class="modal fade printess-saved-designs__rename-modal"
+                                                             id="{{ renameModalId }}"
+                                                             tabindex="-1"
+                                                             role="dialog"
+                                                             aria-modal="true"
+                                                             aria-hidden="true"
+                                                             aria-labelledby="{{ renameModalId }}-header">
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <div id="{{ renameModalId }}-header" class="modal-title h5">
+                                                                            {{ 'printess.savedDesigns.renameModalTitle'|trans|sw_sanitize }}
+                                                                        </div>
+                                                                        <button class="btn-close"
+                                                                                type="button"
+                                                                                data-bs-dismiss="modal"
+                                                                                aria-label="{{ 'global.default.close'|trans|striptags }}">
+                                                                        </button>
+                                                                    </div>
+                                                                    <form method="post" action="{{ path('frontend.account.printess.saved_designs.rename') }}">
+                                                                        <div class="modal-body">
+                                                                            <input type="hidden" name="productId" value="{{ productGroup.product.id }}">
+                                                                            <input type="hidden" name="sortKey" value="{{ design.sortKey }}">
+                                                                            <label for="{{ renameModalId }}-input" class="form-label">
+                                                                                {{ 'printess.savedDesigns.renameModalLabel'|trans|sw_sanitize }}
+                                                                            </label>
+                                                                            <input type="text"
+                                                                                   id="{{ renameModalId }}-input"
+                                                                                   name="displayName"
+                                                                                   class="form-control"
+                                                                                   value="{{ design.displayName }}"
+                                                                                   maxlength="255"
+                                                                                   required>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button class="btn" type="button" data-bs-dismiss="modal">
+                                                                                {{ 'printess.savedDesigns.renameModalCancel'|trans|sw_sanitize }}
+                                                                            </button>
+                                                                            <button type="submit" class="btn btn-primary">
+                                                                                {{ 'printess.savedDesigns.renameModalSave'|trans|sw_sanitize }}
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endblock %}
+
+                                                    {% if isImpersonating %}
+                                                        {% block page_account_printess_saved_designs_design_edit_token_modal %}
+                                                            <div class="modal fade printess-saved-designs__edit-token-modal"
+                                                                 id="{{ editTokenModalId }}"
+                                                                 tabindex="-1"
+                                                                 role="dialog"
+                                                                 aria-modal="true"
+                                                                 aria-hidden="true"
+                                                                 aria-labelledby="{{ editTokenModalId }}-header"
+                                                                 data-printess-edit-save-token-modal="true"
+                                                                 data-printess-product-id="{{ productGroup.product.id }}"
+                                                                 data-printess-sort-key="{{ design.sortKey }}"
+                                                                 data-printess-display-name="{{ design.displayName }}"
+                                                                 data-printess-original-save-token="{{ design.saveToken }}"
+                                                                 data-printess-shop-data="{{ design.shopData|default({})|json_encode|e('html_attr') }}">
+                                                                <div class="modal-dialog">
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header">
+                                                                            <div id="{{ editTokenModalId }}-header" class="modal-title h5">
+                                                                                {{ 'printess.savedDesigns.editTokenModalTitle'|trans|sw_sanitize }}
+                                                                            </div>
+                                                                            <button class="btn-close"
+                                                                                    type="button"
+                                                                                    data-bs-dismiss="modal"
+                                                                                    aria-label="{{ 'global.default.close'|trans|striptags }}">
+                                                                            </button>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                            <p class="text-muted small">
+                                                                                {{ 'printess.savedDesigns.editTokenModalHint'|trans|sw_sanitize }}
+                                                                            </p>
+                                                                            <label for="{{ editTokenModalId }}-save-token" class="form-label">
+                                                                                {{ 'printess.savedDesigns.editTokenModalSaveTokenLabel'|trans|sw_sanitize }}
+                                                                            </label>
+                                                                            <input type="text"
+                                                                                   id="{{ editTokenModalId }}-save-token"
+                                                                                   class="form-control mb-3"
+                                                                                   data-printess-save-token-input="true"
+                                                                                   value="{{ design.saveToken }}"
+                                                                                   required>
+                                                                            <label for="{{ editTokenModalId }}-thumbnail-url" class="form-label">
+                                                                                {{ 'printess.savedDesigns.editTokenModalThumbnailUrlLabel'|trans|sw_sanitize }}
+                                                                            </label>
+                                                                            <input type="text"
+                                                                                   id="{{ editTokenModalId }}-thumbnail-url"
+                                                                                   class="form-control"
+                                                                                   data-printess-thumbnail-url-input="true"
+                                                                                   value="{{ design.thumbnailUrl }}">
+                                                                            <p class="printess-saved-designs__edit-token-status small mt-3 d-none" data-printess-edit-save-token-status="true"></p>
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button class="btn" type="button" data-bs-dismiss="modal">
+                                                                                {{ 'printess.savedDesigns.editTokenModalCancel'|trans|sw_sanitize }}
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-primary" data-printess-edit-save-token-confirm="true">
+                                                                                {{ 'printess.savedDesigns.editTokenModalSave'|trans|sw_sanitize }}
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        {% endblock %}
+                                                    {% endif %}
+                                                </div>
+                                            {% endblock %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endblock %}
+                        </div>
+                    {% endblock %}
+                {% endfor %}
+            {% endif %}
+        {% endblock %}
+    </div>
+{% endblock %}

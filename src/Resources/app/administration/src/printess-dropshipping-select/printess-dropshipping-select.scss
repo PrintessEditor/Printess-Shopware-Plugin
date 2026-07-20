@@ -1,0 +1,124 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Printess GmbH & Co. Kg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Printess GmbH & Co. Kg does not provide any support for this plugin.
+ */
+
+.printess-dropshipping-select {
+    &__error,
+    &__product-definition-combobox,
+    &__template-hint {
+        margin-top: 8px;
+    }
+
+    // Reuses the same `mt-field`/`mt-block-field__block` classes the real Meltdown fields use (see
+    // mt-base-field.vue's global, unscoped <style> block) so the combobox's input keeps the same
+    // border, radius, background, focus outline and disabled look as every other field in the
+    // admin - only the dropdown-arrow suffix icon, this bottom-margin reset, and the popover below
+    // are added on top.
+    &__product-definition.mt-field {
+        position: relative;
+        margin-bottom: 0;
+    }
+
+    &__product-definition .mt-block-field__block {
+        align-items: center;
+    }
+
+    &__product-definition-input {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        cursor: text;
+
+        &:focus {
+            outline: none;
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+
+    // A fully custom dropdown panel instead of a native <select>/<optgroup> popup: native select
+    // popups are rendered by the OS/browser and don't live-update while open, so typing into a
+    // search field only affects the option list the *next* time it's reopened - unusable for a
+    // searchable list. This panel is just regular DOM, so it re-renders on every keystroke like any
+    // other autocomplete, while still reusing Meltdown's own elevation/border tokens so it looks
+    // like a native part of the admin rather than a bespoke widget.
+    &__product-definition-popover {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        z-index: 100;
+        max-height: 260px;
+        overflow-y: auto;
+        background-color: var(--color-background-primary-default);
+        border: 1px solid var(--color-border-secondary-default);
+        border-radius: 4px;
+        box-shadow: 0 3px 6px 0 var(--color-elevation-shadow-default);
+        padding: 8px 0;
+    }
+
+    &__product-definition-group {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        &:not(:first-child) {
+            margin-top: 4px;
+        }
+    }
+
+    &__product-definition-group-label {
+        padding: 4px 12px;
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-tertiary-default);
+        text-transform: uppercase;
+    }
+
+    &__product-definition-option {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: var(--font-size-xs);
+        color: var(--color-text-primary-default);
+
+        &.is--active {
+            background: var(--color-background-brand-default);
+            color: var(--color-text-brand-default);
+        }
+
+        &.is--selected {
+            font-weight: var(--font-weight-bold);
+        }
+    }
+
+    &__product-definition-empty {
+        padding: 8px 12px;
+        margin: 0;
+        color: var(--color-text-tertiary-default);
+        font-size: var(--font-size-xs);
+    }
+}

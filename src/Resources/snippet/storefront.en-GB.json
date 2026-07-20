@@ -1,0 +1,53 @@
+{
+    "printess": {
+        "cartItem": {
+            "editButton": "Edit design",
+            "reorderButton": "Reorder",
+            "priceBreakdown": {
+                "additionalPages": "{1} 1 additional page|[0,Inf[ %count% additional pages"
+            }
+        },
+        "cartItemEditor": {
+            "title": "Edit your design"
+        },
+        "savedDesignResume": {
+            "title": "Resume your saved design",
+            "notFoundError": "We could not find a saved design to resume. Please start again from the product page.",
+            "updateModalTitle": "Update your saved design?",
+            "updateModalBody": "Do you also want to save these changes to your saved design? Otherwise, only the item added to your basket will reflect them.",
+            "updateModalConfirm": "Yes, update my saved design",
+            "updateModalDecline": "No, just add to basket"
+        },
+        "savedDesigns": {
+            "navLink": "My saved designs",
+            "title": "My saved designs",
+            "emptyState": "You haven't saved any designs yet.",
+            "savedOnLabel": "Saved on %date%",
+            "expiresOnLabel": "Available until %date%",
+            "deleteButton": "Delete",
+            "deleteConfirm": "Are you sure you want to delete this saved design? This cannot be undone.",
+            "deleteSuccess": "Your saved design was deleted.",
+            "deleteError": "We could not delete this saved design. Please try again.",
+            "renameLabel": "Rename",
+            "renameSuccess": "Your saved design was renamed.",
+            "renameError": "We could not rename this saved design. Please try again.",
+            "renameModalTitle": "Rename saved design",
+            "renameModalLabel": "Design name",
+            "renameModalSave": "Save",
+            "renameModalCancel": "Cancel",
+            "searchLabel": "Search your saved designs",
+            "searchPlaceholder": "Search by product or design name",
+            "noResults": "No saved designs match your search.",
+            "editTokenLabel": "Edit save token",
+            "editTokenModalTitle": "Edit save token",
+            "editTokenModalHint": "Admin tool: this repoints this saved design to a different save token/thumbnail. A new saved design entry is created with the values below, then the original one is permanently deleted.",
+            "editTokenModalSaveTokenLabel": "Save token",
+            "editTokenModalThumbnailUrlLabel": "Thumbnail URL",
+            "editTokenModalCancel": "Cancel",
+            "editTokenModalSave": "Save",
+            "editTokenSaveTokenRequired": "A save token is required.",
+            "editTokenSaving": "Repointing saved design…",
+            "editTokenError": "Something went wrong - see the browser console for details."
+        }
+    }
+}

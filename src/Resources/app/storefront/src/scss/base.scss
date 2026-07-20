@@ -1,1 +1,124 @@
-@import './printessEditor.scss';
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Printess GmbH & Co. Kg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Printess GmbH & Co. Kg does not provide any support for this plugin.
+ */
+
+.printess-cart-item-edit-button-container {
+    margin-top: $spacer-sm;
+}
+
+.printess-cart-item-price-breakdown {
+    list-style: none;
+    margin: $spacer-sm 0 0;
+    padding: 0;
+    font-size: $font-size-sm;
+    color: $body-secondary-color;
+}
+
+.printess-cart-item-price-breakdown-entry {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacer-xs;
+}
+
+// A "product" section is a bordered card whose header (the product itself) and body (that
+// product's saved designs) share the same border, with a divider and shaded body in between -
+// makes it visually unambiguous that the designs below belong to the product above, rather than
+// reading as one flat, undifferentiated list.
+.printess-saved-designs__product {
+    overflow: hidden;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.printess-saved-designs__product-header {
+    background-color: $gray-100;
+    border-bottom: 2px solid $border-color;
+    padding: $spacer-sm $spacer;
+    gap: $spacer-sm;
+}
+
+.printess-saved-designs__product-thumbnail {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: $border-radius;
+    flex-shrink: 0;
+}
+
+.printess-saved-designs__designs-container {
+    padding: $spacer;
+}
+
+// `.row` (Bootstrap) carries its own negative left/right margin to offset its columns' gutter
+// padding against a `.container`'s padding - here it's a direct child of a plain padded box, not a
+// `.container`, so that negative margin was silently cancelling this element's own left/right
+// padding above, leaving the thumbnails flush against the frame instead of inset from it.
+.printess-saved-designs__designs {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.printess-saved-designs__product-title {
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+}
+
+.printess-saved-designs__design-thumbnail {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: $border-radius;
+    border: 1px solid $border-color;
+}
+
+.printess-saved-designs__design-name {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+}
+
+.printess-saved-designs__design-actions {
+    gap: $spacer-xs;
+}
+
+.printess-saved-designs__design-delete-button,
+.printess-saved-designs__design-rename-button,
+.printess-saved-designs__design-edit-token-button {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacer-xs;
+    flex-shrink: 0;
+}
+
+// All three buttons pair an icon with a text label - core's `.icon > svg` (see
+// storefront/scss/component/_icon.scss) shifts the svg down by `top: 0.25em`, meant for an icon
+// sitting inline in a text flow, which throws off vertical centering against a button's own text
+// once the icon becomes a flex sibling instead. Cancel it here rather than globally, so unrelated
+// icon-only usages elsewhere keep their original offset.
+.printess-saved-designs__design-delete-button .icon > svg,
+.printess-saved-designs__design-rename-button .icon > svg,
+.printess-saved-designs__design-edit-token-button .icon > svg {
+    top: 0;
+}

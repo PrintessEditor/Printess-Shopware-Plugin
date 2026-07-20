@@ -1,0 +1,453 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Printess GmbH & Co. Kg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Printess GmbH & Co. Kg does not provide any support for this plugin.
+ */
+
+.sw-product-detail-printess {
+    &__cache-hint {
+        margin-bottom: 16px;
+    }
+
+    // Keep the picker dialogs at a stable height regardless of their content (loading state,
+    // empty state, results grid, ...) so the dialog never visibly grows/shrinks/jumps, and any
+    // open dropdown inside it (e.g. the tag multi-select) doesn't drift out of position when
+    // the dialog would otherwise have resized around it.
+    &__modal .sw-modal__dialog {
+        height: 85vh;
+        max-height: 85vh;
+    }
+
+    &__select-with-close {
+        margin-bottom: 16px;
+    }
+
+    // The close action sits in a header row above the field (not inside the field's own
+    // dropdown, and not below it) so it's never covered by the field's own popover: that
+    // popover opens *below* the trigger and, being absolutely positioned, would otherwise
+    // render on top of anything placed directly underneath the field while it's expanded.
+    &__select-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    &__select-header-label {
+        font-size: var(--font-size-xs, 12px);
+        font-weight: 600;
+    }
+
+    &__template-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__print-setting-field,
+    &__dropshipping-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 400px;
+    }
+
+    &__dropshipping-field {
+        margin-top: 16px;
+    }
+
+    &__template-preview {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    &__template-thumbnail {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #d1d9e0;
+
+        &--placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f7fa;
+            color: #9aa6b8;
+        }
+    }
+
+    &__template-name {
+        font-weight: 600;
+    }
+
+    &__template-empty {
+        color: #9aa6b8;
+    }
+
+    &__no-results {
+        color: #9aa6b8;
+        text-align: center;
+        padding: 24px 0;
+    }
+
+    &__more-results-hint {
+        color: #9aa6b8;
+        text-align: center;
+        padding: 8px 0 0;
+        font-size: 12px;
+    }
+
+    &__template-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px;
+        padding: 4px;
+    }
+
+    &__manual-layout-snippet {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #d1d9e0;
+    }
+
+    &__manual-layout-snippet-input {
+        flex: 1;
+    }
+
+    &__template-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid #d1d9e0;
+        border-radius: 4px;
+        background: none;
+        cursor: pointer;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+        &:hover {
+            border-color: #189eff;
+        }
+
+        &.is--active {
+            border-color: #189eff;
+            box-shadow: 0 0 0 1px #189eff;
+        }
+    }
+
+    &__template-tile-thumbnail {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border-radius: 4px;
+
+        &--placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f7fa;
+            color: #9aa6b8;
+        }
+    }
+
+    &__template-tile-name {
+        font-size: 12px;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    &__form-fields-hint {
+        color: #52667a;
+        margin-bottom: 16px;
+    }
+
+    &__form-field-row {
+        margin-bottom: 8px;
+    }
+
+    &__form-field-inputs {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    &__form-field-name,
+    &__form-field-value {
+        flex: 1 1 160px;
+    }
+
+    &__form-field-source,
+    &__form-field-variable {
+        flex: 1 1 180px;
+    }
+
+    &__form-field-remove {
+        margin-top: 22px;
+    }
+
+    &__form-field-error {
+        color: #d43131;
+        font-size: 12px;
+        margin: 4px 0 0;
+    }
+
+    &__form-field-add {
+        margin-top: 8px;
+    }
+
+    &__merge-templates {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #d1d9e0;
+    }
+
+    &__merge-templates-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    &__merge-templates-hint {
+        color: #52667a;
+        margin-bottom: 16px;
+    }
+
+    &__merge-template-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #d1d9e0;
+        border-radius: 4px;
+    }
+
+    &__merge-template-preview {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    &__merge-template-settings {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    &__merge-template-mode,
+    &__merge-template-document-name {
+        flex: 1;
+    }
+
+    &__merge-template-spread-index {
+        width: 140px;
+        flex: 0 0 auto;
+    }
+
+    &__merge-template-remove {
+        margin-top: 22px;
+    }
+
+    &__merge-template-add {
+        margin-top: 8px;
+    }
+
+    &__pricing-hint {
+        color: #52667a;
+        margin-bottom: 16px;
+    }
+
+    &__pricing-page-settings {
+        display: flex;
+        gap: 16px;
+        max-width: 600px;
+    }
+
+    &__included-page-count,
+    &__price-per-page {
+        flex: 1;
+    }
+
+    &__price-rules {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #d1d9e0;
+    }
+
+    &__price-rules-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    &__price-rules-hint {
+        color: #52667a;
+        margin-bottom: 16px;
+    }
+
+    &__price-rule-row {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid #d1d9e0;
+        border-radius: 4px;
+    }
+
+    &__price-rule-labels {
+        max-width: 400px;
+    }
+
+    &__price-rule-labels-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    &__price-rule-labels-hint {
+        color: #52667a;
+        font-size: 12px;
+        margin: 0 0 8px;
+    }
+
+    &__price-rule-label-input {
+        margin-bottom: 8px;
+    }
+
+    &__price-rule-conditions-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    &__price-rule-condition {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    &__price-rule-condition-name,
+    &__price-rule-condition-value {
+        flex: 1 1 160px;
+    }
+
+    &__price-rule-condition-compare-by,
+    &__price-rule-condition-operator {
+        flex: 1 1 140px;
+    }
+
+    &__price-rule-condition-remove {
+        margin-top: 22px;
+    }
+
+    &__price-rule-condition-add {
+        margin-top: 4px;
+    }
+
+    &__price-rule-amounts {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    &__price-rule-price,
+    &__price-rule-price-per-page {
+        flex: 1;
+    }
+
+    &__price-rule-remove {
+        margin-top: 22px;
+    }
+
+    &__price-rule-add {
+        margin-top: 8px;
+    }
+
+    &__inside-page-count-hint {
+        color: #52667a;
+        margin-bottom: 16px;
+    }
+
+    &__inside-page-count-conflict-error {
+        margin-bottom: 16px;
+    }
+
+    &__photobook-theme-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 400px;
+        margin-bottom: 16px;
+    }
+
+    &__photobook-theme-help-text {
+        color: #52667a;
+        margin: 0;
+    }
+
+    &__book-settings-row {
+        display: flex;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+
+        > * {
+            flex: 1 1 160px;
+        }
+    }
+
+    &__book-setting-book-imposition-field,
+    &__book-setting-cover-imposition-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    // The enabled/disabled toggle sits right in front of its card's title (see
+    // `#title` slot usage on the "Book inside page count"/"Magic Photobook settings" cards) - the
+    // switch's own built-in field-row spacing (meant for a full form row) is zeroed out here so it
+    // sits inline with the heading instead.
+    &__card-title-with-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__inside-page-count-enabled-toggle,
+    &__book-settings-enabled-toggle {
+        margin: 0;
+        min-height: 0;
+    }
+}

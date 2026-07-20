@@ -1,15 +1,19 @@
 {
-  "base": "/bundles/printesseditor/administration/",
+  "base": "/bundles/printessshopwareintegration/administration/",
   "entryPoints": {
-    "printess-editor": {
-      "css": [
-        "/bundles/printesseditor/administration/assets/printess-editor-C-ohE-0V.css"
-      ],
+    "printess-shopware-integration": {
+      "css": [],
       "dynamic": [
-        "/bundles/printesseditor/administration/assets/index-C1UBk32u.js"
+        "/bundles/printessshopwareintegration/administration/assets/index-13yhA83I.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-B-zu9mY0.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-Dy6Uv6OK.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-BNQgRgTU.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-CEzEHXA6.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-CR_ov-RW.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-DAIGMclQ.js"
       ],
       "js": [
-        "/bundles/printesseditor/administration/assets/printess-editor-BNRPm9BB.js"
+        "/bundles/printessshopwareintegration/administration/assets/printess-shopware-integration-Bc913cEG.js"
       ],
       "legacy": false,
       "preload": []

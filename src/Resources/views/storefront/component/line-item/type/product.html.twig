@@ -1,32 +1,93 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
 {% sw_extends '@Storefront/storefront/component/line-item/type/product.html.twig' %}
 
-{% block component_line_item_type_product_label %}
-  {{ parent() }}
+{% block component_line_item_type_product_details_container %}
+    {{ parent() }}
 
-  {% if lineItem.payload and lineItem.payload._printessSaveToken %}
-    <script data-printess-product-info-added="false">
-      if(!window["printessGetInfo"]) {
-        window["printessGetInfo"] = function() {
-          const lineItems = {};
-          {% for lineItemId, infos in page.extensions.printess_product_infos %}
-            lineItems[{{ lineItemId | json_encode | raw }}] = JSON.parse({{ infos.content | json_encode | raw }});
-          {% endfor %}
+    {% set printessSaveToken = lineItem.payload is defined and lineItem.payload._printessSaveToken is defined ? lineItem.payload._printessSaveToken : null %}
 
-          return lineItems;
-        };
-      }
-    </script>
+    {% if printessSaveToken %}
+        <div class="printess-cart-item-edit-button-container">
+            {% if displayMode === 'order' %}
+                {# An already-placed order must never be edited in place - this leads to the
+                   "reorder" flow instead, which only ever adds a new item to the current cart. #}
+                <a
+                    href="{{ path('frontend.printess.order.reorder.edit', { orderId: order.id, lineItemId: lineItem.id }) }}"
+                    class="btn btn-outline-secondary btn-sm printess-cart-item-edit-button"
+                >
+                    {{ 'printess.cartItem.reorderButton'|trans|sw_sanitize }}
+                </a>
+            {% else %}
+                <a
+                    href="{{ path('frontend.printess.cart.edit', { lineItemId: lineItem.id }) }}"
+                    class="btn btn-outline-secondary btn-sm printess-cart-item-edit-button"
+                >
+                    {{ 'printess.cartItem.editButton'|trans|sw_sanitize }}
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
 
-    <button type="button" data-printess-line-item-id="{{lineItem.id | raw}}" data-printess-line-item-product-id="{{lineItem.referencedId | raw}}" data-printess-line-item="{{ lineItem | json_encode }}" data-printess-product-infos="{{ page.extensions.printess_product_infos | json_encode }}" class="printess-cart-edit-button">
-      <span class="label">{{ 'frontend.edit'|trans|striptags }}</span>
-    </button>
-    <form action="/checkout/line-item/update" method="post" data-form-submit-loader="true" id="printessupdateLineItem{{lineItem.id}}" data-form-submit-loader-options="{&quot;skipLoadingIndicator&quot;:true}" class="printess-cart-edit-form">
-      <input type="hidden" name="redirectTo" value="frontend.checkout.cart.page">
-      <input type="hidden" name="redirectParameters" value="">
-      <input type="hidden" name="lineItems[0][id]" value="">
-      <input type="hidden" name="lineItems[0][quantity]" value="">
-      <input type="hidden" name="lineItems[0][referencedId]" value="">
-      <input type="hidden" name="lineItems[0][payload]" value="">
-      </form>
-  {% endif %}
+    {% set printessPriceBreakdown = lineItem.payload is defined and lineItem.payload._printessPriceBreakdown is defined ? lineItem.payload._printessPriceBreakdown : null %}
+    {% set printessPageSurcharge = printessPriceBreakdown is not null and printessPriceBreakdown.pageSurcharge is defined ? printessPriceBreakdown.pageSurcharge : 0 %}
+    {% set printessRuleSurcharges = printessPriceBreakdown is not null and printessPriceBreakdown.ruleSurcharges is defined ? printessPriceBreakdown.ruleSurcharges : [] %}
+
+    {% if printessPageSurcharge != 0 or printessRuleSurcharges|length > 0 %}
+        <ul class="printess-cart-item-price-breakdown">
+            {% if printessPageSurcharge != 0 %}
+                <li class="printess-cart-item-price-breakdown-entry">
+                    <span class="printess-cart-item-price-breakdown-label">
+                        {{ 'printess.cartItem.priceBreakdown.additionalPages'|trans({ '%count%': printessPriceBreakdown.billablePageCount })|sw_sanitize }}
+                    </span>
+                    <span class="printess-cart-item-price-breakdown-price">
+                        {% if displayMode === 'order' %}
+                            +{{ printessPageSurcharge|currency(order.currency.isoCode) }}
+                        {% else %}
+                            +{{ printessPageSurcharge|currency }}
+                        {% endif %}
+                    </span>
+                </li>
+            {% endif %}
+
+            {% for printessRuleSurcharge in printessRuleSurcharges %}
+                <li class="printess-cart-item-price-breakdown-entry">
+                    <span class="printess-cart-item-price-breakdown-label">
+                        {{ printessRuleSurcharge.label }}
+                    </span>
+                    <span class="printess-cart-item-price-breakdown-price">
+                        {% if displayMode === 'order' %}
+                            +{{ printessRuleSurcharge.price|currency(order.currency.isoCode) }}
+                        {% else %}
+                            +{{ printessRuleSurcharge.price|currency }}
+                        {% endif %}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 {% endblock %}

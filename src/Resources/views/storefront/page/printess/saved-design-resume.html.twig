@@ -1,0 +1,100 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% sw_extends '@Storefront/storefront/base.html.twig' %}
+
+{% block base_content %}
+    <div class="printess-saved-design-resume container">
+        <h1 class="printess-saved-design-resume__title">
+            {{ 'printess.savedDesignResume.title'|trans|sw_sanitize }}
+        </h1>
+
+        <div
+            class="printess-saved-design-resume__container"
+            data-printess-saved-design-resume="true"
+            data-printess-loader-url="{{ loaderScriptUrl }}"
+            data-printess-shop-token="{{ shopToken }}"
+            {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
+            {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
+            {% if basketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ basketThumbnailMaxWidth }}"{% endif %}
+            {% if basketThumbnailMaxHeight %}data-printess-basket-thumbnail-max-height="{{ basketThumbnailMaxHeight }}"{% endif %}
+            {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}
+            data-printess-save-token="{{ saveToken }}"
+            {% if thumbnailUrl %}data-printess-thumbnail-url="{{ thumbnailUrl }}"{% endif %}
+            data-printess-auto-save-to-shop="{{ autoSaveToShop ? 'true' : 'false' }}"
+            data-printess-pending-page-count="{{ pendingPageCount }}"
+            data-printess-pending-price-relevant-form-fields="{{ pendingPriceRelevantFormFields|json_encode|e('html_attr') }}"
+            data-printess-price-url="{{ priceUrl }}"
+            data-printess-configurator-options="{{ configuratorOptions|json_encode|e('html_attr') }}"
+            data-printess-current-selection="{{ currentSelection|json_encode|e('html_attr') }}"
+            data-printess-update-url="{{ updateUrl }}"
+            data-printess-cart-url="{{ path('frontend.checkout.cart.page') }}"
+            data-printess-back-url="{{ backUrl }}"
+            data-printess-shop-id="{{ shopId }}"
+            {% if shopUserId %}data-printess-shop-user-id="{{ shopUserId }}"{% endif %}
+            {% if shopUserDisplay %}data-printess-shop-user-display="{{ shopUserDisplay }}"{% endif %}
+            data-printess-parent-product-id="{{ parentProductId }}"
+            data-printess-variant-id="{{ variantId }}"
+            data-printess-product-display-name="{{ productDisplayName }}"
+            {% if productThumbnailUrl %}data-printess-product-thumbnail-url="{{ productThumbnailUrl }}"{% endif %}
+            data-printess-product-shop-url="{{ productShopUrl }}"
+            data-printess-pending-display-name="{{ displayName }}"
+            {% if canUpdateSavedDesign %}data-printess-saved-design-sort-key="{{ sortKey }}"{% endif %}
+            data-printess-delete-saved-design-url="{{ deleteSavedDesignUrl }}"
+        >
+        </div>
+
+        {% if canUpdateSavedDesign %}
+            <div
+                class="modal fade"
+                id="printess-update-saved-design-modal"
+                tabindex="-1"
+                aria-hidden="true"
+                data-bs-backdrop="static"
+                data-bs-keyboard="false"
+            >
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ 'printess.savedDesignResume.updateModalTitle'|trans|sw_sanitize }}</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-0">{{ 'printess.savedDesignResume.updateModalBody'|trans|sw_sanitize }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-printess-update-saved-design-decline>
+                                {{ 'printess.savedDesignResume.updateModalDecline'|trans|sw_sanitize }}
+                            </button>
+                            <button type="button" class="btn btn-primary" data-printess-update-saved-design-confirm>
+                                {{ 'printess.savedDesignResume.updateModalConfirm'|trans|sw_sanitize }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
