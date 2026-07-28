@@ -28,6 +28,129 @@
     margin-top: $spacer-sm;
 }
 
+// printess-slim-ui.plugin.js's data-carrying marker element - never actually shown, its
+// data-printess-* attributes are all the plugin reads from it.
+.printess-slim-ui-marker {
+    display: none;
+}
+
+// Applied to the storefront's own variant configurator form once SlimUi has taken over
+// personalization for a product - kept in the DOM (a future add-to-cart flow may still need to
+// read/write its inputs) rather than removed, just hidden from view.
+.printess-slim-ui-hidden-configurator {
+    display: none;
+}
+
+// SlimUi's `createSlimUi()` requires a real previewContainer/previewImage/loader even though this
+// integration renders the live preview onto the actual product photo instead (see
+// printess-slim-ui.plugin.js's `renderPreviewImageCallback`) - kept off-screen with a real,
+// reasonably large size (rather than `display:none`) so SlimUi still has a sane area to compute
+// its internal render resolution against.
+.printess-slim-ui-hidden-preview {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    width: 800px;
+    height: 800px;
+    overflow: hidden;
+}
+
+// Toggled on the real product image(s) while SlimUi is (re)generating the design preview for them
+// - see printess-slim-ui.plugin.js's `progressStateChangedCallback`.
+.printess-preview-loading {
+    opacity: .5;
+    transition: opacity 0.3s;
+}
+
+// Wraps printess-slim-ui.plugin.js's SlimUi mount point (`.printess-slim-ui-container`) together with
+// its loading overlay. `min-height` gives the overlay/spinner somewhere to sit before SlimUi has
+// injected any UI of its own into an otherwise-empty, zero-height container.
+.printess-slim-ui-container-wrapper {
+    position: relative;
+    min-height: 200px;
+}
+
+// The two progress indicators printess-slim-ui.plugin.js shows itself - one inside
+// `.printess-slim-ui-container-wrapper` (over the SlimUi mount point), one appended into every
+// main-slider slide (over the real product photo, see `MAIN_IMAGE_CONTAINER_SELECTOR`) - shown from
+// the moment the plugin mounts and hidden again on `progressStateChangedCallback(false)`. The
+// translucent white background is what makes the product photo underneath read as "lighter" while
+// loading; both rely on their parent already being (or having been made) `position: relative`.
+.printess-loading-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, .65);
+
+    &.printess-loading-overlay--visible {
+        display: flex;
+    }
+}
+
+// cart-item-editor.html.twig's SlimUi preview panel - adapted from the printess-slim-integration
+// SKILL.md's own example CSS. Unlike printess-slim-ui.plugin.js on the product page, this panel is
+// SlimUi's real, visible previewImage/loader (no existing product photo to redirect a preview
+// callback onto here), so `.printess-loader-visible` is toggled by SlimUi itself, not by this plugin.
+.printess-slim-ui-preview-panel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    background-color: $gray-100;
+    border-radius: $border-radius;
+    overflow: hidden;
+}
+
+.printess-preview-image {
+    max-width: 100%;
+    max-height: 70vh;
+    opacity: 1;
+    transition: opacity 0.3s;
+
+    &.printess-loader-visible {
+        opacity: .5;
+    }
+}
+
+.printess-image-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+
+    &.printess-loader-visible {
+        display: inline-block;
+    }
+}
+
+// Validation error surfaced by printess-slim-ui.plugin.js's own add-to-basket button (SlimUi has no
+// error chrome of its own, unlike the full editor) - see `.printess-slim-ui-status`'s twig-side
+// sibling in cart-item-editor.html.twig's `[data-printess-slim-ui-status]`.
+.printess-slim-ui-status {
+    margin: $spacer-xs 0 0;
+    font-size: $font-size-sm;
+}
+
+.printess-cart-item-editor__price {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    margin-top: $spacer;
+}
+
+.printess-cart-item-editor__actions {
+    display: flex;
+    gap: $spacer-sm;
+    margin-top: $spacer-sm;
+}
+
 .printess-cart-item-price-breakdown {
     list-style: none;
     margin: $spacer-sm 0 0;

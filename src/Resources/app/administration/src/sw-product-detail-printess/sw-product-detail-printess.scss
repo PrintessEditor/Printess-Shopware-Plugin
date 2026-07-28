@@ -29,6 +29,14 @@
         margin-bottom: 16px;
     }
 
+    &__shared-settings-hint {
+        margin-bottom: 16px;
+    }
+
+    &__slim-ui-hint {
+        margin-bottom: 16px;
+    }
+
     // Keep the picker dialogs at a stable height regardless of their content (loading state,
     // empty state, results grid, ...) so the dialog never visibly grows/shrinks/jumps, and any
     // open dropdown inside it (e.g. the tag multi-select) doesn't drift out of position when

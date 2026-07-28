@@ -1,6 +1,6 @@
 {
   "main.js": {
-    "file": "assets/printess-shopware-integration-Bc913cEG.js",
+    "file": "assets/printess-shopware-integration-Dbfnn3-_.js",
     "name": "printess-shopware-integration",
     "src": "main.js",
     "isEntry": true,
@@ -69,12 +69,12 @@
     ]
   },
   "sw-product-detail-printess/index.js": {
-    "file": "assets/index-13yhA83I.js",
+    "file": "assets/index-Cwd6ElLU.js",
     "name": "index",
     "src": "sw-product-detail-printess/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-Dn67aVXt.css"
+      "assets/index-KGH-vcg3.css"
     ]
   }
 }

@@ -3,6 +3,10 @@
         "productDetail": {
             "tabLabel": "Printess",
             "cardTitle": "Printess",
+            "slimUiCardTitle": "SlimUi editor",
+            "slimUiEnabledLabel": "Activate SlimUi editor",
+            "slimUiHint": "Uses the reduced SlimUi editor, which integrates directly into the product page instead of opening the full Printess editor. Not compatible with merge templates, books or multi-page pricing - while active, those settings are hidden below and ignored on the storefront.",
+            "slimUiPlanNotice": "SlimUi requires the SlimUi plan to be booked for your Printess account. Without it, products with this setting activated will not display correctly on the storefront.",
             "notConfigured": "Printess is not fully configured yet. Please provide both the Service Token and the Shop Token in the plugin settings before assigning a template to this product.",
             "goToSettings": "Go to Printess settings",
             "templateFieldLabel": "Template",

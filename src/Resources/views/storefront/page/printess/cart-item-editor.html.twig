@@ -32,24 +32,107 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             {{ 'printess.cartItemEditor.title'|trans|sw_sanitize }}
         </h1>
 
-        <div
-            class="printess-cart-item-editor__container"
-            data-printess-cart-item-editor="true"
-            data-printess-loader-url="{{ loaderScriptUrl }}"
-            data-printess-shop-token="{{ shopToken }}"
-            {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
-            {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
-            {% if basketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ basketThumbnailMaxWidth }}"{% endif %}
-            {% if basketThumbnailMaxHeight %}data-printess-basket-thumbnail-max-height="{{ basketThumbnailMaxHeight }}"{% endif %}
-            {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}
-            data-printess-save-token="{{ saveToken }}"
-            data-printess-price-url="{{ path('frontend.printess.product.price', { productId: parentProductId }) }}"
-            data-printess-configurator-options="{{ configuratorOptions|json_encode|e('html_attr') }}"
-            data-printess-current-selection="{{ currentSelection|json_encode|e('html_attr') }}"
-            data-printess-update-url="{{ updateUrl }}"
-            data-printess-cart-url="{{ path('frontend.checkout.cart.page') }}"
-            data-printess-back-url="{{ backUrl }}"
-        >
-        </div>
+        {% if isSlimUiItem %}
+            {# SlimUi has no built-in "editor UI" chrome (price display, add-to-basket/back buttons)
+               the way the full editor does - unlike printess-design-now.plugin.js on the product page,
+               this page has no existing product photo/price to redirect callbacks onto either, so a
+               dedicated preview panel + price + actions are rendered here instead, matching the
+               printess-slim-integration SKILL.md's own basic example layout. #}
+            <div
+                class="printess-cart-item-editor__slim-ui row"
+                data-printess-slim-ui-cart-item-editor="true"
+                data-printess-slim-ui-loader-url="{{ slimUiLoaderUrl }}"
+                data-printess-shop-token="{{ shopToken }}"
+                {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
+                {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
+                {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}
+                data-printess-save-token="{{ saveToken }}"
+                data-printess-price-url="{{ path('frontend.printess.product.price', { productId: parentProductId }) }}"
+                data-printess-configurator-options="{{ configuratorOptions|json_encode|e('html_attr') }}"
+                data-printess-current-selection="{{ currentSelection|json_encode|e('html_attr') }}"
+                data-printess-update-url="{{ updateUrl }}"
+                data-printess-cart-url="{{ path('frontend.checkout.cart.page') }}"
+                data-printess-back-url="{{ backUrl }}"
+                data-printess-debug="{{ printess_debug_mode() ? 'true' : 'false' }}"
+            >
+                <div class="col-md-6">
+                    <div class="printess-slim-ui-preview-panel">
+                        {# Shows the design as it already exists in the cart/order line item, until
+                           SlimUi's own `renderPreviewImageCallback`-less default handling replaces it
+                           once loaded - without a `src` here, the browser shows a broken-image icon for
+                           the entire time SlimUi is still starting up. #}
+                        <img class="printess-preview-image"
+                             {% if thumbnailUrl %}src="{{ thumbnailUrl }}"{% endif %}
+                             alt="{{ 'printess.cartItemEditor.title'|trans|striptags }}">
+                        <div class="spinner-border printess-image-loader" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        {# Same loading overlay as printess-slim-ui.plugin.js shows on the product page's
+                           real product photo - visible immediately (before any JS has even run), hidden
+                           by printess-slim-ui-cart-item-editor.plugin.js once `progressStateChangedCallback`
+                           first reports `false`. #}
+                        <div class="printess-loading-overlay printess-loading-overlay--visible" data-printess-slim-ui-preview-loading-overlay>
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="printess-slim-ui-container-wrapper">
+                        <div class="printess-slim-ui-container"></div>
+
+                        {# Same loading overlay as printess-slim-ui.plugin.js shows over the SlimUi mount
+                           point on the product page - `.printess-slim-ui-container-wrapper` gives it a
+                           `min-height` to sit in before SlimUi has injected any UI into the (otherwise
+                           empty) container next to it. #}
+                        <div class="printess-loading-overlay printess-loading-overlay--visible" data-printess-slim-ui-ui-loading-overlay>
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="printess-cart-item-editor__price" data-printess-slim-ui-price></p>
+
+                    <p class="printess-cart-item-editor__status d-none" data-printess-slim-ui-status></p>
+
+                    <div class="printess-cart-item-editor__actions">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-printess-slim-ui-back-button>
+                            {{ 'printess.cartItemEditor.backButton'|trans|sw_sanitize }}
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-primary"
+                                data-printess-slim-ui-submit-button>
+                            {{ 'printess.cartItemEditor.addToBasketButton'|trans|sw_sanitize }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div
+                class="printess-cart-item-editor__container"
+                data-printess-cart-item-editor="true"
+                data-printess-loader-url="{{ loaderScriptUrl }}"
+                data-printess-shop-token="{{ shopToken }}"
+                {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
+                {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
+                {% if basketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ basketThumbnailMaxWidth }}"{% endif %}
+                {% if basketThumbnailMaxHeight %}data-printess-basket-thumbnail-max-height="{{ basketThumbnailMaxHeight }}"{% endif %}
+                {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}
+                data-printess-save-token="{{ saveToken }}"
+                data-printess-price-url="{{ path('frontend.printess.product.price', { productId: parentProductId }) }}"
+                data-printess-configurator-options="{{ configuratorOptions|json_encode|e('html_attr') }}"
+                data-printess-current-selection="{{ currentSelection|json_encode|e('html_attr') }}"
+                data-printess-update-url="{{ updateUrl }}"
+                data-printess-cart-url="{{ path('frontend.checkout.cart.page') }}"
+                data-printess-back-url="{{ backUrl }}"
+            >
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

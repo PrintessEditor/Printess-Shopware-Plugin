@@ -8,7 +8,9 @@
             }
         },
         "cartItemEditor": {
-            "title": "Bearbeite dein Design"
+            "title": "Bearbeite dein Design",
+            "backButton": "Zurück",
+            "addToBasketButton": "Warenkorb aktualisieren"
         },
         "savedDesignResume": {
             "title": "Setze dein gespeichertes Design fort",

@@ -316,6 +316,7 @@ export default Shopware.Component.wrapComponentConfig({
             insidePageCount: null,
             insidePageCountEnabled: false,
             magicPhotobookEnabled: false,
+            slimUiEnabled: false,
 
             /**
              * Which of the two mutually-exclusive cards ('insidePageCount' or 'magicPhotobook') the
@@ -551,6 +552,7 @@ export default Shopware.Component.wrapComponentConfig({
                     this.initInsidePageCount();
                     this.initInsidePageCountEnabled();
                     this.initMagicPhotobookEnabled();
+                    this.initSlimUiEnabled();
                     this.loadConfiguratorGroupNames();
                     this.loadPropertyGroupOptions();
                     this.maybeLoadDefaultLanguageFields();
@@ -1086,6 +1088,36 @@ export default Shopware.Component.wrapComponentConfig({
             this.magicPhotobookEnabled = stored === true;
         },
 
+        initSlimUiEnabled() {
+            const stored = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessSlimUiEnabled
+                : this.defaultLanguageFields.PrintessSlimUiEnabled;
+
+            this.slimUiEnabled = stored === true;
+        },
+
+        /**
+         * Toggle-driven (not typed), so this saves immediately via `saveDefaultLanguageField()`
+         * rather than the debounced path, matching `updateInsidePageCountEnabled()`/
+         * `updateMagicPhotobookEnabled()`. Unlike those two, this isn't mutually exclusive with
+         * anything - it just hides the settings that don't apply to the SlimUi editor (merge
+         * templates, the two book-page-count cards, page-relevant custom pricing fields), whose
+         * underlying values are left untouched so they're preserved if SlimUi is turned off again.
+         */
+        updateSlimUiEnabled(value) {
+            this.slimUiEnabled = !!value;
+
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessSlimUiEnabled = this.slimUiEnabled;
+            } else {
+                this.saveDefaultLanguageField('PrintessSlimUiEnabled', this.slimUiEnabled);
+            }
+        },
+
         /**
          * Rejects a toggle attempt made while the other card is already enabled. `mt-switch` binds
          * its native `<input type="checkbox">` `checked` state directly to the `modelValue` prop with
@@ -1424,6 +1456,7 @@ export default Shopware.Component.wrapComponentConfig({
                     this.initInsidePageCount();
                     this.initInsidePageCountEnabled();
                     this.initMagicPhotobookEnabled();
+                    this.initSlimUiEnabled();
                 })
                 .catch(() => {
                     this.defaultLanguageFields = {};

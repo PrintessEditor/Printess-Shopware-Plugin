@@ -35,11 +35,12 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * The storefront buy-widget-form ships hidden inputs - `lineItems[{id}][_printessSaveToken]`,
- * `[_printessThumbnailUrl]`, `[_printessPageCount]` and `[_printessPriceRelevantFormFields]` - only
- * for personalized products. Shopware's line-item-add request handling does not automatically map
- * arbitrary custom keys into the line item's payload, so this copies them across manually. The line
- * item also gets a fresh id so two different personalized designs of the same product don't get
- * merged into a single stacked line item, which would silently discard one of the two save tokens.
+ * `[_printessThumbnailUrl]`, `[_printessPageCount]`, `[_printessPriceRelevantFormFields]` and
+ * `[_printessSlimUiItem]` - only for personalized products. Shopware's line-item-add request
+ * handling does not automatically map arbitrary custom keys into the line item's payload, so this
+ * copies them across manually. The line item also gets a fresh id so two different personalized
+ * designs of the same product don't get merged into a single stacked line item, which would
+ * silently discard one of the two save tokens.
  */
 class LineItemAddedSubscriber implements EventSubscriberInterface
 {
@@ -47,6 +48,7 @@ class LineItemAddedSubscriber implements EventSubscriberInterface
     private const THUMBNAIL_URL_KEY = '_printessThumbnailUrl';
     private const PAGE_COUNT_KEY = '_printessPageCount';
     private const PRICE_RELEVANT_FORM_FIELDS_KEY = '_printessPriceRelevantFormFields';
+    private const SLIM_UI_ITEM_KEY = '_printessSlimUiItem';
 
     public function __construct(private readonly RequestStack $requestStack)
     {
@@ -75,6 +77,12 @@ class LineItemAddedSubscriber implements EventSubscriberInterface
         }
 
         $submitted = $submittedLineItems[$lineItem->getId()];
+
+        // Recorded independently of the save-token check below since a future SlimUi add-to-cart
+        // flow may not go through the same save-token round trip the full editor uses.
+        if (($submitted[self::SLIM_UI_ITEM_KEY] ?? null) === '1') {
+            $lineItem->setPayloadValue(self::SLIM_UI_ITEM_KEY, true);
+        }
 
         $saveToken = $submitted[self::SAVE_TOKEN_KEY] ?? null;
         $thumbnailUrl = $submitted[self::THUMBNAIL_URL_KEY] ?? null;

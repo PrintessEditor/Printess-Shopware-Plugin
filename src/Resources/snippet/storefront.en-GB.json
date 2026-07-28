@@ -8,7 +8,9 @@
             }
         },
         "cartItemEditor": {
-            "title": "Edit your design"
+            "title": "Edit your design",
+            "backButton": "Back",
+            "addToBasketButton": "Update basket"
         },
         "savedDesignResume": {
             "title": "Resume your saved design",

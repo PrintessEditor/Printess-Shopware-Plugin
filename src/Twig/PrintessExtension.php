@@ -63,6 +63,7 @@ class PrintessExtension extends AbstractExtension
     {
         return [
             new TwigFunction('printess_editor_loader_url', $this->getEditorLoaderScriptUrl(...)),
+            new TwigFunction('printess_slim_ui_loader_url', $this->getSlimUiLoaderScriptUrl(...)),
             new TwigFunction('printess_shop_token', $this->getShopToken(...)),
             new TwigFunction('printess_default_theme', $this->getDefaultTheme(...)),
             new TwigFunction('printess_editor_language', $this->getEditorLanguage(...)),
@@ -81,6 +82,11 @@ class PrintessExtension extends AbstractExtension
     public function getEditorLoaderScriptUrl(?string $salesChannelId = null): string
     {
         return $this->printessConfigService->getEditorLoaderScriptUrl($salesChannelId);
+    }
+
+    public function getSlimUiLoaderScriptUrl(?string $salesChannelId = null): string
+    {
+        return $this->printessConfigService->getSlimUiLoaderScriptUrl($salesChannelId);
     }
 
     public function getShopToken(?string $salesChannelId = null): string

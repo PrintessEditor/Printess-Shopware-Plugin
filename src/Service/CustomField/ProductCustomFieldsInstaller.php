@@ -86,6 +86,17 @@ class ProductCustomFieldsInstaller
     private const MAGIC_PHOTOBOOK_ENABLED_FIELD_ID = '019F6FC5DC0F72749ECB6E683F5D6444';
     private const MAGIC_PHOTOBOOK_ENABLED_FIELD_NAME = 'PrintessMagicPhotobookEnabled';
 
+    /**
+     * Activates the SlimUi storefront frontend for this product - a reduced editor that only
+     * integrates into the product page and doesn't support books/multi-page templates. While
+     * enabled, `PrintessMergeTemplates`, `PrintessBookInsidePageCountEnabled` and
+     * `PrintessMagicPhotobookEnabled` are hidden and ignored (see `sw-product-detail-printess` and
+     * `buy-widget-form.html.twig`), and page-relevant `PrintessPriceConfig` fields are hidden in the
+     * admin UI, since none of those apply to a single-page SlimUi template.
+     */
+    private const SLIM_UI_ENABLED_FIELD_ID = 'D451BB1465B3AC091A7654BDDB9A0C3B';
+    private const SLIM_UI_ENABLED_FIELD_NAME = 'PrintessSlimUiEnabled';
+
     private const PRODUCT_RELATION_ID = '7dd240e628084f3cb5dfab30b69abc4e';
 
     public function __construct(
@@ -303,6 +314,22 @@ class ProductCustomFieldsInstaller
                                 'de-DE' => 'Ob die "Magic-Fotobuch-Einstellungen" tatsächlich an den Editor auf der Produktseite übergeben werden. Wird über den Printess-Tab verwaltet.',
                             ],
                             'customFieldPosition' => 11,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::SLIM_UI_ENABLED_FIELD_ID),
+                        'name' => self::SLIM_UI_ENABLED_FIELD_NAME,
+                        'type' => CustomFieldTypes::BOOL,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'Activate SlimUi editor',
+                                'de-DE' => 'SlimUi-Editor aktivieren',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Uses the reduced SlimUi editor, which integrates directly into the product page instead of opening the full Printess editor. Not compatible with merge templates, books or multi-page pricing - those settings are hidden and ignored while this is active. Managed via the Printess tab.',
+                                'de-DE' => 'Verwendet den reduzierten SlimUi-Editor, der direkt in die Produktseite eingebunden wird, statt den vollständigen Printess-Editor zu öffnen. Nicht kompatibel mit Merge-Templates, Büchern oder mehrseitiger Preisgestaltung - diese Einstellungen werden ausgeblendet und ignoriert, solange dies aktiv ist. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 12,
                         ],
                     ],
                 ],

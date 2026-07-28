@@ -84,6 +84,16 @@ class PrintessConfigService
         return rtrim($this->getEditorIntegrationUrl($salesChannelId), '/') . '/printess-editor/loader.js';
     }
 
+    /**
+     * Same domain/version convention as {@see getEditorLoaderScriptUrl()}, for the SlimUi bundle
+     * instead of the full editor's loader - `{domain}{versionPath}slim-ui.js`, e.g.
+     * `https://editor.printess.com/slim-ui.js` for the default (published) version.
+     */
+    public function getSlimUiLoaderScriptUrl(?string $salesChannelId = null): string
+    {
+        return rtrim($this->getEditorIntegrationUrl($salesChannelId), '/') . '/slim-ui.js';
+    }
+
     public function getDefaultTheme(?string $salesChannelId = null): string
     {
         return $this->systemConfigService->getString(self::CONFIG_PREFIX . 'defaultTheme', $salesChannelId);

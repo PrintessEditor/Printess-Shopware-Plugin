@@ -68,6 +68,7 @@ class PrintessCartLineItemService
     private const THUMBNAIL_URL_PAYLOAD_KEY = '_printessThumbnailUrl';
     private const PAGE_COUNT_PAYLOAD_KEY = '_printessPageCount';
     private const PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY = '_printessPriceRelevantFormFields';
+    private const SLIM_UI_ITEM_PAYLOAD_KEY = '_printessSlimUiItem';
 
     public function __construct(
         private readonly CartService $cartService,
@@ -123,6 +124,7 @@ class PrintessCartLineItemService
      *     parentProductId: string,
      *     configuratorOptions: list<array{groupId: string, optionId: string, name: string, value: string}>,
      *     currentSelection: array<string, string>,
+     *     isSlimUiItem: bool,
      * }
      */
     public function buildEditorContext(LineItem $lineItem, SalesChannelContext $context): array
@@ -141,6 +143,7 @@ class PrintessCartLineItemService
      *     parentProductId: string,
      *     configuratorOptions: list<array{groupId: string, optionId: string, name: string, value: string}>,
      *     currentSelection: array<string, string>,
+     *     isSlimUiItem: bool,
      * }
      */
     public function buildEditorContextFromOrderLineItem(OrderLineItemEntity $lineItem, SalesChannelContext $context): array
@@ -157,6 +160,7 @@ class PrintessCartLineItemService
      *     parentProductId: string,
      *     configuratorOptions: list<array{groupId: string, optionId: string, name: string, value: string}>,
      *     currentSelection: array<string, string>,
+     *     isSlimUiItem: bool,
      * }
      */
     private function buildEditorContextFromPayload(string $productId, ?array $payload, SalesChannelContext $context): array
@@ -177,6 +181,7 @@ class PrintessCartLineItemService
             'parentProductId' => $parentProductId,
             'configuratorOptions' => $configuratorOptions,
             'currentSelection' => $currentSelection,
+            'isSlimUiItem' => ($payload[self::SLIM_UI_ITEM_PAYLOAD_KEY] ?? false) === true,
         ];
     }
 
@@ -250,7 +255,8 @@ class PrintessCartLineItemService
         SalesChannelContext $context,
     ): Cart {
         $referencedId = $this->resolveVariantId((string) $original->getReferencedId(), $options, $context);
-        $lineItem = $this->buildPersonalizedLineItem($referencedId, $saveToken, $thumbnailUrl, $pageCount, $priceRelevantFormFields);
+        $isSlimUiItem = (($original->getPayload() ?? [])[self::SLIM_UI_ITEM_PAYLOAD_KEY] ?? false) === true;
+        $lineItem = $this->buildPersonalizedLineItem($referencedId, $saveToken, $thumbnailUrl, $pageCount, $priceRelevantFormFields, $isSlimUiItem);
 
         return $this->cartService->add($cart, $lineItem, $context);
     }
@@ -289,6 +295,7 @@ class PrintessCartLineItemService
         ?string $thumbnailUrl,
         int $pageCount,
         array $priceRelevantFormFields,
+        bool $isSlimUiItem = false,
     ): LineItem {
         $lineItem = new LineItem(Uuid::randomHex(), LineItem::PRODUCT_LINE_ITEM_TYPE, $referencedId, 1);
         $lineItem->setStackable(true);
@@ -302,6 +309,10 @@ class PrintessCartLineItemService
 
         $payload[self::PAGE_COUNT_PAYLOAD_KEY] = $pageCount;
         $payload[self::PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY] = $priceRelevantFormFields;
+
+        if ($isSlimUiItem) {
+            $payload[self::SLIM_UI_ITEM_PAYLOAD_KEY] = true;
+        }
 
         $lineItem->setPayload($payload);
 

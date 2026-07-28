@@ -71,6 +71,37 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
 
         <template v-else>
         <mt-card
+            class="sw-product-detail-printess__slim-ui-card"
+            position-identifier="sw-product-detail-printess-slim-ui"
+        >
+            <template #title>
+                <div class="sw-product-detail-printess__card-title-with-toggle">
+                    <mt-switch
+                        :model-value="slimUiEnabled"
+                        class="sw-product-detail-printess__slim-ui-enabled-toggle"
+                        :aria-label="$t('printess-shopware-integration.productDetail.slimUiEnabledLabel')"
+                        :disabled="!canEdit"
+                        @update:model-value="updateSlimUiEnabled"
+                    />
+                    <mt-text as="h3" weight="semibold" size="m" class="mt-card__title">
+                        {{ $t('printess-shopware-integration.productDetail.slimUiCardTitle') }}
+                    </mt-text>
+                </div>
+            </template>
+
+            <p class="sw-product-detail-printess__slim-ui-hint">
+                {{ $t('printess-shopware-integration.productDetail.slimUiHint') }}
+            </p>
+
+            <mt-banner
+                class="sw-product-detail-printess__slim-ui-plan-notice"
+                variant="info"
+            >
+                {{ $t('printess-shopware-integration.productDetail.slimUiPlanNotice') }}
+            </mt-banner>
+        </mt-card>
+
+        <mt-card
             class="sw-product-detail-printess__settings-card"
             position-identifier="sw-product-detail-printess-settings"
             :title="$t('printess-shopware-integration.productDetail.cardTitle')"
@@ -127,7 +158,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 </div>
             </div>
 
-            <div class="sw-product-detail-printess__merge-templates">
+            <div v-if="!slimUiEnabled" class="sw-product-detail-printess__merge-templates">
                 <label class="sw-product-detail-printess__merge-templates-label">
                     {{ $t('printess-shopware-integration.productDetail.mergeTemplatesCardTitle') }}
                 </label>
@@ -390,7 +421,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 {{ $t('printess-shopware-integration.productDetail.pricingHint') }}
             </p>
 
-            <div class="sw-product-detail-printess__pricing-page-settings">
+            <div v-if="!slimUiEnabled" class="sw-product-detail-printess__pricing-page-settings">
                 <mt-number-field
                     :model-value="includedPageCount"
                     class="sw-product-detail-printess__included-page-count"
@@ -545,6 +576,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                         />
 
                         <mt-number-field
+                            v-if="!slimUiEnabled"
                             :model-value="rule.pricePerPage"
                             class="sw-product-detail-printess__price-rule-price-per-page"
                             :name="`sw-field--printess-price-rule-price-per-page-${rule.clientId}`"
@@ -580,6 +612,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         </mt-card>
 
         <mt-card
+            v-if="!slimUiEnabled"
             class="sw-product-detail-printess__inside-page-count-card"
             position-identifier="sw-product-detail-printess-inside-page-count"
         >
@@ -625,6 +658,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         </mt-card>
 
         <mt-card
+            v-if="!slimUiEnabled"
             class="sw-product-detail-printess__book-settings-card"
             position-identifier="sw-product-detail-printess-book-settings"
         >
