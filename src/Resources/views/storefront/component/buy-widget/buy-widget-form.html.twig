@@ -68,6 +68,29 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
     {% set printessMergeTemplatesRaw = printessSlimUiEnabled ? null : printess_product_custom_field(product, 'PrintessMergeTemplates') %}
     {% set printessMergeTemplates = printessMergeTemplatesRaw is not null ? printessMergeTemplatesRaw : '' %}
 
+    {# The mirror image of the line above: SlimUi's own single-template merge setting, forwarded to it
+       as its `merge1` load parameter and only meaningful while SlimUi is the active editor. The full
+       editor never reads it - `PrintessMergeTemplates` is its own, list-shaped equivalent. #}
+    {% set printessSlimUiMergeTemplate = printessSlimUiEnabled ? printess_product_custom_field(product, 'PrintessSlimUiMergeTemplate') : null %}
+
+    {# Opt-in SlimUi sub-features (currently just `pageNavigation`) - a JSON list of feature keys, see
+       `ProductCustomFieldsInstaller::SLIM_UI_FEATURE_KEYS`. Normalized to a list here rather than in
+       JS so the plugin can trust the attribute's shape: the custom field is JSON-typed, but an admin
+       editing it by hand in the generic custom field UI can leave a bare string behind. #}
+    {% set printessSlimUiFeaturesRaw = printessSlimUiEnabled ? printess_product_custom_field(product, 'PrintessSlimUiFeatures') : null %}
+    {% set printessSlimUiFeatures = [] %}
+    {% if printessSlimUiFeaturesRaw is iterable %}
+        {# Rebuilt with `merge` rather than filtered in place: `json_encode` of an array with gaps in
+           its keys emits a JSON object, not the list the plugin parses. #}
+        {% for feature in printessSlimUiFeaturesRaw %}
+            {% if feature %}
+                {% set printessSlimUiFeatures = printessSlimUiFeatures|merge([feature]) %}
+            {% endif %}
+        {% endfor %}
+    {% elseif printessSlimUiFeaturesRaw %}
+        {% set printessSlimUiFeatures = [printessSlimUiFeaturesRaw] %}
+    {% endif %}
+
     {# Book layout settings (spine, hinge, edge/bleed, min/max pages, ...) passed to the editor's
        adjustBook API once loaded - see printess-design-now.plugin.js. Only pushed here (the product
        page's "Design now" button), not the cart-item/reorder editor or the admin order line item
@@ -144,6 +167,8 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                          data-printess-theme="{{ printess_default_theme(context.salesChannelId) }}"
                          data-printess-editor-language="{{ printess_editor_language(context.salesChannelId) }}"
                          data-printess-form-fields="{{ printessFormFields|json_encode|e('html_attr') }}"
+                         {% if printessSlimUiMergeTemplate %}data-printess-slim-ui-merge-template="{{ printessSlimUiMergeTemplate|e('html_attr') }}"{% endif %}
+                         data-printess-slim-ui-features="{{ printessSlimUiFeatures|json_encode|e('html_attr') }}"
                          data-printess-price-url="{{ path('frontend.printess.product.price', { productId: product.id }) }}"
                          data-printess-debug="{{ printess_debug_mode() ? 'true' : 'false' }}">
                     </div>

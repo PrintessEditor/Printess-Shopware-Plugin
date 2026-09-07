@@ -42,7 +42,7 @@ const PRICE_REFRESH_DEBOUNCE_MS = 300;
 
 /**
  * The real product photo(s) SlimUi's live design preview is rendered onto (see
- * `_onRenderPreviewImageCallback`), scoped to four distinct spots the core storefront can render the
+ * `_indexProductImages`), scoped to four distinct spots the core storefront can render the
  * exact same underlying image into - main gallery (single-image or multi-image slider), the gallery's
  * thumbnail strip, and the fullscreen zoom modal's own separate copies of both. Disambiguated by the
  * extra classes core's `cms-element-image-gallery.html.twig` happens to add to each variant
@@ -72,6 +72,50 @@ const PRODUCT_IMAGE_SELECTOR_GROUPS = [
 const MAIN_IMAGE_CONTAINER_SELECTOR = '.js-magnifier-container';
 
 /**
+ * The main gallery slider is a tiny-slider in carousel mode with `loop` left at its default `true`
+ * (core's `GallerySliderPlugin` only ever disables it for the thumbnail slider), so on init tiny-slider
+ * CLONES slides - one copy of the last slide prepended and one of the first appended for a
+ * single-item viewport - and the zoom modal's slider does the same on first open. Those clones are
+ * real, separately queried `img` elements showing the same media, which rules out addressing product
+ * photos by their position in a `querySelectorAll` result: with 6 product images `nodes[0]` is a clone
+ * of image 6, not image 1. Every image is therefore stamped with the index of the media it shows
+ * (`_indexProductImages`) and looked up by that stamp instead, which also means a clone tiny-slider
+ * makes later inherits its source's stamp for free, `cloneNode(true)` copying data attributes.
+ */
+const CLONED_SLIDE_SELECTOR = '.tns-slide-cloned';
+
+/**
+ * `PrintessSlimUiFeatures` opt-in features (see `ProductCustomFieldsInstaller::SLIM_UI_FEATURE_KEYS`).
+ *
+ * `pageNavigation` hands SlimUi a container of its own, above the gallery, which it fills with a strip
+ * of small page previews for switching between the pages of a design (front/back of a postcard, the
+ * pages of a calendar). That makes it the counterpart to `_refreshPreviewImages()` rather than an
+ * addition to it: either the design's pages are spread across the product's own gallery images, or
+ * SlimUi owns page switching itself and the main product image simply follows the selected page.
+ * `PAGE_NAVIGATION_ROOT_CLASS` is what `base.scss` hangs the "hide the gallery's own carousel chrome"
+ * rules off, so the storefront doesn't offer two competing ways to change what the big image shows.
+ */
+const PAGE_NAVIGATION_FEATURE = 'pageNavigation';
+
+/**
+ * The opposite arrangement to `pageNavigation`: the gallery keeps its own chrome and that chrome
+ * drives SlimUi's current page instead - see `_registerGallerySlideSync`. Opt-in, to stay configured
+ * the same way as the Shopify integration's identically-named feature (where it has to be, since live
+ * shops there rely on the theme thumbnails switching nothing but the theme's own image).
+ */
+const THUMBNAIL_NAVIGATION_FEATURE = 'thumbnailNavigation';
+const PAGE_NAVIGATION_ROOT_CLASS = 'printess-slim-ui-page-navigation';
+const PAGE_NAVIGATION_CONTAINER_CLASS = 'printess-page-navigation';
+
+/**
+ * Core registers `GallerySliderPlugin` on this attribute, and only renders it for a multi-image
+ * gallery - see `_registerGallerySlideSync`, which follows the shopper's slide changes so SlimUi's own
+ * idea of the current preview page stays in step with the product image on screen.
+ */
+const GALLERY_SLIDER_SELECTOR = '[data-gallery-slider]';
+const MEDIA_INDEX_ATTRIBUTE = 'data-printess-media-index';
+
+/**
  * Embeds the Printess SlimUi editor directly into the product page in place of the (hidden, not
  * removed) variant configurator, for products with `PrintessSlimUiEnabled` active - see
  * `sw-product-detail-printess` (admin) and `buy-widget-form.html.twig` (rendering the
@@ -99,6 +143,8 @@ export default class PrintessSlimUiPlugin extends Plugin {
         this.theme = this.el.dataset.printessTheme;
         this.editorLanguage = this.el.dataset.printessEditorLanguage;
         this.formFields = this._parseJsonAttribute(this.el.dataset.printessFormFields) ?? [];
+        this.mergeTemplate = this.el.dataset.printessSlimUiMergeTemplate;
+        this.features = this._parseJsonAttribute(this.el.dataset.printessSlimUiFeatures) ?? [];
         this.priceUrl = this.el.dataset.printessPriceUrl;
         this.debugMode = this.el.dataset.printessDebug === 'true';
         this.buyWidgetContainer = this.el.closest(BUY_WIDGET_SELECTOR);
@@ -120,7 +166,43 @@ export default class PrintessSlimUiPlugin extends Plugin {
         this._lastPrice = null;
         this._priceRequestId = 0;
 
-        this._debugLog('init: mounting SlimUi', { templateName: this.templateName, formFields: this.formFields });
+        /** Number of distinct product images in the gallery - see `_indexProductImages`. */
+        this._mediaCount = 0;
+
+        /**
+         * Guards against an out-of-order preview render: `renderPreviewImageCallback` fires again for
+         * every design change, and `_refreshPreviewImages()` awaits one `getPreviewImageInfo()` request
+         * per additional preview page, so a slower earlier render must not overwrite a newer one.
+         * Same pattern as `_priceRequestId`.
+         */
+        this._previewRequestId = 0;
+
+        /**
+         * The url of the most recent `renderPreviewImageCallback`, kept so `_loadSlimUi()` can redo the
+         * mapping for the multi-preview case once `this.slimApi` exists (see `_refreshPreviewImages`).
+         */
+        this._lastPreviewUrl = null;
+
+        /**
+         * Which product image the shopper is currently looking at, and the preview page mapped onto
+         * each of them (`_previewPages[mediaIndex]`, filled in by `_refreshPreviewImages`). SlimUi
+         * renders one page at a time and reports it through `renderPreviewImageCallback`, so knowing
+         * which image that page belongs on is what keeps a gallery of several pages coherent - see
+         * `_syncPreviewToGallerySlide`. Starts at 0: the gallery opens on its first slide.
+         */
+        this._currentMediaIndex = 0;
+        this._previewPages = [];
+
+        /**
+         * Set while a `setPreview()` this plugin triggered itself is still in flight, so the render it
+         * causes doesn't refetch every other page - see `_onRenderPreviewImageCallback`.
+         */
+        this._previewSwitchPending = false;
+
+        /** Set by `_mountPageNavigation()`, and only when the feature is on - see `_hasFeature`. */
+        this.pageNavigationContainer = null;
+
+        this._debugLog('init: mounting SlimUi', { templateName: this.templateName, formFields: this.formFields, features: this.features });
 
         this._mountUi();
         this._registerAddToBasketEvents();
@@ -171,9 +253,114 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         previewWrapper.insertAdjacentElement('afterend', uiWrapper);
 
-        this._mediaLoadingOverlays = this._attachMediaLoadingOverlays();
+        this._indexProductImages();
+
+        if (this._hasFeature(PAGE_NAVIGATION_FEATURE)) {
+            this.pageNavigationContainer = this._mountPageNavigation();
+        }
+
+        this._attachMediaLoadingOverlays();
 
         this._setLoadingState(true);
+    }
+
+    _hasFeature(feature) {
+        return Array.isArray(this.features) && this.features.includes(feature);
+    }
+
+    /**
+     * Inserts the container SlimUi renders its page-preview strip into, as the media column's first
+     * child so it sits above the gallery - the same placement the Shopify integration uses - and marks
+     * that column so `base.scss` can hide the carousel chrome this replaces.
+     *
+     * Returns null when the page has no product media column to put it in (a CMS layout that renders
+     * the gallery elsewhere): `_loadSlimUi()` then simply doesn't pass `pageNavigation`, and SlimUi
+     * falls back to its normal behaviour of not rendering one at all, rather than this plugin
+     * scattering a stray container across the page or throwing during mount.
+     */
+    _mountPageNavigation() {
+        const mediaColumn = document.querySelector('.product-detail-media');
+
+        if (!mediaColumn) {
+            this._debugLog('mountPageNavigation: no .product-detail-media column on this page, page navigation not mounted');
+            return null;
+        }
+
+        mediaColumn.classList.add(PAGE_NAVIGATION_ROOT_CLASS);
+
+        const existing = mediaColumn.querySelector(`.${PAGE_NAVIGATION_CONTAINER_CLASS}`);
+
+        if (existing) {
+            return existing;
+        }
+
+        const container = document.createElement('div');
+        container.className = PAGE_NAVIGATION_CONTAINER_CLASS;
+        mediaColumn.insertBefore(container, mediaColumn.firstChild);
+
+        return container;
+    }
+
+    /**
+     * Everything this plugin touches outside the buy widget lives in the product page's own media
+     * column; `document` is the fallback for a CMS layout that renders the gallery somewhere else.
+     */
+    _getMediaRoot() {
+        return document.querySelector('.product-detail-media') || document;
+    }
+
+    /**
+     * Stamps every product photo in all four `PRODUCT_IMAGE_SELECTOR_GROUPS` with the index of the
+     * media it shows, so previews can be mapped onto "product image #n" rather than onto the nth node
+     * of a `querySelectorAll` result - see `CLONED_SLIDE_SELECTOR` for why those two are not the same
+     * thing.
+     *
+     * The media order is taken from the main slider's own non-cloned images, which is the order the
+     * product's images are rendered in. Identity is the url core's `sw_thumbnails` puts in `src` (or,
+     * for the zoom modal's deferred copies, `data-src`): the plain original media url, byte-identical
+     * across all four groups for the same image, and inherited unchanged by tiny-slider's clones -
+     * which is what lets a single pass stamp main slide, thumbnail, both zoom modal copies and every
+     * clone of any of them consistently.
+     *
+     * Runs before SlimUi is even loaded, i.e. while every image still carries its original url. Both
+     * possible orderings are handled: whether or not the gallery slider has already cloned its slides
+     * by this point, cloned nodes are skipped when establishing the order and then stamped by url like
+     * any other.
+     */
+    _indexProductImages() {
+        const root = this._getMediaRoot();
+        const mediaOrder = [];
+
+        root.querySelectorAll(MAIN_IMAGE_SELECTOR).forEach((img) => {
+            const url = this._getOriginalImageUrl(img);
+
+            if (url && !img.closest(CLONED_SLIDE_SELECTOR) && !mediaOrder.includes(url)) {
+                mediaOrder.push(url);
+            }
+        });
+
+        PRODUCT_IMAGE_SELECTOR_GROUPS.forEach((selector) => {
+            root.querySelectorAll(selector).forEach((img) => {
+                const index = mediaOrder.indexOf(this._getOriginalImageUrl(img));
+
+                if (index >= 0) {
+                    img.setAttribute(MEDIA_INDEX_ATTRIBUTE, String(index));
+                }
+            });
+        });
+
+        this._mediaCount = mediaOrder.length;
+
+        this._debugLog('indexProductImages', { mediaCount: this._mediaCount, mediaOrder });
+    }
+
+    /**
+     * Read as raw attributes rather than through `img.src`/`img.currentSrc`, so that a main image
+     * (`src`) and the zoom modal's deferred copy of the same photo (`data-src`) yield the identical
+     * string, and a responsive `srcset` pick can't leak a thumbnail url in instead of the original.
+     */
+    _getOriginalImageUrl(img) {
+        return img.getAttribute('data-src') || img.getAttribute('src') || '';
     }
 
     /**
@@ -192,15 +379,15 @@ export default class PrintessSlimUiPlugin extends Plugin {
     /**
      * One overlay per main-slider slide (see `MAIN_IMAGE_CONTAINER_SELECTOR`) - in a multi-image
      * gallery every slide gets one since only the active one is ever visible at a time anyway, so there
-     * is no need to track/move a single overlay across slide changes.
+     * is no need to track/move a single overlay across slide changes. Cloned slides included: they are
+     * their own separate slides as far as the viewer is concerned, and `_setLoadingState` re-queries
+     * these from the DOM rather than caching them, so an overlay on a clone tiny-slider only creates
+     * later (`rebuild()` on a viewport change re-clones from the live DOM) is still toggled with the
+     * rest instead of being stuck at whatever state it was cloned in.
      */
     _attachMediaLoadingOverlays() {
-        const root = document.querySelector('.product-detail-media') || document;
-
-        return Array.from(root.querySelectorAll(MAIN_IMAGE_CONTAINER_SELECTOR)).map((container) => {
-            const overlay = this._buildLoadingOverlay();
-            container.appendChild(overlay);
-            return overlay;
+        this._getMediaRoot().querySelectorAll(MAIN_IMAGE_CONTAINER_SELECTOR).forEach((container) => {
+            container.appendChild(this._buildLoadingOverlay());
         });
     }
 
@@ -212,12 +399,13 @@ export default class PrintessSlimUiPlugin extends Plugin {
      * own).
      */
     _setLoadingState(show) {
+        const root = this._getMediaRoot();
+
         this.uiLoadingOverlay.classList.toggle('printess-loading-overlay--visible', show);
-        this._mediaLoadingOverlays.forEach((overlay) => {
+
+        root.querySelectorAll('.printess-loading-overlay').forEach((overlay) => {
             overlay.classList.toggle('printess-loading-overlay--visible', show);
         });
-
-        const root = document.querySelector('.product-detail-media') || document;
 
         PRODUCT_IMAGE_SELECTOR_GROUPS.forEach((selector) => {
             root.querySelectorAll(selector).forEach((node) => {
@@ -303,6 +491,14 @@ export default class PrintessSlimUiPlugin extends Plugin {
         }
     }
 
+    /**
+     * Printess-wide convention for "this is a save token, not a template name" - see
+     * `printessEditor.ts`/`printess-shopify.ts`, which branch on the same prefix.
+     */
+    _isSaveToken(templateName) {
+        return (templateName || '').startsWith('st:');
+    }
+
     _getFormField(selector) {
         if (!this.form) {
             return null;
@@ -375,6 +571,29 @@ export default class PrintessSlimUiPlugin extends Plugin {
             loadParams.formFields = this.formFields;
         }
 
+        // The product's `PrintessSlimUiMergeTemplate` setting - one extra template SlimUi merges on
+        // top of `templateName` once loaded, its properties/form fields replacing the main template's
+        // layout-origin ones. Passing the parameter at all changes SlimUi's own load path (a merge
+        // rules out picking a layout snippet, see `createSlimUi()`), so it is only set when the
+        // setting actually has a value, never as an empty string.
+        //
+        // Never merged onto a save token (`st:` prefix - the established marker across the Printess
+        // integrations): a save token is a finished, already-personalized design, and merging would
+        // replace exactly the layout-origin properties the customer filled in with the merge
+        // template's defaults, discarding their work. `PrintessTemplateName` is a template name in
+        // normal operation, so this is a safety net rather than a case that is expected to occur -
+        // the editor page that really does load save tokens (cart-item-editor.html.twig) is wired to
+        // never pass a merge template in the first place.
+        if (this.pageNavigationContainer) {
+            loadParams.pageNavigation = this.pageNavigationContainer;
+        }
+
+        if (this.mergeTemplate && !this._isSaveToken(this.templateName)) {
+            loadParams.merge1 = this.mergeTemplate;
+        } else if (this.mergeTemplate) {
+            this._debugLog('loadSlimUi: template name is a save token, not applying the merge template', this.templateName);
+        }
+
         this._debugLog('loadSlimUi: creating SlimUi instance', loadParams);
 
         this.slimApi = await slimUiLoader.createSlimUi(loadParams);
@@ -382,6 +601,14 @@ export default class PrintessSlimUiPlugin extends Plugin {
         if (this.addToBasketTriggerButton) {
             this.addToBasketTriggerButton.disabled = false;
         }
+
+        // `previews` is only readable off the api object, so a first render that got in before this
+        // assignment has updated the first product image but not the rest - see `_refreshPreviewImages`.
+        if (this._lastPreviewUrl) {
+            void this._refreshPreviewImages(this._lastPreviewUrl);
+        }
+
+        this._registerGallerySlideSync();
     }
 
     /**
@@ -530,44 +757,265 @@ export default class PrintessSlimUiPlugin extends Plugin {
     /**
      * Renders SlimUi's live design preview directly onto the real product photo(s) instead of the
      * (hidden, off-screen) `previewImage` `createSlimUi()` required - see `PRODUCT_IMAGE_SELECTOR_GROUPS`.
-     * `previewImageUrl` is a single url, or one per "preview" (e.g. front/back of a business card) for
-     * a multi-image template - each is applied, in order, to the Nth matching element of every group,
-     * so a shop with a multi-image gallery gets every relevant photo replaced, not just the first.
      *
-     * Deliberately scoped: if a template has more previews than the product has real gallery images,
-     * the extra preview urls have nowhere on the page to go and are dropped (logged in debug mode) -
-     * this integration doesn't grow the gallery with new slides.
+     * The callback only ever carries ONE url, for whichever preview page SlimUi just rendered (its
+     * `_renderPreviewImageDirect()` passes a single `getPreviewImageInfo()` result, even though the
+     * bundled `.d.ts` types the parameter as `string | []`), so the first product image is updated
+     * from it right here and any further ones are filled in by `_refreshPreviewImages()`, which has to
+     * go and fetch them.
      */
     _onRenderPreviewImageCallback(previewImageUrl) {
-        const urls = Array.isArray(previewImageUrl) ? previewImageUrl : [previewImageUrl];
-        const root = document.querySelector('.product-detail-media') || document;
+        const url = Array.isArray(previewImageUrl) ? previewImageUrl[0] : previewImageUrl;
 
-        this._debugLog('renderPreviewImageCallback', urls);
+        this._debugLog('renderPreviewImageCallback', { url, mediaIndex: this._currentMediaIndex });
 
-        PRODUCT_IMAGE_SELECTOR_GROUPS.forEach((selector) => {
-            const nodes = root.querySelectorAll(selector);
+        this._lastPreviewUrl = url;
 
-            urls.forEach((url, index) => {
-                const node = nodes[index];
+        // Onto whichever product image the shopper is looking at, which is the page SlimUi just
+        // rendered - not necessarily the first one, once `_syncPreviewToGallerySlide` has moved it.
+        this._applyPreviewUrlToMediaIndex(this._currentMediaIndex, url);
 
-                if (!node) {
-                    if (index === 0) {
-                        return;
-                    }
+        // A page switch this plugin asked for changes only WHICH page is on screen, not the design, so
+        // every other product image still holds a correct url and re-rendering them would be waste.
+        // Consumed once: any later callback is a real design change and does refresh the rest.
+        if (this._previewSwitchPending) {
+            this._previewSwitchPending = false;
+            return;
+        }
 
-                    this._debugLog(`renderPreviewImageCallback: no product image at index ${index} for selector "${selector}", dropping preview url`, url);
-                    return;
-                }
+        void this._refreshPreviewImages(url);
+    }
 
-                this._applyPreviewUrlToImage(node, url);
-            });
+    /**
+     * Fills in the product images after the first one for a template with several previews (front/back
+     * of a business card, the pages of a calendar, ...).
+     *
+     * `renderPreviewImageCallback` hands over the rendered page only, so the remaining ones are
+     * requested explicitly through `getPreviewImageInfo(previewIndex, pageIndex)` over the flattened
+     * `previews` x `pageCount` list - the same walk the Shopify integration's `initThumbnails()` does.
+     * Each of those is a `slimui/create` render on Printess' side, so only as many as the gallery can
+     * actually show are requested, and they go out in parallel rather than one after the other: the
+     * count is bounded by the product's image count, and the shopper is looking at a spinner
+     * (`progressStateChangedCallback` is still "busy") until they arrive.
+     *
+     * The page SlimUi has just rendered is never refetched - `currentPreviewUrl` already is it. Which
+     * product image that is depends on where the shopper has navigated the gallery to
+     * (`_currentMediaIndex`), not on it always being the first one.
+     *
+     * Deliberately scoped in both directions:
+     * - more preview pages than product images: the surplus has nowhere on the page to go and is
+     *   dropped (logged in debug mode) - this integration doesn't grow the gallery with new slides.
+     * - more product images than preview pages: the surplus keeps the merchant's own product photos.
+     *   A 2-page design on a 6-image product personalizes images 1-2 and leaves the frame detail shot
+     *   and the room scene alone, rather than repeating a preview over them.
+     */
+    async _refreshPreviewImages(currentPreviewUrl) {
+        if (this.pageNavigationContainer) {
+            // SlimUi renders (and keeps up to date) a thumbnail per page itself, and the gallery's own
+            // slides are unreachable with its carousel chrome hidden - so rendering every page a
+            // second time onto them would cost a `slimui/create` round trip each for something nobody
+            // can see. The one image that IS visible is the current page, already applied by
+            // `_onRenderPreviewImageCallback()`, which fires again on every page switch.
+            return;
+        }
+
+        if (!this.slimApi) {
+            // The initial render is started by `loadTemplate()` without being awaited, so its callback
+            // can in principle beat `createSlimUi()`'s own promise. `_loadSlimUi()` retries from
+            // `_lastPreviewUrl` once the api object exists.
+            this._debugLog('refreshPreviewImages: SlimUi api not ready yet, deferring');
+            return;
+        }
+
+        const pages = this._getPreviewPages();
+
+        if (pages.length > this._mediaCount) {
+            this._debugLog(`refreshPreviewImages: template has ${pages.length} preview page(s) but the product only has ${this._mediaCount} image(s), dropping the surplus`);
+        }
+
+        // Kept even when there is nothing to fetch: it is also what tells
+        // `_syncPreviewToGallerySlide` which product images have a preview page behind them at all.
+        this._previewPages = pages.slice(0, this._mediaCount);
+
+        const wanted = this._previewPages;
+
+        if (wanted.length < 2) {
+            return;
+        }
+
+        const requestId = ++this._previewRequestId;
+        const currentMediaIndex = this._currentMediaIndex;
+
+        try {
+            const urls = await Promise.all(wanted.map((page, index) => (index === currentMediaIndex
+                ? Promise.resolve(currentPreviewUrl)
+                : this.slimApi.getPreviewImageInfo(page.previewIndex, page.pageIndex).then((info) => info.url))));
+
+            if (requestId !== this._previewRequestId) {
+                this._debugLog('refreshPreviewImages: superseded by a newer render, discarding');
+                return;
+            }
+
+            this._debugLog('refreshPreviewImages: applying preview urls', urls);
+
+            this._applyPreviewUrlsToMedia(urls);
+        } catch (error) {
+            // A failed preview render leaves the product images as they are - the design is still
+            // intact and add-to-basket still works, so this is not worth interrupting the shopper for.
+            this._debugLog('refreshPreviewImages: failed', error);
+        }
+    }
+
+    /**
+     * Every renderable preview page as a flat `{ previewIndex, pageIndex }` list, in the order the
+     * previews and their pages are defined in the template. A template with no `previews` at all still
+     * has its one implicit primary page, which is what `getPreviewImageInfo(0, 0)` renders.
+     */
+    _getPreviewPages() {
+        const previews = this.slimApi.previews?.length ? this.slimApi.previews : [{ pageCount: 1 }];
+        const pages = [];
+
+        previews.forEach((preview, previewIndex) => {
+            const pageCount = preview.pageCount > 0 ? preview.pageCount : 1;
+
+            for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
+                pages.push({ previewIndex, pageIndex });
+            }
         });
+
+        return pages;
+    }
+
+    /**
+     * Applies preview url N to product image N - every copy of it: main slide, thumbnail, both of the
+     * zoom modal's own copies, and any clone tiny-slider has made of any of those, all of which carry
+     * the same `MEDIA_INDEX_ATTRIBUTE` stamp (see `_indexProductImages`).
+     */
+    _applyPreviewUrlsToMedia(urls) {
+        urls.forEach((url, index) => this._applyPreviewUrlToMediaIndex(index, url));
+    }
+
+    _applyPreviewUrlToMediaIndex(index, url) {
+        if (!url) {
+            return;
+        }
+
+        this._getMediaRoot()
+            .querySelectorAll(`[${MEDIA_INDEX_ATTRIBUTE}="${index}"]`)
+            .forEach((img) => this._applyPreviewUrlToImage(img, url));
+    }
+
+    /**
+     * Tells SlimUi which preview page the shopper has navigated the product gallery to, so its own
+     * current page follows the image on screen: a template saved with "Properties Per Preview
+     * Document" then shows that page's properties, and every later re-render lands on the image the
+     * shopper is actually looking at instead of on the first one.
+     *
+     * Bound to core's own `indexChanged` slider event rather than to clicks on the thumbnails, so it
+     * covers every way of changing slides at once - thumbnail, arrows, dots, swipe, keyboard - and
+     * re-bound on `afterInitSlider`, which core publishes again after a `rebuild()` (a viewport change
+     * crossing a breakpoint destroys and recreates the tiny-slider instance, losing listeners with it).
+     *
+     * Gated behind the `thumbnailNavigation` feature, and inactive when `pageNavigation` is on: SlimUi
+     * renders its own page strip there and the gallery's slide-switching chrome is hidden, so there is
+     * nothing to follow.
+     * `setPreview()` is also feature-detected - it is absent from the `.d.ts` this plugin vendors, so
+     * an older editor build may not have it, and page switching being ignored is a far better outcome
+     * than a `TypeError` taking the rest of the integration down with it.
+     */
+    _registerGallerySlideSync() {
+        if (!this._hasFeature(THUMBNAIL_NAVIGATION_FEATURE) || this.pageNavigationContainer) {
+            return;
+        }
+
+        if (typeof this.slimApi?.setPreview !== 'function') {
+            this._debugLog('registerGallerySlideSync: this SlimUi build has no setPreview(), gallery slide changes will not be forwarded');
+            return;
+        }
+
+        // Absent for a single-image gallery: core only renders the attribute when there is more than
+        // one image, and with one image there is no slide to change.
+        const sliderEl = this._getMediaRoot().querySelector(GALLERY_SLIDER_SELECTOR);
+
+        if (!sliderEl) {
+            return;
+        }
+
+        const sliderPlugin = window.PluginManager.getPluginInstanceFromElement(sliderEl, 'GallerySlider');
+
+        if (!sliderPlugin) {
+            this._debugLog('registerGallerySlideSync: no GallerySlider plugin instance on the gallery, slide changes will not be forwarded');
+            return;
+        }
+
+        this._boundGallerySlideChanged = () => this._syncPreviewToGallerySlide(sliderPlugin);
+
+        const attach = () => {
+            if (!sliderPlugin._slider) {
+                return;
+            }
+
+            sliderPlugin._slider.events.off('indexChanged', this._boundGallerySlideChanged);
+            sliderPlugin._slider.events.on('indexChanged', this._boundGallerySlideChanged);
+        };
+
+        attach();
+        sliderPlugin.$emitter.subscribe('afterInitSlider', attach);
+    }
+
+    /**
+     * The active slide is identified by the `MEDIA_INDEX_ATTRIBUTE` stamp on its own image rather than
+     * by the slider's index, which counts tiny-slider's clones as slides of their own - a clone
+     * carries its source's stamp, so reading it works whichever copy happens to be the active one.
+     */
+    _syncPreviewToGallerySlide(sliderPlugin) {
+        if (!sliderPlugin._slider) {
+            return;
+        }
+
+        const activeSlide = sliderPlugin.getActiveSlideElement();
+        const img = activeSlide ? activeSlide.querySelector(`[${MEDIA_INDEX_ATTRIBUTE}]`) : null;
+        const mediaIndex = img ? Number(img.getAttribute(MEDIA_INDEX_ATTRIBUTE)) : NaN;
+
+        if (!Number.isInteger(mediaIndex) || mediaIndex === this._currentMediaIndex) {
+            return;
+        }
+
+        const page = this._previewPages[mediaIndex];
+
+        if (!page) {
+            // One of the merchant's own product photos, with no preview page behind it. SlimUi stays
+            // on the page it is on - moving it would repaint that page onto this photo's slot.
+            this._debugLog(`syncPreviewToGallerySlide: product image ${mediaIndex} has no preview page, leaving SlimUi on ${this._currentMediaIndex}`);
+            return;
+        }
+
+        this._debugLog('syncPreviewToGallerySlide: setPreview', { mediaIndex, ...page });
+
+        this._currentMediaIndex = mediaIndex;
+        this._previewSwitchPending = true;
+
+        this.slimApi.setPreview(page.previewIndex, page.pageIndex);
     }
 
     /**
      * A dynamically generated design preview has no precomputed responsive thumbnail variants, so any
      * `srcset`/`<source>` markup core's `sw_thumbnails` normally renders (which would otherwise take
      * priority over a plain `src` change inside a `<picture>`) is stripped before applying the url.
+     *
+     * The zoom modal's own image copies are rendered by `sw_thumbnails` with `load: false`, i.e. as
+     * `data-src`/`data-srcset` rather than `src`/`srcset` (see `thumbnail.html.twig`), because core's
+     * `ZoomModalPlugin` defers loading the fullscreen-sized images until the modal is actually opened:
+     * its `_loadImages()` then copies `data-src` -> `src` and `data-srcset` -> `srcset` on every
+     * `.js-load-img` still carrying a `data-src`. Setting `src` alone would therefore be undone the
+     * moment the overlay opens, the original product photo reappearing in it - so the deferred
+     * attributes are dropped here, which is precisely the state core itself leaves an image in once it
+     * has loaded it, and puts the img into the `_loadImages()` "already loaded" path (it selects on
+     * `data-src`) instead of the deferred one. Deliberately dropped rather than repointed at the
+     * preview url: an `img` whose `src` is reassigned to the value it already has is not guaranteed to
+     * fire `load` again, and `_loadImages()` only shows the modal from its images' `load`/`error`
+     * handlers - so repointing risks an overlay that never opens at all. Nothing is loaded any earlier
+     * by this: the url set below is the same one the visible gallery image already fetched.
      *
      * The main gallery image also carries a separate `data-full-image` attribute - core's own
      * `MagnifierPlugin` (the hover-zoom lens) reads that attribute, not `src`/`srcset`, and re-reads it
@@ -583,6 +1031,8 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         img.removeAttribute('srcset');
         img.removeAttribute('sizes');
+        img.removeAttribute('data-src');
+        img.removeAttribute('data-srcset');
         img.src = url;
 
         if (img.hasAttribute('data-full-image')) {

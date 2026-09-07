@@ -112,28 +112,30 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 </label>
 
                 <div class="sw-product-detail-printess__template-preview">
-                    <template v-if="selectedTemplateName">
-                        <img
-                            v-if="selectedTemplate && selectedTemplate.thumbnailUrl"
-                            :src="selectedTemplate.thumbnailUrl"
-                            :alt="selectedTemplateName"
-                            class="sw-product-detail-printess__template-thumbnail"
-                        >
-                        <div
-                            v-else
-                            class="sw-product-detail-printess__template-thumbnail sw-product-detail-printess__template-thumbnail--placeholder"
-                        >
-                            <mt-icon name="regular-image" size="24px" />
-                        </div>
+                    <div class="sw-product-detail-printess__template-summary">
+                        <template v-if="selectedTemplateName">
+                            <img
+                                v-if="selectedTemplate && selectedTemplate.thumbnailUrl"
+                                :src="selectedTemplate.thumbnailUrl"
+                                :alt="selectedTemplateName"
+                                class="sw-product-detail-printess__template-thumbnail"
+                            >
+                            <div
+                                v-else
+                                class="sw-product-detail-printess__template-thumbnail sw-product-detail-printess__template-thumbnail--placeholder"
+                            >
+                                <mt-icon name="regular-image" size="24px" />
+                            </div>
 
-                        <span class="sw-product-detail-printess__template-name">
-                            {{ selectedTemplateName }}
+                            <span class="sw-product-detail-printess__template-name">
+                                {{ selectedTemplateName }}
+                            </span>
+                        </template>
+
+                        <span v-else class="sw-product-detail-printess__template-empty">
+                            {{ $t('printess-shopware-integration.productDetail.noTemplateSelected') }}
                         </span>
-                    </template>
-
-                    <span v-else class="sw-product-detail-printess__template-empty">
-                        {{ $t('printess-shopware-integration.productDetail.noTemplateSelected') }}
-                    </span>
+                    </div>
 
                     <mt-button
                         class="sw-product-detail-printess__choose-button"
@@ -155,6 +157,91 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                     >
                         {{ $t('printess-shopware-integration.productDetail.clearTemplateButton') }}
                     </mt-button>
+                </div>
+            <div v-if="slimUiEnabled" class="sw-product-detail-printess__slim-ui-merge-template">
+                <label class="sw-product-detail-printess__template-label">
+                    {{ $t('printess-shopware-integration.productDetail.slimUiMergeTemplateFieldLabel') }}
+                </label>
+
+                <p class="sw-product-detail-printess__slim-ui-merge-template-hint">
+                    {{ $t('printess-shopware-integration.productDetail.slimUiMergeTemplateHint') }}
+                </p>
+
+                <div class="sw-product-detail-printess__template-preview">
+                    <div class="sw-product-detail-printess__template-summary">
+                        <template v-if="slimUiMergeTemplateName">
+                            <img
+                                v-if="slimUiMergeTemplate && slimUiMergeTemplate.thumbnailUrl"
+                                :src="slimUiMergeTemplate.thumbnailUrl"
+                                :alt="slimUiMergeTemplateName"
+                                class="sw-product-detail-printess__template-thumbnail"
+                            >
+                            <div
+                                v-else
+                                class="sw-product-detail-printess__template-thumbnail sw-product-detail-printess__template-thumbnail--placeholder"
+                            >
+                                <mt-icon name="regular-image" size="24px" />
+                            </div>
+
+                            <span class="sw-product-detail-printess__template-name">
+                                {{ slimUiMergeTemplateName }}
+                            </span>
+                        </template>
+
+                        <span v-else class="sw-product-detail-printess__template-empty">
+                            {{ $t('printess-shopware-integration.productDetail.noTemplateSelected') }}
+                        </span>
+                    </div>
+
+                    <mt-button
+                        class="sw-product-detail-printess__choose-button"
+                        variant="secondary"
+                        size="small"
+                        :disabled="!canEdit"
+                        @click="openTemplatePicker('slimUiMerge')"
+                    >
+                        {{ $t('printess-shopware-integration.productDetail.chooseTemplateButton') }}
+                    </mt-button>
+
+                    <mt-button
+                        v-if="slimUiMergeTemplateName"
+                        class="sw-product-detail-printess__clear-button"
+                        variant="ghost"
+                        size="small"
+                        :disabled="!canEdit"
+                        @click="clearSlimUiMergeTemplate"
+                    >
+                        {{ $t('printess-shopware-integration.productDetail.clearTemplateButton') }}
+                    </mt-button>
+                </div>
+            </div>
+            </div>
+
+            <div v-if="slimUiEnabled" class="sw-product-detail-printess__slim-ui-features">
+                <label class="sw-product-detail-printess__merge-templates-label">
+                    {{ $t('printess-shopware-integration.productDetail.slimUiFeaturesLabel') }}
+                </label>
+
+                <p class="sw-product-detail-printess__merge-templates-hint">
+                    {{ $t('printess-shopware-integration.productDetail.slimUiFeaturesHint') }}
+                </p>
+
+                <div
+                    v-for="feature in slimUiFeatureRows"
+                    :key="feature.key"
+                    class="sw-product-detail-printess__slim-ui-feature-row"
+                >
+                    <mt-switch
+                        :model-value="feature.enabled"
+                        :label="feature.label"
+                        :disabled="!canEdit"
+                        bordered
+                        @update:model-value="updateSlimUiFeature(feature.key, $event)"
+                    />
+
+                    <p class="sw-product-detail-printess__slim-ui-feature-hint">
+                        {{ feature.hint }}
+                    </p>
                 </div>
             </div>
 

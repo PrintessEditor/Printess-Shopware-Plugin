@@ -97,6 +97,47 @@ class ProductCustomFieldsInstaller
     private const SLIM_UI_ENABLED_FIELD_ID = 'D451BB1465B3AC091A7654BDDB9A0C3B';
     private const SLIM_UI_ENABLED_FIELD_NAME = 'PrintessSlimUiEnabled';
 
+    /**
+     * One additional template merged on top of the main one, pushed to SlimUi as its own `merge1`
+     * load parameter. Deliberately NOT the same thing as `PrintessMergeTemplates`, which is the full
+     * editor's list-shaped setting (several templates, each with its own merge mode) and is hidden
+     * while SlimUi is active: `merge1` takes a single template name and no mode, so the two cannot
+     * share one field. Only forwarded while `PrintessSlimUiEnabled` is true, mirroring how
+     * `PrintessMergeTemplates` is only forwarded while it is false.
+     */
+    private const SLIM_UI_MERGE_TEMPLATE_FIELD_ID = '019F6FC5DC0F72749ECB6E6840A17B12';
+    private const SLIM_UI_MERGE_TEMPLATE_FIELD_NAME = 'PrintessSlimUiMergeTemplate';
+
+    /**
+     * Opt-in SlimUi sub-features for this product, as a list of feature keys (currently only
+     * `pageNavigation`) - deliberately ONE list field rather than a boolean field per feature, since
+     * SlimUi keeps gaining these and each new one should cost a key in `SLIM_UI_FEATURE_KEYS` plus a
+     * snippet, not another custom field and another plugin version bump. Mirrors the Shopify
+     * integration's own `slimUiFeatures` product setting (see its `TSlimUiFeature`/
+     * `parseSlimUiFeatures()`), so a merchant running both shops configures the same thing twice
+     * rather than learning two models.
+     */
+    private const SLIM_UI_FEATURES_FIELD_ID = '019F6FC5DC0F72749ECB6E68417C2A05';
+    private const SLIM_UI_FEATURES_FIELD_NAME = 'PrintessSlimUiFeatures';
+
+    /**
+     * Every feature key the storefront understands - kept here (rather than only in the admin JS) so
+     * the help text below can name them and a future server-side consumer has one source of truth.
+     * `pageNavigation`: SlimUi renders its own page-preview strip above the product image, replacing
+     * the storefront gallery's carousel controls/thumbnails for switching between the pages of a
+     * design (front/back of a postcard, ...).
+     * `thumbnailNavigation`: the storefront gallery's OWN thumbnails/arrows drive SlimUi's current
+     * preview page instead, so switching slides tells SlimUi which page the shopper is looking at.
+     * Has no effect while `pageNavigation` is active, which hides that chrome and renders its own.
+     * Opt-in rather than always-on to stay configured the same way as the Shopify integration's
+     * identically-named feature, where it must be opt-in because live shops rely on those thumbnails
+     * switching nothing but the theme's own image.
+     */
+    public const SLIM_UI_FEATURE_KEYS = [
+        'pageNavigation',
+        'thumbnailNavigation',
+    ];
+
     private const PRODUCT_RELATION_ID = '7dd240e628084f3cb5dfab30b69abc4e';
 
     public function __construct(
@@ -326,10 +367,42 @@ class ProductCustomFieldsInstaller
                                 'de-DE' => 'SlimUi-Editor aktivieren',
                             ],
                             'helpText' => [
-                                'en-GB' => 'Uses the reduced SlimUi editor, which integrates directly into the product page instead of opening the full Printess editor. Not compatible with merge templates, books or multi-page pricing - those settings are hidden and ignored while this is active. Managed via the Printess tab.',
-                                'de-DE' => 'Verwendet den reduzierten SlimUi-Editor, der direkt in die Produktseite eingebunden wird, statt den vollständigen Printess-Editor zu öffnen. Nicht kompatibel mit Merge-Templates, Büchern oder mehrseitiger Preisgestaltung - diese Einstellungen werden ausgeblendet und ignoriert, solange dies aktiv ist. Wird über den Printess-Tab verwaltet.',
+                                'en-GB' => 'Uses the reduced SlimUi editor, which integrates directly into the product page instead of opening the full Printess editor. Not compatible with the full editor\'s merge template list, books or multi-page pricing - those settings are hidden and ignored while this is active, and SlimUi\'s own single merge template setting takes their place. Managed via the Printess tab.',
+                                'de-DE' => 'Verwendet den reduzierten SlimUi-Editor, der direkt in die Produktseite eingebunden wird, statt den vollständigen Printess-Editor zu öffnen. Nicht kompatibel mit der Merge-Template-Liste des vollständigen Editors, Büchern oder mehrseitiger Preisgestaltung - diese Einstellungen werden ausgeblendet und ignoriert, solange dies aktiv ist; stattdessen greift die eigene Einstellung für ein einzelnes SlimUi-Merge-Template. Wird über den Printess-Tab verwaltet.',
                             ],
                             'customFieldPosition' => 12,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::SLIM_UI_MERGE_TEMPLATE_FIELD_ID),
+                        'name' => self::SLIM_UI_MERGE_TEMPLATE_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'SlimUi merge template',
+                                'de-DE' => 'SlimUi-Merge-Template',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Name of one additional Printess template merged on top of the main template. Only applies while the SlimUi editor is activated. Managed via the Printess tab.',
+                                'de-DE' => 'Name eines zusätzlichen Printess-Templates, das über das Haupttemplate gemergt wird. Gilt nur, solange der SlimUi-Editor aktiviert ist. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 13,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::SLIM_UI_FEATURES_FIELD_ID),
+                        'name' => self::SLIM_UI_FEATURES_FIELD_NAME,
+                        'type' => CustomFieldTypes::JSON,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'SlimUi features',
+                                'de-DE' => 'SlimUi-Funktionen',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Optional SlimUi sub-features activated for this product, as a list of feature keys (available: "pageNavigation", "thumbnailNavigation"). Only applies while the SlimUi editor is activated. Managed via the Printess tab.',
+                                'de-DE' => 'Optionale SlimUi-Zusatzfunktionen für dieses Produkt, als Liste von Funktionsschlüsseln (verfügbar: "pageNavigation", "thumbnailNavigation"). Gilt nur, solange der SlimUi-Editor aktiviert ist. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 14,
                         ],
                     ],
                 ],

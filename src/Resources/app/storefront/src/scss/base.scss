@@ -245,3 +245,49 @@
 .printess-saved-designs__design-edit-token-button .icon > svg {
     top: 0;
 }
+
+// SlimUi's `pageNavigation` feature (see printess-slim-ui.plugin.js's `_mountPageNavigation`). The
+// container is inserted as the product media column's first child and filled by SlimUi itself with a
+// `.slim-page-navigation` flex row of `.slim-page-navigation-item` buttons, all of them inline-styled
+// by SlimUi - so only the outer container and the row's own alignment/spacing are set here, matching
+// what the Shopify integration's own stylesheet does.
+.printess-page-navigation {
+    width: 100%;
+
+    .slim-page-navigation {
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+}
+
+// While page navigation is active, SlimUi's page strip IS the way to change what the big image shows,
+// so the storefront gallery's own competing chrome is hidden: the prev/next arrows, the dot nav and
+// the thumbnail strip. Applied to the zoom modal's copies of the same controls too (it lives inside
+// this same column) - without that, opening the fullscreen overlay would hand the shopper a carousel
+// of the product's unpersonalized photos, which is exactly the confusion this feature avoids on the
+// page itself.
+//
+// The slides themselves are deliberately left in place rather than removed: tiny-slider is already
+// initialized over them by core, and tearing that down to rebuild a single-slide gallery would be a
+// far more invasive change than hiding the controls. A touch swipe on the main image can therefore
+// still reach the product's other photos.
+.product-detail-media.printess-slim-ui-page-navigation {
+    .gallery-slider-controls,
+    .base-slider-dots,
+    .gallery-slider-thumbnails-col,
+    .zoom-modal-wrapper .gallery-slider-thumbnails {
+        display: none !important;
+    }
+
+    // A design's pages need not share one aspect ratio (a portrait cover next to a landscape inside
+    // page), but core's `displayMode: cover` gallery crops its images to fill the slide - which would
+    // cut off whichever pages don't match the product photo's shape. Letterboxing them instead keeps
+    // every page fully visible, the same problem the Shopify integration solves with its
+    // `createFittedPreviewImage()` overlay (needed there only because it cannot override theme CSS).
+    .gallery-slider-item.is-cover,
+    .gallery-slider-single-image.is-cover {
+        .gallery-slider-image {
+            object-fit: contain !important;
+        }
+    }
+}

@@ -41,6 +41,11 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <div
                 class="printess-cart-item-editor__slim-ui row"
                 data-printess-slim-ui-cart-item-editor="true"
+                {# Deliberately NO `data-printess-slim-ui-merge-template` here, unlike
+                   buy-widget-form.html.twig: this page loads the item's own save token, and merging a
+                   template onto a save token would replace the layout-origin properties the customer
+                   already personalized with the merge template's defaults, silently discarding their
+                   edits. A save token records the design's finished content, so it needs no merge. #}
                 data-printess-slim-ui-loader-url="{{ slimUiLoaderUrl }}"
                 data-printess-shop-token="{{ shopToken }}"
                 {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}

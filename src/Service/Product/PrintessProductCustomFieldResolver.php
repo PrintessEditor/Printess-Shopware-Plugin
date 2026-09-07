@@ -39,7 +39,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
  * `PrintessFormFields`, `PrintessMergeTemplates`, `PrintessPrintSettingName`,
  * `PrintessDropshippingConfig`, `PrintessPriceConfig`, `PrintessBookSettings`,
  * `PrintessPhotobookTheme`, `PrintessBookInsidePageCount`, `PrintessBookInsidePageCountEnabled`,
- * `PrintessMagicPhotobookEnabled`, `PrintessSlimUiEnabled`), honouring the
+ * `PrintessMagicPhotobookEnabled`, `PrintessSlimUiEnabled`, `PrintessSlimUiMergeTemplate`,
+ * `PrintessSlimUiFeatures`), honouring the
  * `perLanguageProductSettings` plugin setting.
  *
  * Shopware stores product custom fields per language (the field is a translated column on the
@@ -68,6 +69,8 @@ class PrintessProductCustomFieldResolver
         'PrintessBookInsidePageCountEnabled',
         'PrintessMagicPhotobookEnabled',
         'PrintessSlimUiEnabled',
+        'PrintessSlimUiMergeTemplate',
+        'PrintessSlimUiFeatures',
     ];
 
     public function __construct(

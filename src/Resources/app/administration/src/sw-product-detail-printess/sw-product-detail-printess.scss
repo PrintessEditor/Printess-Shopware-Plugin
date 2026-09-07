@@ -107,8 +107,29 @@
         }
     }
 
+    // Holds the thumbnail + template name (or the "no template selected" placeholder) in a column of
+    // constant width, so the "Choose template" button starts at the same x in every one of these rows
+    // - the main Template selector and the SlimUi merge template below it - regardless of how long the
+    // selected name is, and regardless of whether a row is filled (thumbnail + name) or empty (a bare
+    // placeholder, with no thumbnail to occupy the leading 48px at all). `flex` rather than `width`
+    // because the row must not shrink this column to fit an unusually long button label.
+    &__template-summary {
+        display: flex;
+        flex: 0 0 320px;
+        max-width: 100%;
+        align-items: center;
+        gap: 16px;
+    }
+
     &__template-name {
         font-weight: 600;
+
+        // The column's width is fixed, so an over-long template name has to be clipped here rather
+        // than pushing the buttons out of alignment again.
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__template-empty {
@@ -231,10 +252,39 @@
         margin-top: 8px;
     }
 
-    &__merge-templates {
+    &__slim-ui-feature-row {
+        margin-bottom: 16px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__slim-ui-feature-hint {
+        color: #52667a;
+        font-size: 12px;
+        margin: 4px 0 0;
+    }
+
+    &__merge-templates,
+    &__slim-ui-features {
         margin-top: 24px;
         padding-top: 24px;
         border-top: 1px solid #d1d9e0;
+    }
+
+    // Sits inside `__template-field` (a flex column) as a sub-field of the main Template selector
+    // rather than as its own bordered section - the merge template is only ever meaningful relative
+    // to the template above it, so the two read as one group. The flex `gap` handles the rest of the
+    // spacing; this only widens the break from the Template row itself.
+    &__slim-ui-merge-template {
+        margin-top: 8px;
+    }
+
+    &__slim-ui-merge-template-hint {
+        color: #52667a;
+        font-size: 12px;
+        margin: 0 0 4px;
     }
 
     &__merge-templates-label {

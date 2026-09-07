@@ -38,6 +38,15 @@ const TEMPLATE_SEARCH_DEBOUNCE_MS = 250;
 const PRODUCT_SETTINGS_SAVE_DEBOUNCE_MS = 600;
 const ACTIVATION_CONFLICT_DISPLAY_MS = 20000;
 const MAX_DISPLAYED_TEMPLATES = 120;
+
+/**
+ * Every opt-in SlimUi sub-feature offered in the UI, in display order - the admin-side twin of
+ * `ProductCustomFieldsInstaller::SLIM_UI_FEATURE_KEYS`, stored as a list of the enabled keys in the
+ * single `PrintessSlimUiFeatures` custom field (rather than one boolean field per feature, see that
+ * constant's own comment). Adding the next SlimUi feature means a key here plus its two snippets:
+ * `slimUiFeature<Key>Label` / `slimUiFeature<Key>Hint`, resolved by `slimUiFeatureSnippet()`.
+ */
+const SLIM_UI_FEATURE_KEYS = ['pageNavigation', 'thumbnailNavigation'];
 const LAYOUT_SNIPPET_ID_PREFIX = 'sid~';
 const LAYOUT_SNIPPET_GLOBAL_SUFFIX = '~gid';
 
@@ -392,6 +401,55 @@ export default Shopware.Component.wrapComponentConfig({
             return this.templates.find((template) => template.name === this.selectedTemplateName) ?? null;
         },
 
+        /**
+         * SlimUi's own single-template merge setting, pushed to it as its `merge1` load parameter.
+         * Separate from `mergeTemplates` (the full editor's list-shaped equivalent, hidden while
+         * SlimUi is active): `merge1` takes one template name and no merge mode, so it gets its own
+         * field rather than sharing that list - see `ProductCustomFieldsInstaller`.
+         */
+        slimUiMergeTemplateName() {
+            const value = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessSlimUiMergeTemplate
+                : this.defaultLanguageFields.PrintessSlimUiMergeTemplate;
+
+            return value ?? null;
+        },
+
+        slimUiMergeTemplate() {
+            if (!this.slimUiMergeTemplateName) {
+                return null;
+            }
+
+            return this.templates.find((template) => template.name === this.slimUiMergeTemplateName) ?? null;
+        },
+
+        /**
+         * The stored feature list, normalized to an array of keys. The custom field is JSON-typed,
+         * but it is also editable by hand in Shopware's generic custom field UI, so a bare string or
+         * a null can legitimately come back from there.
+         */
+        slimUiFeatures() {
+            const value = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessSlimUiFeatures
+                : this.defaultLanguageFields.PrintessSlimUiFeatures;
+
+            if (Array.isArray(value)) {
+                return value.filter((feature) => !!feature);
+            }
+
+            return value ? [value] : [];
+        },
+
+        /** One row per known feature, for the toggle list - see `SLIM_UI_FEATURE_KEYS`. */
+        slimUiFeatureRows() {
+            return SLIM_UI_FEATURE_KEYS.map((key) => ({
+                key,
+                enabled: this.slimUiFeatures.includes(key),
+                label: this.slimUiFeatureSnippet(key, 'Label'),
+                hint: this.slimUiFeatureSnippet(key, 'Hint'),
+            }));
+        },
+
         filteredTemplates() {
             if (!this.debouncedSearchTerm) {
                 return this.templates;
@@ -430,6 +488,10 @@ export default Shopware.Component.wrapComponentConfig({
         currentPickerTemplateName() {
             if (this.templatePickerTarget === 'main') {
                 return this.selectedTemplateName;
+            }
+
+            if (this.templatePickerTarget === 'slimUiMerge') {
+                return this.slimUiMergeTemplateName;
             }
 
             const row = this.mergeTemplates.find((mergeTemplate) => mergeTemplate.clientId === this.templatePickerTarget);
@@ -1536,6 +1598,8 @@ export default Shopware.Component.wrapComponentConfig({
                 } else {
                     this.saveDefaultLanguageField('PrintessTemplateName', template.name);
                 }
+            } else if (this.templatePickerTarget === 'slimUiMerge') {
+                this.updateSlimUiMergeTemplate(template.name);
             } else {
                 this.updateMergeTemplateField(this.templatePickerTarget, 'templateName', template.name);
             }
@@ -1550,6 +1614,65 @@ export default Shopware.Component.wrapComponentConfig({
                 }
             } else {
                 this.saveDefaultLanguageField('PrintessTemplateName', null);
+            }
+        },
+
+        /**
+         * Picker-driven rather than typed, so - like `updateSlimUiEnabled()` - this saves straight
+         * away instead of going through the debounced text-field path.
+         */
+        updateSlimUiMergeTemplate(value) {
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessSlimUiMergeTemplate = value || null;
+            } else {
+                this.saveDefaultLanguageField('PrintessSlimUiMergeTemplate', value || null);
+            }
+        },
+
+        clearSlimUiMergeTemplate() {
+            this.updateSlimUiMergeTemplate(null);
+        },
+
+        /**
+         * `pageNavigation` -> `slimUiFeaturePageNavigationLabel`/`...Hint`. Keeping the snippet keys
+         * derivable from the feature key is what makes adding the next feature a one-line change.
+         */
+        slimUiFeatureSnippet(key, suffix) {
+            const snippetKey = `slimUiFeature${key.charAt(0).toUpperCase()}${key.slice(1)}${suffix}`;
+
+            return this.$t(`printess-shopware-integration.productDetail.${snippetKey}`);
+        },
+
+        /**
+         * Toggle-driven, so this saves immediately like `updateSlimUiEnabled()`. The stored value is
+         * rebuilt from `SLIM_UI_FEATURE_KEYS` rather than by pushing/splicing the existing array, so
+         * the list always comes out in a stable order and free of any duplicate or unknown key a
+         * hand-edit in the generic custom field UI may have left behind. An empty selection is stored
+         * as null, not `[]`, matching how every other optional field here clears itself.
+         */
+        updateSlimUiFeature(key, value) {
+            const enabled = new Set(this.slimUiFeatures);
+
+            if (value) {
+                enabled.add(key);
+            } else {
+                enabled.delete(key);
+            }
+
+            const features = SLIM_UI_FEATURE_KEYS.filter((feature) => enabled.has(feature));
+
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessSlimUiFeatures = features.length ? features : null;
+            } else {
+                this.saveDefaultLanguageField('PrintessSlimUiFeatures', features.length ? features : null);
             }
         },
 
