@@ -199,6 +199,16 @@ export default class PrintessSlimUiPlugin extends Plugin {
          */
         this._previewSwitchPending = false;
 
+        /**
+         * Latches as soon as SlimUi's own UI is actually inside `uiContainer` - whichever comes
+         * first of the initial `renderPreviewImageCallback` and `createSlimUi()` resolving. From then
+         * on `_setLoadingState` leaves the SlimUi mount point uncovered: `progressStateChangedCallback`
+         * fires on every keystroke in a text field, and an overlay over the editor's own inputs turns
+         * typing into a fight with a spinner. The product-photo overlays keep toggling with it - that
+         * photo really is stale until the regenerated preview arrives.
+         */
+        this._slimUiMounted = false;
+
         /** Set by `_mountPageNavigation()`, and only when the feature is on - see `_hasFeature`. */
         this.pageNavigationContainer = null;
 
@@ -222,7 +232,8 @@ export default class PrintessSlimUiPlugin extends Plugin {
      * its own UI into it), one over the real product photo. Both are shown immediately here, before
      * `_loadSlimUi()` even starts fetching the editor, since the initial load has no other progress
      * indication at all - `_onProgressStateChanged` hides them once `progressStateChangedCallback`
-     * first reports `false`.
+     * first reports `false`. The one over the mount point is for that initial load only and never
+     * comes back afterwards, see `_slimUiMounted`.
      */
     _mountUi() {
         this.configuratorForm = this._getConfiguratorForm();
@@ -394,14 +405,17 @@ export default class PrintessSlimUiPlugin extends Plugin {
     /**
      * Single source of truth for "is SlimUi currently busy" - used both for the initial state (shown
      * from the very start of `_mountUi()`) and every subsequent `progressStateChangedCallback`
-     * invocation. Toggles the two dedicated overlays plus the existing dimming applied to every real
+     * invocation. Toggles the product-photo overlay plus the existing dimming applied to every real
      * product image (thumbnail strip/zoom modal included, which don't get a dedicated overlay of their
-     * own).
+     * own), and - during the initial load only - the one over the SlimUi mount point.
      */
     _setLoadingState(show) {
         const root = this._getMediaRoot();
 
-        this.uiLoadingOverlay.classList.toggle('printess-loading-overlay--visible', show);
+        // Deliberately not after `_slimUiMounted` latches: see there.
+        if (!this._slimUiMounted) {
+            this.uiLoadingOverlay.classList.toggle('printess-loading-overlay--visible', show);
+        }
 
         root.querySelectorAll('.printess-loading-overlay').forEach((overlay) => {
             overlay.classList.toggle('printess-loading-overlay--visible', show);
@@ -412,6 +426,23 @@ export default class PrintessSlimUiPlugin extends Plugin {
                 node.classList.toggle('printess-preview-loading', show);
             });
         });
+    }
+
+    /**
+     * Retires the mount-point overlay for good (see `_slimUiMounted`). Idempotent, because both of
+     * its callers can be the one that gets there first: a first `renderPreviewImageCallback` can beat
+     * `createSlimUi()`'s own promise (the same race `_lastPreviewUrl` exists for), and a template that
+     * never reports a preview at all still has to get the overlay off its editor.
+     */
+    _markSlimUiMounted() {
+        if (this._slimUiMounted) {
+            return;
+        }
+
+        this._debugLog('slimUiMounted: releasing the mount point overlay');
+
+        this._slimUiMounted = true;
+        this.uiLoadingOverlay.classList.remove('printess-loading-overlay--visible');
     }
 
     /**
@@ -598,6 +629,8 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         this.slimApi = await slimUiLoader.createSlimUi(loadParams);
 
+        this._markSlimUiMounted();
+
         if (this.addToBasketTriggerButton) {
             this.addToBasketTriggerButton.disabled = false;
         }
@@ -768,6 +801,8 @@ export default class PrintessSlimUiPlugin extends Plugin {
         const url = Array.isArray(previewImageUrl) ? previewImageUrl[0] : previewImageUrl;
 
         this._debugLog('renderPreviewImageCallback', { url, mediaIndex: this._currentMediaIndex });
+
+        this._markSlimUiMounted();
 
         this._lastPreviewUrl = url;
 

@@ -46,7 +46,8 @@ const PRICE_REFRESH_DEBOUNCE_MS = 300;
  *   though, driving the same two loading overlays printess-slim-ui.plugin.js shows on the product page
  *   (over the preview panel and over the SlimUi mount point) - both are rendered already-visible in
  *   `cart-item-editor.html.twig` so they cover the gap between page load and this plugin's first
- *   callback, same as the product page's own `_setLoadingState(true)` in `_mountUi()`.
+ *   callback, same as the product page's own `_setLoadingState(true)` in `_mountUi()`. And as there,
+ *   the one over the mount point is retired after the initial load, see `_slimUiMounted`.
  * - SlimUi has no built-in "add to basket"/back button chrome the way the full editor's own UI does,
  *   so this page renders its own, wired to `slimApi.createSaveToken()` + the same `updateUrl` POST
  *   the full editor's `addToBasketCallback` already uses.
@@ -84,6 +85,14 @@ export default class PrintessSlimUiCartItemEditorPlugin extends Plugin {
         this._lastPriceSelectionKey = null;
         this._lastPrice = null;
         this._priceRequestId = 0;
+
+        /**
+         * Latches once `createSlimUi()` has resolved, i.e. SlimUi's own UI is inside `uiContainer`.
+         * From then on `_setLoadingState` leaves the mount point uncovered: SlimUi reports progress on
+         * every keystroke in a text field, and an overlay over its own inputs turns typing into a
+         * fight with a spinner. Same reasoning (and same latch name) as printess-slim-ui.plugin.js.
+         */
+        this._slimUiMounted = false;
 
         this.backButton?.addEventListener('click', () => {
             window.location.href = this.backUrl;
@@ -147,6 +156,10 @@ export default class PrintessSlimUiCartItemEditorPlugin extends Plugin {
         this._debugLog('createEditor: loading SlimUi', loadParams);
 
         this.slimApi = await slimUiLoader.createSlimUi(loadParams);
+
+        this._slimUiMounted = true;
+        this.uiLoadingOverlay?.classList.remove('printess-loading-overlay--visible');
+
         this._refreshPriceDisplay();
     }
 
@@ -162,11 +175,16 @@ export default class PrintessSlimUiCartItemEditorPlugin extends Plugin {
     /**
      * Same overlay toggling as printess-slim-ui.plugin.js's own `_setLoadingState()` - both overlays
      * are rendered already-visible server-side (see cart-item-editor.html.twig), so this only ever
-     * needs to hide/show them from here on, driven purely by `progressStateChangedCallback`.
+     * needs to hide/show them from here on, driven purely by `progressStateChangedCallback`. The
+     * preview panel keeps toggling for the life of the page (the preview shown really is stale while
+     * a new one renders); the mount point is covered for the initial load only, see `_slimUiMounted`.
      */
     _setLoadingState(show) {
         this.previewLoadingOverlay?.classList.toggle('printess-loading-overlay--visible', show);
-        this.uiLoadingOverlay?.classList.toggle('printess-loading-overlay--visible', show);
+
+        if (!this._slimUiMounted) {
+            this.uiLoadingOverlay?.classList.toggle('printess-loading-overlay--visible', show);
+        }
     }
 
     /**

@@ -91,7 +91,9 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                         {# Same loading overlay as printess-slim-ui.plugin.js shows over the SlimUi mount
                            point on the product page - `.printess-slim-ui-container-wrapper` gives it a
                            `min-height` to sit in before SlimUi has injected any UI into the (otherwise
-                           empty) container next to it. #}
+                           empty) container next to it. Covers the initial load only: the plugin drops
+                           it for good once SlimUi is up, rather than re-covering the editor's own
+                           inputs on every later progress report. #}
                         <div class="printess-loading-overlay printess-loading-overlay--visible" data-printess-slim-ui-ui-loading-overlay>
                             <div class="spinner-border" role="status">
                                 <span class="visually-hidden">Loading...</span>
