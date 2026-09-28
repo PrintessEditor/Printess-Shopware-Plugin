@@ -1,6 +1,6 @@
 {
   "main.js": {
-    "file": "assets/printess-shopware-integration-CJp6mwZp.js",
+    "file": "assets/printess-shopware-integration-CzaHJjX_.js",
     "name": "printess-shopware-integration",
     "src": "main.js",
     "isEntry": true,
@@ -11,6 +11,8 @@
       "printess-imposition-select/index.js",
       "printess-dropshipping-select/index.js",
       "printess-order-line-item-production/index.js",
+      "printess-template-check/index.js",
+      "printess-variant-sync-modal/index.js",
       "sw-order-line-item-printess-editor/index.js"
     ]
   },
@@ -59,6 +61,24 @@
       "assets/index-BvI9YTVs.css"
     ]
   },
+  "printess-template-check/index.js": {
+    "file": "assets/index-DVq0lA-C.js",
+    "name": "index",
+    "src": "printess-template-check/index.js",
+    "isDynamicEntry": true,
+    "css": [
+      "assets/index-DhbGQ9z2.css"
+    ]
+  },
+  "printess-variant-sync-modal/index.js": {
+    "file": "assets/index-DiMeRm36.js",
+    "name": "index",
+    "src": "printess-variant-sync-modal/index.js",
+    "isDynamicEntry": true,
+    "css": [
+      "assets/index-BvIQcSMA.css"
+    ]
+  },
   "sw-order-line-item-printess-editor/index.js": {
     "file": "assets/index-DAIGMclQ.js",
     "name": "index",
@@ -69,7 +89,7 @@
     ]
   },
   "sw-product-detail-printess/index.js": {
-    "file": "assets/index-CrMFjErC.js",
+    "file": "assets/index-D__OXogD.js",
     "name": "index",
     "src": "sw-product-detail-printess/index.js",
     "isDynamicEntry": true,

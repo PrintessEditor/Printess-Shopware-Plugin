@@ -1,0 +1,134 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Printess GmbH & Co. Kg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Printess GmbH & Co. Kg does not provide any support for this plugin.
+ */
+
+.printess-variant-sync {
+    &__intro,
+    &__hint {
+        color: var(--color-text-secondary-default, #52667a);
+        font-size: 13px;
+        margin: 0 0 12px;
+    }
+
+    &__banner {
+        margin-bottom: 12px;
+    }
+
+    &__heading {
+        align-items: center;
+        display: flex;
+        font-size: 15px;
+        gap: 8px;
+        margin: 20px 0 10px;
+    }
+
+    &__inline-loader {
+        position: relative;
+    }
+
+    &__choice {
+        border-bottom: 1px solid var(--color-border-primary-default, #d1d9e0);
+        padding: 8px 0;
+
+        &.is--unavailable {
+            opacity: 0.6;
+        }
+
+        .mt-field--checkbox__container,
+        .mt-checkbox {
+            margin-bottom: 2px;
+        }
+    }
+
+    &__meta {
+        color: var(--color-text-secondary-default, #52667a);
+        display: block;
+        font-size: 12px;
+        margin-left: 28px;
+    }
+
+    &__block {
+        border: 1px solid var(--color-border-primary-default, #d1d9e0);
+        border-radius: 4px;
+        margin-bottom: 12px;
+        padding: 12px 16px;
+    }
+
+    &__block-title {
+        font-weight: 600;
+        margin: 0 0 8px;
+    }
+
+    &__line {
+        font-size: 13px;
+        margin: 0 0 8px;
+
+        &--success {
+            color: var(--color-icon-emphasis-default, #1f8a2c);
+        }
+
+        &--warning {
+            color: var(--color-text-attention-default, #b35a00);
+        }
+    }
+
+    &__details {
+        font-size: 13px;
+        margin-bottom: 8px;
+
+        summary {
+            cursor: pointer;
+        }
+
+        ul {
+            margin: 6px 0 6px 20px;
+        }
+    }
+
+    /*
+     * Core's `.sw-modal__footer` is a fixed 72px grid bar sized for buttons only
+     * (`grid-auto-columns: min-content`, `height: 72px`): a sentence in it is squeezed to the
+     * width of its longest word, wraps to ~10 lines, and what does not fit in those 72px spills
+     * out of the dialog, over the page behind it. Same override core uses for its own footers
+     * that hold more than buttons, e.g. `sw-bulk-edit-save-modal`.
+     */
+    &.sw-modal .sw-modal__footer {
+        align-items: center;
+        display: flex;
+        gap: var(--scale-size-8);
+        height: auto;
+        justify-content: flex-end;
+        min-height: 72px;
+        padding: var(--scale-size-16) 32px;
+    }
+
+    &__footer-warning {
+        color: var(--color-text-secondary-default, #52667a);
+        /* Effective only because of the flex override above; on a grid item it does nothing. */
+        flex: 1;
+        font-size: 12px;
+        margin: 0;
+    }
+}

@@ -1,0 +1,136 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+<div class="printess-template-check">
+    <p class="printess-template-check__hint">
+        {{ $t('printess-shopware-integration.productDetail.templateCheck.hint') }}
+    </p>
+
+    <mt-banner
+        v-if="checkError"
+        class="printess-template-check__error"
+        variant="critical"
+    >
+        {{ checkError }}
+    </mt-banner>
+
+    <mt-banner
+        v-if="appliedMessage"
+        class="printess-template-check__applied"
+        variant="positive"
+    >
+        {{ appliedMessage }}
+    </mt-banner>
+
+    <p
+        v-if="!checkError && !isChecking && checkedAt && groups.length === 0"
+        class="printess-template-check__empty"
+    >
+        {{ $t('printess-shopware-integration.productDetail.templateCheck.noVariantProperties') }}
+    </p>
+
+    <ul
+        v-if="!checkError && groups.length"
+        class="printess-template-check__groups"
+    >
+        <li
+            v-for="group in groups"
+            :key="group.groupId"
+            class="printess-template-check__group"
+        >
+            <p
+                class="printess-template-check__line"
+                :class="`printess-template-check__line--${group.headline.tone}`"
+            >
+                <mt-icon
+                    :name="group.headline.tone === 'success' ? 'regular-checkmark-xs' : 'regular-exclamation-triangle'"
+                    size="14px"
+                />
+                <span>{{ headlineText(group.headline) }}</span>
+            </p>
+
+            <ul
+                v-if="group.details.length"
+                class="printess-template-check__details"
+            >
+                <li
+                    v-for="(detail, index) in group.details"
+                    :key="index"
+                    class="printess-template-check__detail"
+                    :class="{ 'printess-template-check__detail--warning': isWarningDetail(detail) }"
+                >
+                    {{ detailText(detail) }}
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="printess-template-check__actions">
+        <mt-button
+            variant="secondary"
+            size="small"
+            :disabled="isChecking || !trimmedTemplateName"
+            @click="runCheck"
+        >
+            {{ isChecking
+                ? $t('printess-shopware-integration.productDetail.templateCheck.checking')
+                : $t('printess-shopware-integration.productDetail.templateCheck.checkAgain') }}
+        </mt-button>
+
+        <span
+            v-if="checkedAtLabel && !isChecking"
+            class="printess-template-check__stamp"
+        >
+            {{ checkedAtLabel }}
+        </span>
+    </div>
+
+    <div class="printess-template-check__sync">
+        <mt-button
+            variant="secondary"
+            size="small"
+            :disabled="!canEdit || isVariant || !trimmedTemplateName"
+            @click="openSyncModal"
+        >
+            {{ $t('printess-shopware-integration.productDetail.variantSync.openButton') }}
+        </mt-button>
+
+        <p class="printess-template-check__sync-hint">
+            {{ isVariant
+                ? $t('printess-shopware-integration.productDetail.variantSync.variantHint')
+                : $t('printess-shopware-integration.productDetail.variantSync.openHint') }}
+        </p>
+    </div>
+
+    <printess-variant-sync-modal
+        v-if="showSyncModal"
+        :product-id="productId"
+        :template-name="trimmedTemplateName"
+        :product="product"
+        :can-edit="canEdit"
+        @close="closeSyncModal"
+        @applied="onApplied"
+    />
+</div>

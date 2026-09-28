@@ -126,4 +126,25 @@ export default class PrintessTemplateService extends Shopware.Classes.ApiService
             .post(`/_action/printess/products/${productId}/default-language-settings`, values, { headers: this.getBasicHeaders() })
             .then((response) => Shopware.Classes.ApiService.handleResponse(response));
     }
+
+    checkTemplate(productId, templateName) {
+        return this.httpClient
+            .post(`/_action/printess/products/${productId}/template-check`, { templateName }, { headers: this.getBasicHeaders() })
+            .then((response) => Shopware.Classes.ApiService.handleResponse(response));
+    }
+
+    /**
+     * Preview (`apply: false`) or apply (`apply: true`) the variant sync. Both send only the
+     * merchant's choices - `fields` (template field names) and `keep` ({groups, options, variants}
+     * ids not to remove) - and the server computes the plan from them either way.
+     */
+    syncVariants(productId, { templateName, fields, keep, apply }) {
+        return this.httpClient
+            .post(
+                `/_action/printess/products/${productId}/variant-sync`,
+                { templateName, fields, keep, apply: !!apply },
+                { headers: this.getBasicHeaders() },
+            )
+            .then((response) => Shopware.Classes.ApiService.handleResponse(response));
+    }
 }

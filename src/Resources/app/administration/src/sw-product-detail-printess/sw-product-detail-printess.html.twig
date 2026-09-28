@@ -383,6 +383,20 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         </mt-card>
 
         <mt-card
+            v-if="selectedTemplateName && productId"
+            class="sw-product-detail-printess__template-check-card"
+            position-identifier="sw-product-detail-printess-template-check"
+            :title="$t('printess-shopware-integration.productDetail.templateCheck.cardTitle')"
+        >
+            <printess-template-check
+                :product-id="productId"
+                :template-name="selectedTemplateName"
+                :product="product"
+                :can-edit="canEdit"
+            />
+        </mt-card>
+
+        <mt-card
             class="sw-product-detail-printess__production-card"
             position-identifier="sw-product-detail-printess-production"
             :title="$t('printess-shopware-integration.productDetail.productionCardTitle')"

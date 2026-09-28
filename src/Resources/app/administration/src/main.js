@@ -39,6 +39,8 @@ Shopware.Component.register('printess-photobook-theme-select', () => import('./p
 Shopware.Component.register('printess-imposition-select', () => import('./printess-imposition-select'));
 Shopware.Component.register('printess-dropshipping-select', () => import('./printess-dropshipping-select'));
 Shopware.Component.register('printess-order-line-item-production', () => import('./printess-order-line-item-production'));
+Shopware.Component.register('printess-template-check', () => import('./printess-template-check'));
+Shopware.Component.register('printess-variant-sync-modal', () => import('./printess-variant-sync-modal'));
 Shopware.Component.register('sw-order-line-item-printess-editor', () => import('./sw-order-line-item-printess-editor'));
 
 Shopware.Application.addServiceProvider('printessTemplateService', () => {

@@ -99,6 +99,42 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             </call>
         </service>
 
+        <service id="PrintessShopwareIntegration\Service\TemplateCheck\PrintessFormFieldsClient">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="http_client"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\TemplateCheck\ProductVariantStateReader">
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="property_group_option.repository"/>
+            <argument type="service" id="property_group.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\ProductConfiguratorGroupNameResolver"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\TemplateCheck\TemplateCheckService"/>
+
+        <service id="PrintessShopwareIntegration\Service\TemplateCheck\VariantSyncPlanner"/>
+
+        <service id="PrintessShopwareIntegration\Service\TemplateCheck\VariantSyncApplier">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="property_group.repository"/>
+            <argument type="service" id="property_group_option.repository"/>
+            <argument type="service" id="product_configurator_setting.repository"/>
+            <argument type="service" id="product_option.repository"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Controller\Api\PrintessTemplateCheckController" public="true">
+            <argument type="service" id="PrintessShopwareIntegration\Service\TemplateCheck\PrintessFormFieldsClient"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\TemplateCheck\ProductVariantStateReader"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\TemplateCheck\TemplateCheckService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\TemplateCheck\VariantSyncPlanner"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\TemplateCheck\VariantSyncApplier"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
         <service id="PrintessShopwareIntegration\Controller\Storefront\PrintessPriceController" public="true">
             <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\FindVariant\FindProductVariantRoute"/>
             <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Detail\ProductDetailRoute"/>
