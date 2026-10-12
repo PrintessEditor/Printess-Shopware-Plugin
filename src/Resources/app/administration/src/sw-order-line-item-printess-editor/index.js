@@ -54,6 +54,8 @@ export default Shopware.Component.wrapComponentConfig({
             printessApi: null,
             showStartNowConfirm: false,
             isStartingNow: false,
+            // For a dropshipped line item: everything "start now" sends along (its dropship group).
+            startNowBatch: null,
         };
     },
 
@@ -176,6 +178,16 @@ export default Shopware.Component.wrapComponentConfig({
             // The editor's own UI otherwise stays on top of the page (it isn't a normal DOM
             // element the modal's overlay would stack above), hiding the confirm dialog behind it.
             this.printessApi?.ui?.hide();
+
+            // Starting a dropshipped line item sends its whole dropship group, so the dialog lists
+            // those designs. Without the list, the dialog still asks - the merchant can approve on
+            // the order instead.
+            try {
+                const batch = await this.printessProductionService.getProductionBatch(this.orderId, this.lineItemId);
+                this.startNowBatch = batch?.dropship ? batch : null;
+            } catch (error) {
+                this.startNowBatch = null;
+            }
 
             // The line item is now sitting at "awaiting approval" with the corrected design - ask
             // whether to send it straight to production instead of always leaving that for a

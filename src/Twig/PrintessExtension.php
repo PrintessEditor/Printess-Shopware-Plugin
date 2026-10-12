@@ -29,12 +29,14 @@
 namespace PrintessShopwareIntegration\Twig;
 
 use PrintessShopwareIntegration\Service\Configuration\PrintessConfigService;
+use PrintessShopwareIntegration\Service\CustomField\OrderLineItemCustomFieldsInstaller;
 use PrintessShopwareIntegration\Service\Customer\PrintessCustomerShopUserIdResolver;
 use PrintessShopwareIntegration\Service\Customer\PrintessCustomerVariableResolver;
 use PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver;
 use PrintessShopwareIntegration\Service\Product\PrintessProductPropertyResolver;
 use PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\PropertyGroupCollection;
 use Shopware\Core\Framework\Context;
@@ -76,6 +78,7 @@ class PrintessExtension extends AbstractExtension
             new TwigFunction('printess_debug_mode', $this->isDebugModeEnabled(...)),
             new TwigFunction('printess_design_saving_enabled', $this->isDesignSavingEnabled(...)),
             new TwigFunction('printess_shop_user_id', $this->getShopUserId(...)),
+            new TwigFunction('printess_dropship_tracking', $this->getDropshipTracking(...)),
         ];
     }
 
@@ -195,5 +198,45 @@ class PrintessExtension extends AbstractExtension
         }
 
         return $this->customerShopUserIdResolver->resolve($customer, $context);
+    }
+
+    /**
+     * The shipments Printess's dropship callback reported for an order line item, oldest first:
+     * `[{trackingId, trackingUrl, shippedAt}]`, see `PrintessDropshipCallbackService`. Only entries
+     * with a tracking code or URL.
+     *
+     * @return list<array{trackingId: string, trackingUrl: string}>
+     */
+    public function getDropshipTracking(mixed $lineItem): array
+    {
+        if (!$lineItem instanceof OrderLineItemEntity) {
+            return [];
+        }
+
+        $raw = $lineItem->getCustomFieldsValue(OrderLineItemCustomFieldsInstaller::DROPSHIP_TRACKING_FIELD_NAME);
+
+        try {
+            $decoded = \is_string($raw) && $raw !== '' ? json_decode($raw, true, 512, \JSON_THROW_ON_ERROR) : [];
+        } catch (\JsonException) {
+            return [];
+        }
+
+        $tracking = [];
+
+        foreach (\is_array($decoded) ? $decoded : [] as $shipment) {
+            $trackingId = \is_array($shipment) && \is_string($shipment['trackingId'] ?? null) ? $shipment['trackingId'] : '';
+            $trackingUrl = \is_array($shipment) && \is_string($shipment['trackingUrl'] ?? null) ? $shipment['trackingUrl'] : '';
+
+            // Only web links - the URL comes from the dropshipper and ends up in an href.
+            if (!preg_match('#^https?://#i', $trackingUrl)) {
+                $trackingUrl = '';
+            }
+
+            if ($trackingId !== '' || $trackingUrl !== '') {
+                $tracking[] = ['trackingId' => $trackingId, 'trackingUrl' => $trackingUrl];
+            }
+        }
+
+        return $tracking;
     }
 }

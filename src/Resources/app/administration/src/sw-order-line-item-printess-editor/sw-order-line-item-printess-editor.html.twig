@@ -41,11 +41,19 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
     <sw-modal
         v-if="showStartNowConfirm"
         class="sw-order-line-item-printess-editor__start-now-modal"
-        variant="small"
+        :variant="startNowBatch ? 'default' : 'small'"
         :title="$t('printess-shopware-integration.orderLineItemEditor.startNowTitle')"
         @modal-close="declineStartNow"
     >
         <p>{{ $t('printess-shopware-integration.orderLineItemEditor.startNowText') }}</p>
+
+        <template v-if="startNowBatch">
+            <p class="sw-order-line-item-printess-editor__start-now-batch-text">
+                {{ $tc('printess-shopware-integration.productionBatch.approveText', startNowBatch.lineItems.length, { count: startNowBatch.lineItems.length }) }}
+            </p>
+
+            <printess-production-batch-list :items="startNowBatch.lineItems" />
+        </template>
 
         <template #modal-footer>
             <mt-button variant="secondary" :disabled="isStartingNow" @click="declineStartNow">

@@ -56,7 +56,11 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         {{ actionError }}
     </mt-banner>
 
-    <template v-if="isAwaitingApproval">
+    <p v-if="isAwaitingPayment" class="printess-order-line-item-production__message">
+        {{ $t('printess-shopware-integration.orderLineItemProduction.awaitingPayment') }}
+    </p>
+
+    <template v-else-if="isAwaitingApproval">
         <p class="printess-order-line-item-production__message">
             {{ $t('printess-shopware-integration.orderLineItemProduction.awaitingApproval') }}
         </p>
@@ -119,13 +123,60 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         </div>
     </template>
 
+    <mt-banner v-if="createdCopy" variant="positive" class="printess-order-line-item-production__copy-created">
+        <router-link :to="orderRoute(createdCopy.id)">
+            {{ $t('printess-shopware-integration.productionBatch.copyCreated', { number: createdCopy.orderNumber }) }}
+        </router-link>
+    </mt-banner>
+
+    <p v-if="reproductionOf" class="printess-order-line-item-production__dropship-order">
+        <router-link :to="orderRoute(reproductionOf.id)">
+            {{ $t('printess-shopware-integration.orderLineItemProduction.reproductionOf', { number: reproductionOf.orderNumber }) }}
+        </router-link>
+    </p>
+
+    <p
+        v-for="copy in reproducedAs"
+        :key="copy.id"
+        class="printess-order-line-item-production__dropship-order"
+    >
+        <router-link :to="orderRoute(copy.id)">
+            {{ $t('printess-shopware-integration.orderLineItemProduction.reproducedAs', { number: copy.orderNumber }) }}
+        </router-link>
+    </p>
+
+    <p v-if="dropshipShopOrderId" class="printess-order-line-item-production__dropship-order">
+        {{ $t('printess-shopware-integration.orderLineItemProduction.dropshipOrderNumber', { number: dropshipShopOrderId }) }}
+    </p>
+
+    <div v-if="dropshipTracking.length" class="printess-order-line-item-production__tracking">
+        <p class="printess-order-line-item-production__message">
+            {{ $t('printess-shopware-integration.orderLineItemProduction.shippedByDropshipper') }}
+        </p>
+        <template v-for="(shipment, index) in dropshipTracking" :key="index">
+            <a
+                v-if="shipment.trackingUrl"
+                :href="shipment.trackingUrl"
+                target="_blank"
+                rel="noopener"
+                class="printess-order-line-item-production__result-link"
+            >
+                {{ shipment.trackingId || $t('printess-shopware-integration.orderLineItemProduction.trackShipment') }}
+            </a>
+            <span v-else-if="shipment.trackingId" class="printess-order-line-item-production__tracking-code">
+                {{ shipment.trackingId }}
+            </span>
+        </template>
+    </div>
+
     {#
-    Always available, regardless of the current status - not just after an error or a completed
+    Available once the line item was sent to production - not just after an error or a completed
     run. Produced files are only kept by Printess for a limited time (30 days), and a shop owner may
-    need to redo production well after that window, or simply redo it for other reasons - so this
-    isn't restricted to "something went wrong" states.
+    need to redo production well after that window, or simply redo it for other reasons. Not before
+    payment or while awaiting approval: there, production starts with the payment or the approval.
     #}
     <mt-button
+        v-if="canRestart"
         class="printess-order-line-item-production__restart-button"
         variant="secondary"
         size="small"
@@ -155,5 +206,84 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         </template>
     </sw-modal>
 
+    <sw-modal
+        v-if="batch"
+        class="printess-order-line-item-production__batch-modal"
+        :title="batchAction === 'approve'
+            ? $t('printess-shopware-integration.productionBatch.approveTitle')
+            : $t('printess-shopware-integration.productionBatch.restartTitle')"
+        @modal-close="closeBatch"
+    >
+        <div v-if="canReproduceAsCopy" class="printess-order-line-item-production__choice">
+            <label class="printess-order-line-item-production__choice-option">
+                <input v-model="reproductionChoice" type="radio" value="resend">
+                {{ $t('printess-shopware-integration.productionBatch.choiceResend', { number: batch.nextShopOrderId }) }}
+            </label>
+            <label class="printess-order-line-item-production__choice-option">
+                <input v-model="reproductionChoice" type="radio" value="copy">
+                {{ $t('printess-shopware-integration.productionBatch.choiceCopy') }}
+            </label>
+        </div>
+
+        <template v-if="isCopyChoice">
+            <p class="printess-order-line-item-production__batch-text">
+                {{ $t('printess-shopware-integration.productionBatch.copyText') }}
+            </p>
+
+            <p class="printess-order-line-item-production__batch-label">
+                {{ $t('printess-shopware-integration.productionBatch.copyItemsLabel') }}
+            </p>
+            <printess-production-batch-list
+                v-model:selected-ids="copyLineItemIds"
+                :items="batch.printessLineItems"
+                selectable
+                editable
+                @edit="openEditor"
+            />
+
+            <mt-textarea
+                v-model="copyMessage"
+                class="printess-order-line-item-production__copy-message"
+                :label="$t('printess-shopware-integration.productionBatch.copyMessageLabel')"
+                :help-text="$t('printess-shopware-integration.productionBatch.copyMessageHint')"
+            />
+
+            <label class="printess-order-line-item-production__choice-option">
+                <input v-model="copyReduceStock" type="checkbox">
+                {{ $t('printess-shopware-integration.productionBatch.copyReduceStock') }}
+            </label>
+        </template>
+
+        <template v-else>
+            <p class="printess-order-line-item-production__batch-text">
+                {{ batchAction === 'approve'
+                    ? $tc('printess-shopware-integration.productionBatch.approveText', batch.lineItems.length, { count: batch.lineItems.length })
+                    : $tc('printess-shopware-integration.productionBatch.restartText', batch.lineItems.length, { count: batch.lineItems.length }) }}
+                <template v-if="batch.nextShopOrderId">
+                    {{ $t('printess-shopware-integration.productionBatch.nextShopOrderId', { number: batch.nextShopOrderId }) }}
+                </template>
+            </p>
+
+            <printess-production-batch-list
+                :items="batch.lineItems"
+                editable
+                @edit="openEditor"
+            />
+        </template>
+
+        <template #modal-footer>
+            <mt-button variant="secondary" @click="closeBatch">
+                {{ $t('printess-shopware-integration.productionBatch.cancelButton') }}
+            </mt-button>
+            <mt-button v-if="isCopyChoice" variant="primary" :disabled="!canConfirmBatch" @click="confirmBatch">
+                {{ $t('printess-shopware-integration.productionBatch.copyButton') }}
+            </mt-button>
+            <mt-button v-else variant="primary" @click="confirmBatch">
+                {{ batchAction === 'approve'
+                    ? $tc('printess-shopware-integration.productionBatch.approveButton', batch.lineItems.length, { count: batch.lineItems.length })
+                    : $tc('printess-shopware-integration.productionBatch.restartButton', batch.lineItems.length, { count: batch.lineItems.length }) }}
+            </mt-button>
+        </template>
+    </sw-modal>
 </div>
 {% endblock %}

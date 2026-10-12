@@ -1,0 +1,95 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% block printess_production_batch_list %}
+<div class="printess-production-batch-list">
+    <ul class="printess-production-batch-list__items">
+        <li
+            v-for="item in items"
+            :key="item.id"
+            class="printess-production-batch-list__item"
+        >
+            <input
+                v-if="selectable"
+                type="checkbox"
+                class="printess-production-batch-list__checkbox"
+                :checked="selectedIds.includes(item.id)"
+                @change="toggleSelected(item.id, $event.target.checked)"
+            >
+            <button
+                v-if="item.thumbnailUrl"
+                type="button"
+                class="printess-production-batch-list__thumbnail-button"
+                :title="$t('printess-shopware-integration.orderLineItemProduction.thumbnailOverlayTitle')"
+                @click="openThumbnail(item)"
+            >
+                <img
+                    :src="item.thumbnailUrl"
+                    :alt="$t('printess-shopware-integration.orderLineItemProduction.thumbnailAlt')"
+                    class="printess-production-batch-list__thumbnail"
+                >
+            </button>
+            <span v-else class="printess-production-batch-list__thumbnail printess-production-batch-list__thumbnail--empty"></span>
+
+            <span class="printess-production-batch-list__label">{{ item.label }}</span>
+            <span class="printess-production-batch-list__quantity">
+                {{ $t('printess-shopware-integration.productionBatch.quantity', { quantity: item.quantity }) }}
+            </span>
+
+            <mt-button
+                v-if="editable"
+                class="printess-production-batch-list__edit-button"
+                variant="secondary"
+                size="small"
+                @click="$emit('edit', item.id)"
+            >
+                {{ $t('printess-shopware-integration.productionBatch.editButton') }}
+            </mt-button>
+        </li>
+    </ul>
+
+    {# A modal of its own on top of the dialog the list is shown in - sw-modal attaches itself to
+       the end of the body, so it stacks above, and Escape / an outside click only close this one. #}
+    <sw-modal
+        v-if="fullSizeThumbnailUrl"
+        class="printess-production-batch-list__thumbnail-modal"
+        :title="$t('printess-shopware-integration.orderLineItemProduction.thumbnailOverlayTitle')"
+        @modal-close="closeThumbnail"
+    >
+        <img
+            :src="fullSizeThumbnailUrl"
+            :alt="$t('printess-shopware-integration.orderLineItemProduction.thumbnailAlt')"
+            class="printess-production-batch-list__thumbnail-large"
+        >
+
+        <template #modal-footer>
+            <mt-button variant="secondary" @click="closeThumbnail">
+                {{ $t('printess-shopware-integration.orderLineItemProduction.closeButton') }}
+            </mt-button>
+        </template>
+    </sw-modal>
+</div>
+{% endblock %}

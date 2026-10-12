@@ -255,8 +255,8 @@ class ProductCustomFieldsInstaller
                                 'de-DE' => 'Dropshipping',
                             ],
                             'helpText' => [
-                                'en-GB' => 'Dropshipping mode and product definition used for production, stored as a JSON string, overriding the plugin-wide default configured in the Printess settings.',
-                                'de-DE' => 'Dropshipping-Modus und Produktdefinition für die Produktion, gespeichert als JSON-String, überschreibt den in den Printess-Einstellungen konfigurierten Standard.',
+                                'en-GB' => 'Dropshipping for production: -2 = use the plugin default from the Printess settings, -1 or empty = no dropshipping, 0 = the dropship settings of the Printess template, a number above 0 = that dropship product definition.',
+                                'de-DE' => 'Dropshipping für die Produktion: -2 = Plugin-Standard aus den Printess-Einstellungen, -1 oder leer = kein Dropshipping, 0 = die Dropship-Einstellungen des Printess-Templates, eine Zahl über 0 = diese Dropship-Produktdefinition.',
                             ],
                             'customFieldPosition' => 5,
                         ],

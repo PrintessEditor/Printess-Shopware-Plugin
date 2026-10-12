@@ -31,83 +31,132 @@ namespace PrintessShopwareIntegration\Service\Production;
 use PrintessShopwareIntegration\Service\Configuration\PrintessConfigService;
 
 /**
- * Resolves which dropshipping configuration applies to a given order line item's product, by
- * combining the product-level `PrintessDropshippingConfig` custom field with the plugin-wide
- * default configured in the Printess settings:
+ * Resolves the dropship `productDefinitionId` for an order line item from the product's
+ * `PrintessDropshippingConfig` custom field and the plugin-wide default in the Printess settings.
  *
- * - Neither configured -> no dropshipping.
- * - Only the plugin default is configured -> use the plugin default.
- * - Only the product is configured -> use the product's configuration.
- * - Both are configured -> the product's configuration wins.
+ * Both store a single number, as in the Shopify integration:
  *
- * In other words: the product's configuration is used whenever it is anything other than "no
- * dropshipping"; the plugin default is only a fallback for products that don't configure it.
+ * - `-2` -> (product only) use the plugin default.
+ * - `-1` -> no dropshipping.
+ * - `0` -> dropship with the settings stored on the Printess template.
+ * - `> 0` -> dropship with that product definition.
+ *
+ * A product with nothing configured is not dropshipped; only an explicit `-2` takes the plugin
+ * default. Every other value - empty, other negative numbers, anything that is not an integer, and
+ * `-2` in the plugin default itself - means no dropshipping, normalized to `-1`.
+ *
+ * Values saved by earlier versions as JSON (`{"mode": "dropshipping"|"template",
+ * "productDefinitionId": int|null}`) are still read: "template" is `0`, "dropshipping" is its
+ * product definition id.
  */
 class ProductionDropshippingResolver
 {
-    public const MODE_NONE = 'none';
-    public const MODE_DROPSHIPPING = 'dropshipping';
-    public const MODE_TEMPLATE = 'template';
+    public const PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT = -2;
+    public const PRODUCT_DEFINITION_ID_NONE = -1;
+    public const PRODUCT_DEFINITION_ID_TEMPLATE = 0;
+
+    private const LEGACY_MODE_DROPSHIPPING = 'dropshipping';
+    private const LEGACY_MODE_TEMPLATE = 'template';
 
     public function __construct(private readonly PrintessConfigService $printessConfigService)
     {
     }
 
     /**
-     * @return array{mode: string, productDefinitionId: int|null}
+     * The `productDefinitionId` to produce with: `0` or a positive id to dropship, `-1` not to.
+     * Use `isDropshipActive()` on the result to decide.
      */
-    public function resolve(?string $productDropshippingConfigJson, ?string $salesChannelId): array
+    public function resolveProductDefinitionId(mixed $productValue, ?string $salesChannelId): int
     {
-        $productConfig = $this->parse($productDropshippingConfigJson);
+        $productDefinitionId = $this->parse($productValue, true);
 
-        if ($productConfig['mode'] !== self::MODE_NONE) {
-            return $productConfig;
+        if ($productDefinitionId !== self::PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT) {
+            return $productDefinitionId;
         }
 
-        return $this->parse($this->printessConfigService->getDropshippingConfig($salesChannelId));
+        return $this->parse($this->printessConfigService->getDropshippingConfig($salesChannelId), false);
     }
 
     /**
-     * Translates a resolved config into the `productDefinitionId` value expected by Printess's
-     * `/dropship/produce` endpoint, or `null` when no dropshipping should be used at all. Per
-     * product requirements: "template" mode (dropshipping configured directly on the Printess
-     * template) is signalled to Printess with the sentinel product definition id `-1`.
+     * The one place that decides whether a product definition id means dropshipping: `0` (the
+     * template's settings) and every positive id do, everything else doesn't.
      */
-    public function resolveProductDefinitionId(array $resolvedConfig): ?int
+    public function isDropshipActive(int $productDefinitionId): bool
     {
-        return match ($resolvedConfig['mode']) {
-            self::MODE_DROPSHIPPING => $resolvedConfig['productDefinitionId'],
-            self::MODE_TEMPLATE => -1,
-            default => null,
+        return $productDefinitionId >= self::PRODUCT_DEFINITION_ID_TEMPLATE;
+    }
+
+    /**
+     * Reduces a stored product definition id to an int: integers and integer strings (`"12"`,
+     * `" 0 "`) keep their value, negative ones and everything else - null, `""`, other strings,
+     * fractions, arrays - become `-1`.
+     */
+    public function normalizeProductDefinitionId(mixed $value): int
+    {
+        $value = $this->toInt($value);
+
+        if ($value === null || $value < 0) {
+            return self::PRODUCT_DEFINITION_ID_NONE;
+        }
+
+        return $value;
+    }
+
+    /**
+     * A stored value as a product definition id. `-2` survives only for a product, where it means
+     * "use the plugin default".
+     */
+    private function parse(mixed $value, bool $allowPluginDefault): int
+    {
+        $number = $this->toInt($value);
+
+        if ($number === self::PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT && $allowPluginDefault) {
+            return $number;
+        }
+
+        if ($number !== null) {
+            return $this->normalizeProductDefinitionId($number);
+        }
+
+        return $this->parseLegacyJson($value);
+    }
+
+    private function parseLegacyJson(mixed $value): int
+    {
+        if (!\is_string($value)) {
+            return self::PRODUCT_DEFINITION_ID_NONE;
+        }
+
+        try {
+            $decoded = json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return self::PRODUCT_DEFINITION_ID_NONE;
+        }
+
+        return match (\is_array($decoded) ? ($decoded['mode'] ?? null) : null) {
+            self::LEGACY_MODE_TEMPLATE => self::PRODUCT_DEFINITION_ID_TEMPLATE,
+            self::LEGACY_MODE_DROPSHIPPING => $this->normalizeProductDefinitionId($decoded['productDefinitionId'] ?? null),
+            default => self::PRODUCT_DEFINITION_ID_NONE,
         };
     }
 
     /**
-     * @return array{mode: string, productDefinitionId: int|null}
+     * Integers, integer strings (trimmed) and whole floats as int; anything else as null.
      */
-    private function parse(?string $json): array
+    private function toInt(mixed $value): ?int
     {
-        if ($json === null || $json === '') {
-            return ['mode' => self::MODE_NONE, 'productDefinitionId' => null];
+        if (\is_int($value)) {
+            return $value;
         }
 
-        try {
-            $decoded = json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
-            return ['mode' => self::MODE_NONE, 'productDefinitionId' => null];
+        if (\is_float($value)) {
+            return floor($value) === $value ? (int) $value : null;
         }
 
-        $mode = \is_array($decoded) ? ($decoded['mode'] ?? null) : null;
-
-        if (!\in_array($mode, [self::MODE_DROPSHIPPING, self::MODE_TEMPLATE], true)) {
-            return ['mode' => self::MODE_NONE, 'productDefinitionId' => null];
+        if (\is_string($value) && preg_match('/^[+-]?\d+$/', trim($value)) === 1) {
+            return (int) trim($value);
         }
 
-        $productDefinitionId = $decoded['productDefinitionId'] ?? null;
-
-        return [
-            'mode' => $mode,
-            'productDefinitionId' => \is_int($productDefinitionId) ? $productDefinitionId : null,
-        ];
+        return null;
     }
 }

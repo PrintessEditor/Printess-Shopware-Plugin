@@ -34,11 +34,14 @@ use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
 
 /**
- * Caches which Printess dropship address id (`/dropshipData/save`'s response) was created for each
- * distinct shipping address on an order, so an order with several line items - or several
- * differently-addressed deliveries - only ever creates one Printess address record per distinct
- * shipping address, not one per production call. See
- * `PrintessProductionService::getOrCreateDropshipAddressId()`.
+ * Printess fields on the order:
+ *
+ * - `PrintessReproductionOf` / `PrintessReproducedAs` link an order duplicated to reproduce its
+ *   dropship items with its copies (see `PrintessOrderReproductionService`).
+ * - `PrintessDropshipAddressIds` mapped each shipping address of an order to the Printess dropship
+ *   address record created for it. It is no longer written - every send of a dropship group now
+ *   creates its own record (see `PrintessProductionService::produceLineItems()`) - and stays
+ *   defined so the values on orders produced before remain visible.
  */
 class OrderCustomFieldsInstaller
 {
@@ -47,6 +50,12 @@ class OrderCustomFieldsInstaller
 
     private const DROPSHIP_ADDRESS_IDS_FIELD_ID = '1C2D3E4F5061728394A5B6C7D8E9F0A1';
     public const DROPSHIP_ADDRESS_IDS_FIELD_NAME = 'PrintessDropshipAddressIds';
+
+    private const REPRODUCTION_OF_FIELD_ID = 'B489256EF36A4C40A381F4B1475A91A3';
+    public const REPRODUCTION_OF_FIELD_NAME = 'PrintessReproductionOf';
+
+    private const REPRODUCED_AS_FIELD_ID = '337C755FAFD34050BD2B9CAFE8984252';
+    public const REPRODUCED_AS_FIELD_NAME = 'PrintessReproducedAs';
 
     private const ORDER_RELATION_ID = '2D3E4F5061728394A5B6C7D8E9F0A1B2';
 
@@ -98,6 +107,24 @@ class OrderCustomFieldsInstaller
                         'config' => [
                             'label' => ['en-GB' => 'Printess dropship address ids', 'de-DE' => 'Printess Dropship-Adress-IDs'],
                             'customFieldPosition' => 1,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::REPRODUCTION_OF_FIELD_ID),
+                        'name' => self::REPRODUCTION_OF_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess: reproduction of order', 'de-DE' => 'Printess: erneute Produktion von Bestellung'],
+                            'customFieldPosition' => 2,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::REPRODUCED_AS_FIELD_ID),
+                        'name' => self::REPRODUCED_AS_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess: reproduced as orders', 'de-DE' => 'Printess: erneut produziert als Bestellungen'],
+                            'customFieldPosition' => 3,
                         ],
                     ],
                 ],

@@ -115,11 +115,18 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
     </div>
 
     <mt-banner
-        v-else-if="mode === 'template'"
+        v-if="mode === 'template'"
         variant="attention"
         class="printess-dropshipping-select__template-hint"
     >
         {{ $t('printess-shopware-integration.dropshippingSelect.templateSettingsHint') }}
     </mt-banner>
+
+    <p
+        v-else-if="mode === 'pluginDefault'"
+        class="printess-dropshipping-select__hint"
+    >
+        {{ $t('printess-shopware-integration.dropshippingSelect.pluginDefaultHint') }}
+    </p>
 </div>
 {% endblock %}

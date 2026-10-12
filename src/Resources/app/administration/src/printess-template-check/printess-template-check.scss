@@ -26,12 +26,17 @@
 
 .printess-template-check {
     &__hint,
+    &__base,
     &__empty,
     &__sync-hint,
     &__stamp {
         color: var(--color-text-secondary-default, #52667a);
         font-size: 13px;
         margin: 0 0 12px;
+    }
+
+    &__base--warning {
+        color: var(--color-text-attention-default, #b35a00);
     }
 
     &__error,

@@ -1080,9 +1080,30 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <name>dropshippingConfig</name>
             <label>Dropshipping</label>
             <label lang="de-DE">Dropshipping</label>
-            <helpText>Whether orders should be routed to a Printess dropshipper for production, and if so, which dropship product definition to use. Can be overridden per product.</helpText>
-            <helpText lang="de-DE">Ob Bestellungen zur Produktion an einen Printess-Dropshipper weitergeleitet werden sollen und, falls ja, welche Dropship-Produktdefinition verwendet wird. Kann pro Produkt überschrieben werden.</helpText>
+            <helpText>Whether orders should be routed to a Printess dropshipper for production, and if so, which dropship product definition to use. Applies only to products whose dropshipping is set to "Use plugin default"; products without a setting are not dropshipped.</helpText>
+            <helpText lang="de-DE">Ob Bestellungen zur Produktion an einen Printess-Dropshipper weitergeleitet werden sollen und, falls ja, welche Dropship-Produktdefinition verwendet wird. Gilt nur für Produkte, deren Dropshipping auf „Plugin-Standard verwenden“ steht; Produkte ohne Einstellung werden nicht per Dropshipping produziert.</helpText>
         </component>
+
+        <input-field type="single-select">
+            <name>dropshipReproductionMode</name>
+            <label>Reproducing dropship orders</label>
+            <label lang="de-DE">Dropship-Bestellungen erneut produzieren</label>
+            <options>
+                <option>
+                    <id>suffix</id>
+                    <name>Send again under the order number with a suffix (-R1, -R2, ...)</name>
+                    <name lang="de-DE">Erneut unter der Bestellnummer mit Zusatz senden (-R1, -R2, ...)</name>
+                </option>
+                <option>
+                    <id>ask</id>
+                    <name>Ask each time: send again, or duplicate the order and dropship the copy</name>
+                    <name lang="de-DE">Jedes Mal fragen: erneut senden oder Bestellung duplizieren und die Kopie versenden</name>
+                </option>
+            </options>
+            <defaultValue>suffix</defaultValue>
+            <helpText>Some dropshippers (e.g. Siteflow) refuse an order number they have received before. By default a reproduction is sent under the order number with a suffix. Alternatively the merchant can be asked each time whether to duplicate the order instead: the copy gets a new order number, is free for the customer (a discount line makes the total 0) and carries a message the customer sees.</helpText>
+            <helpText lang="de-DE">Manche Dropshipper (z. B. Siteflow) lehnen eine Bestellnummer ab, die sie schon einmal erhalten haben. Standardmäßig wird eine erneute Produktion unter der Bestellnummer mit Zusatz gesendet. Alternativ kann jedes Mal gefragt werden, ob stattdessen die Bestellung dupliziert werden soll: Die Kopie erhält eine neue Bestellnummer, ist für den Kunden kostenlos (eine Rabattzeile setzt die Summe auf 0) und enthält eine Nachricht, die der Kunde sieht.</helpText>
+        </input-field>
 
         <input-field type="bool">
             <name>approveDesignsBeforeProduction</name>
@@ -1147,6 +1168,15 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <helpText>If enabled, the buyer-side editor integration logs details to the browser console: the form field values/merge templates sent to the editor, form field change callbacks, and which variant is switched to (with all variant option values used). Intended for troubleshooting only.</helpText>
             <helpText lang="de-DE">Wenn aktiviert, protokolliert die Buyer-Side-Editor-Integration Details in der Browser-Konsole: die an den Editor gesendeten Formularfeldwerte/Merge-Templates, Formularfeldänderungen sowie zu welcher Variante gewechselt wird (mit allen verwendeten Variantenwerten). Nur für die Fehlerbehebung gedacht.</helpText>
             <defaultValue>false</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>callbackBaseUrl</name>
+            <label>Public shop URL for Printess callbacks</label>
+            <label lang="de-DE">Öffentliche Shop-URL für Printess-Callbacks</label>
+            <placeholder>https://my-tunnel.example.com</placeholder>
+            <helpText>Printess reports finished production files and dropship shipments back to the shop. By default it calls the shop's own URL (APP_URL). Set this only when Printess cannot reach that URL, e.g. a local shop behind an HTTP tunnel: enter the public tunnel URL that points to this shop. Leave empty on live shops.</helpText>
+            <helpText lang="de-DE">Printess meldet fertige Produktionsdateien und Dropshipping-Sendungen an den Shop zurück. Standardmäßig ruft es dafür die eigene URL des Shops auf (APP_URL). Nur setzen, wenn Printess diese URL nicht erreicht, z. B. bei einem lokalen Shop hinter einem HTTP-Tunnel: dann die öffentliche Tunnel-URL eintragen, die auf diesen Shop zeigt. Auf Live-Shops leer lassen.</helpText>
         </input-field>
     </card>
 </config>

@@ -27,17 +27,28 @@
 import template from './printess-dropshipping-select.html.twig';
 import './printess-dropshipping-select.scss';
 
+const MODE_PLUGIN_DEFAULT = 'pluginDefault';
 const MODE_NONE = 'none';
 const MODE_DROPSHIPPING = 'dropshipping';
 const MODE_TEMPLATE = 'template';
 
+const PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT = -2;
+const PRODUCT_DEFINITION_ID_NONE = -1;
+const PRODUCT_DEFINITION_ID_TEMPLATE = 0;
+
 /**
  * Dropshipping configuration control, used both as the plugin-wide default (embedded into the
- * extension config page via config.xml's `<component>` field) and as the per-product override in
- * `sw-product-detail-printess`. Stored as a single JSON-encoded string (mirroring how
- * `PrintessMergeTemplates` already stores structured data in one text field), since a single
- * config/custom-field value can only carry one plain value: `null`/empty for "no dropshipping",
- * or `{"mode": "dropshipping"|"template", "productDefinitionId": number|null}`.
+ * extension config page via config.xml's `<component>` field) and as the per-product setting in
+ * `sw-product-detail-printess`. Stored as one number in a string, as in the Shopify integration
+ * and read by `ProductionDropshippingResolver`:
+ *
+ * - `-2`: use the plugin default (product only, see `allowPluginDefault`);
+ * - `-1`: no dropshipping - also what an empty value means;
+ * - `0`: dropship with the template's settings;
+ * - `> 0`: dropship with that product definition.
+ *
+ * Values saved by earlier versions as JSON (`{"mode": "dropshipping"|"template",
+ * "productDefinitionId": number|null}`) are still shown correctly, and replaced on the next change.
  */
 export default Shopware.Component.wrapComponentConfig({
     template,
@@ -58,12 +69,20 @@ export default Shopware.Component.wrapComponentConfig({
             required: false,
             default: false,
         },
+
+        /** Offers "Use plugin default" - for a product, not for the plugin default itself. */
+        allowPluginDefault: {
+            type: Boolean,
+            required: false,
+            default: false,
+        },
     },
 
     data() {
         return {
             mode: MODE_NONE,
             productDefinitionId: null,
+            lastEmittedValue: undefined,
             productDefinitions: [],
             productDefinitionsLoaded: false,
             isLoading: false,
@@ -76,11 +95,20 @@ export default Shopware.Component.wrapComponentConfig({
 
     computed: {
         modeOptions() {
-            return [
+            const options = [
                 { value: MODE_NONE, label: this.$t('printess-shopware-integration.dropshippingSelect.modeNone') },
                 { value: MODE_DROPSHIPPING, label: this.$t('printess-shopware-integration.dropshippingSelect.modeDropshipping') },
                 { value: MODE_TEMPLATE, label: this.$t('printess-shopware-integration.dropshippingSelect.modeTemplate') },
             ];
+
+            if (this.allowPluginDefault) {
+                options.unshift({
+                    value: MODE_PLUGIN_DEFAULT,
+                    label: this.$t('printess-shopware-integration.dropshippingSelect.modePluginDefault'),
+                });
+            }
+
+            return options;
         },
 
         /**
@@ -168,6 +196,13 @@ export default Shopware.Component.wrapComponentConfig({
         value: {
             immediate: true,
             handler(newValue) {
+                // Our own change coming back from the parent. Re-reading it would turn "Use drop
+                // shipping" without a chosen definition (saved as `-1`) back into "No drop
+                // shipping" and hide the definition selector.
+                if (newValue === this.lastEmittedValue) {
+                    return;
+                }
+
                 const parsed = this.parseValue(newValue);
                 this.mode = parsed.mode;
                 this.productDefinitionId = parsed.productDefinitionId;
@@ -184,24 +219,48 @@ export default Shopware.Component.wrapComponentConfig({
     },
 
     methods: {
+        /**
+         * Mirrors `ProductionDropshippingResolver`: anything that isn't one of the values above
+         * is shown as "No drop shipping", because that is how production treats it.
+         */
         parseValue(raw) {
-            if (!raw) {
-                return { mode: MODE_NONE, productDefinitionId: null };
+            const text = raw === null || raw === undefined ? '' : String(raw).trim();
+
+            if (/^[+-]?\d+$/.test(text)) {
+                return this.modeForProductDefinitionId(Number(text));
             }
 
             try {
-                const parsed = JSON.parse(raw);
-                const mode = [MODE_DROPSHIPPING, MODE_TEMPLATE].includes(parsed?.mode) ? parsed.mode : MODE_NONE;
+                const legacy = JSON.parse(text);
 
-                return {
-                    mode,
-                    productDefinitionId: mode === MODE_DROPSHIPPING && typeof parsed?.productDefinitionId === 'number'
-                        ? parsed.productDefinitionId
-                        : null,
-                };
+                if (legacy?.mode === MODE_TEMPLATE) {
+                    return this.modeForProductDefinitionId(PRODUCT_DEFINITION_ID_TEMPLATE);
+                }
+
+                if (legacy?.mode === MODE_DROPSHIPPING && Number.isInteger(legacy.productDefinitionId)) {
+                    return this.modeForProductDefinitionId(legacy.productDefinitionId);
+                }
             } catch (error) {
-                return { mode: MODE_NONE, productDefinitionId: null };
+                // Empty or not JSON: no dropshipping.
             }
+
+            return this.modeForProductDefinitionId(PRODUCT_DEFINITION_ID_NONE);
+        },
+
+        modeForProductDefinitionId(id) {
+            if (id === PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT && this.allowPluginDefault) {
+                return { mode: MODE_PLUGIN_DEFAULT, productDefinitionId: null };
+            }
+
+            if (id === PRODUCT_DEFINITION_ID_TEMPLATE) {
+                return { mode: MODE_TEMPLATE, productDefinitionId: null };
+            }
+
+            if (id > 0) {
+                return { mode: MODE_DROPSHIPPING, productDefinitionId: id };
+            }
+
+            return { mode: MODE_NONE, productDefinitionId: null };
         },
 
         loadProductDefinitions() {
@@ -331,16 +390,16 @@ export default Shopware.Component.wrapComponentConfig({
             this.emitValue();
         },
 
+        /** "Use drop shipping" without a chosen product definition is saved as no dropshipping. */
         emitValue() {
-            if (this.mode === MODE_NONE) {
-                this.$emit('update:value', null);
-                return;
-            }
+            const id = {
+                [MODE_PLUGIN_DEFAULT]: PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT,
+                [MODE_TEMPLATE]: PRODUCT_DEFINITION_ID_TEMPLATE,
+                [MODE_DROPSHIPPING]: this.productDefinitionId,
+            }[this.mode] ?? PRODUCT_DEFINITION_ID_NONE;
 
-            this.$emit('update:value', JSON.stringify({
-                mode: this.mode,
-                productDefinitionId: this.mode === MODE_DROPSHIPPING ? this.productDefinitionId : null,
-            }));
+            this.lastEmittedValue = String(id);
+            this.$emit('update:value', this.lastEmittedValue);
         },
     },
 });

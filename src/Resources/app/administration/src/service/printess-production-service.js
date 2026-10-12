@@ -42,9 +42,23 @@ export default class PrintessProductionService extends Shopware.Classes.ApiServi
             .then((response) => Shopware.Classes.ApiService.handleResponse(response));
     }
 
-    restartLineItem(orderId, lineItemId) {
+    /**
+     * The line items approving or restarting this one sends to production:
+     * `{dropship, lineItems: [{id, label, quantity, thumbnailUrl}]}`.
+     */
+    getProductionBatch(orderId, lineItemId) {
         return this.httpClient
-            .post(`/_action/printess/orders/${orderId}/line-items/${lineItemId}/restart`, {}, { headers: this.getBasicHeaders() })
+            .get(`/_action/printess/orders/${orderId}/line-items/${lineItemId}/production-batch`, { headers: this.getBasicHeaders() })
+            .then((response) => Shopware.Classes.ApiService.handleResponse(response));
+    }
+
+    /**
+     * `payload` is empty to send again, or `{mode: 'copy', lineItemIds, message, reduceStock}` to
+     * duplicate the order and dropship the copy.
+     */
+    restartLineItem(orderId, lineItemId, payload = {}) {
+        return this.httpClient
+            .post(`/_action/printess/orders/${orderId}/line-items/${lineItemId}/restart`, payload, { headers: this.getBasicHeaders() })
             .then((response) => Shopware.Classes.ApiService.handleResponse(response));
     }
 }

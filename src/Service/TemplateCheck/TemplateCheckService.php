@@ -43,7 +43,7 @@ namespace PrintessShopwareIntegration\Service\TemplateCheck;
 class TemplateCheckService
 {
     /**
-     * @param list<array<string, mixed>>                                                                  $fields as returned by `PrintessFormFieldsClient::load()`
+     * @param list<array<string, mixed>>                                                                  $fields the `fields` of `PrintessFormFieldsClient::load()`
      * @param list<array{id: string, name: string, translatedNames?: list<string>, options: list<array{id: string, name: string, translatedNames?: list<string>}>}> $groups the product's variant property groups
      *
      * @return list<array{groupId: string, groupName: string, headline: array<string, mixed>, details: list<array<string, mixed>>}>

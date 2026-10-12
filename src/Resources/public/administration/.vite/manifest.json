@@ -1,6 +1,6 @@
 {
   "main.js": {
-    "file": "assets/printess-shopware-integration-CzaHJjX_.js",
+    "file": "assets/printess-shopware-integration-CxvBODHe.js",
     "name": "printess-shopware-integration",
     "src": "main.js",
     "isEntry": true,
@@ -11,18 +11,19 @@
       "printess-imposition-select/index.js",
       "printess-dropshipping-select/index.js",
       "printess-order-line-item-production/index.js",
+      "printess-production-batch-list/index.js",
       "printess-template-check/index.js",
       "printess-variant-sync-modal/index.js",
       "sw-order-line-item-printess-editor/index.js"
     ]
   },
   "printess-dropshipping-select/index.js": {
-    "file": "assets/index-CEzEHXA6.js",
+    "file": "assets/index-kTfHImja.js",
     "name": "index",
     "src": "printess-dropshipping-select/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-D70SRem_.css"
+      "assets/index-DiXdeUkV.css"
     ]
   },
   "printess-imposition-select/index.js": {
@@ -35,12 +36,12 @@
     ]
   },
   "printess-order-line-item-production/index.js": {
-    "file": "assets/index-CR_ov-RW.js",
+    "file": "assets/index-DmLLaO4E.js",
     "name": "index",
     "src": "printess-order-line-item-production/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-cBY-J66g.css"
+      "assets/index-C2WRA-Xt.css"
     ]
   },
   "printess-photobook-theme-select/index.js": {
@@ -61,13 +62,22 @@
       "assets/index-BvI9YTVs.css"
     ]
   },
+  "printess-production-batch-list/index.js": {
+    "file": "assets/index-ClhVi1Nn.js",
+    "name": "index",
+    "src": "printess-production-batch-list/index.js",
+    "isDynamicEntry": true,
+    "css": [
+      "assets/index-C0nkV6Ou.css"
+    ]
+  },
   "printess-template-check/index.js": {
-    "file": "assets/index-DVq0lA-C.js",
+    "file": "assets/index-CH-50AnW.js",
     "name": "index",
     "src": "printess-template-check/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-DhbGQ9z2.css"
+      "assets/index-B9KRr7ye.css"
     ]
   },
   "printess-variant-sync-modal/index.js": {
@@ -80,16 +90,16 @@
     ]
   },
   "sw-order-line-item-printess-editor/index.js": {
-    "file": "assets/index-DAIGMclQ.js",
+    "file": "assets/index-CXprYcz3.js",
     "name": "index",
     "src": "sw-order-line-item-printess-editor/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-BOfjZrLU.css"
+      "assets/index-CHB0vj_p.css"
     ]
   },
   "sw-product-detail-printess/index.js": {
-    "file": "assets/index-D__OXogD.js",
+    "file": "assets/index-CU8R28Qb.js",
     "name": "index",
     "src": "sw-product-detail-printess/index.js",
     "isDynamicEntry": true,

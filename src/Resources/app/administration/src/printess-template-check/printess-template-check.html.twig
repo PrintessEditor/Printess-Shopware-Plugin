@@ -45,6 +45,22 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
     </mt-banner>
 
     <p
+        v-if="baseTemplate && !checkError"
+        class="printess-template-check__base"
+    >
+        {{ $t('printess-shopware-integration.productDetail.templateCheck.baseTemplate', { template: baseTemplate }) }}
+    </p>
+
+    <p
+        v-if="baseTemplateError && !checkError"
+        class="printess-template-check__base printess-template-check__base--warning"
+    >
+        {{ baseTemplate
+            ? $t('printess-shopware-integration.productDetail.templateCheck.baseTemplateFailed', { template: baseTemplate, error: baseTemplateError })
+            : $t('printess-shopware-integration.productDetail.templateCheck.baseTemplateUnknown', { error: baseTemplateError }) }}
+    </p>
+
+    <p
         v-if="!checkError && !isChecking && checkedAt && groups.length === 0"
         class="printess-template-check__empty"
     >

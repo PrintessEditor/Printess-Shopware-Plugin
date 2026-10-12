@@ -35,7 +35,9 @@ use Shopware\Core\System\CustomField\CustomFieldTypes;
 
 /**
  * Tracks the Printess production job for an order line item, from the moment it is sent to
- * production (or held back for manual approval) through to its final result.
+ * production (or held back for manual approval) through to its final result - and, for a
+ * dropshipped one, its shipment: the nonce Printess's dropship callback must echo, and the tracking
+ * the callback reported.
  */
 class OrderLineItemCustomFieldsInstaller
 {
@@ -53,6 +55,18 @@ class OrderLineItemCustomFieldsInstaller
 
     private const ERROR_FIELD_ID = 'FA164284E50B87F3CA02B3DAEAFA0A1A';
     public const ERROR_FIELD_NAME = 'PrintessProductionError';
+
+    private const DROPSHIP_NONCE_FIELD_ID = 'A894B03EF81F4D9090464A7A2FA1BA3B';
+    public const DROPSHIP_NONCE_FIELD_NAME = 'PrintessDropshipNonce';
+
+    private const DROPSHIP_TRACKING_FIELD_ID = 'EFF49592172544319F164900F04A4C5E';
+    public const DROPSHIP_TRACKING_FIELD_NAME = 'PrintessDropshipTracking';
+
+    private const DROPSHIP_SEND_COUNT_FIELD_ID = 'CA17A19EBD8B428B87D116FD59F4C229';
+    public const DROPSHIP_SEND_COUNT_FIELD_NAME = 'PrintessDropshipSendCount';
+
+    private const DROPSHIP_SHOP_ORDER_ID_FIELD_ID = '6891F2E523194519B9001AE9A4652690';
+    public const DROPSHIP_SHOP_ORDER_ID_FIELD_NAME = 'PrintessDropshipShopOrderId';
 
     private const ORDER_LINE_ITEM_RELATION_ID = 'A1B2C3D4E5F647A8B9C0D1E2F3A4B5C6';
 
@@ -131,6 +145,42 @@ class OrderLineItemCustomFieldsInstaller
                         'config' => [
                             'label' => ['en-GB' => 'Printess production error', 'de-DE' => 'Printess Produktionsfehler'],
                             'customFieldPosition' => 4,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::DROPSHIP_NONCE_FIELD_ID),
+                        'name' => self::DROPSHIP_NONCE_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess dropship callback nonce', 'de-DE' => 'Printess Dropship-Callback-Nonce'],
+                            'customFieldPosition' => 5,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::DROPSHIP_TRACKING_FIELD_ID),
+                        'name' => self::DROPSHIP_TRACKING_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess dropship tracking', 'de-DE' => 'Printess Dropship-Sendungsverfolgung'],
+                            'customFieldPosition' => 6,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::DROPSHIP_SEND_COUNT_FIELD_ID),
+                        'name' => self::DROPSHIP_SEND_COUNT_FIELD_NAME,
+                        'type' => CustomFieldTypes::INT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess dropship sends', 'de-DE' => 'Printess Dropship-Sendungen'],
+                            'customFieldPosition' => 7,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::DROPSHIP_SHOP_ORDER_ID_FIELD_ID),
+                        'name' => self::DROPSHIP_SHOP_ORDER_ID_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess dropship order number', 'de-DE' => 'Printess Dropship-Bestellnummer'],
+                            'customFieldPosition' => 8,
                         ],
                     ],
                 ],

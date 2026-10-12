@@ -31,6 +31,12 @@
         margin-top: 8px;
     }
 
+    &__hint {
+        margin: 8px 0 0;
+        color: var(--color-text-secondary-default);
+        font-size: var(--font-size-xs);
+    }
+
     // Reuses the same `mt-field`/`mt-block-field__block` classes the real Meltdown fields use (see
     // mt-base-field.vue's global, unscoped <style> block) so the combobox's input keeps the same
     // border, radius, background, focus outline and disabled look as every other field in the

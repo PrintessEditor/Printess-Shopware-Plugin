@@ -151,6 +151,18 @@
     margin-top: $spacer-sm;
 }
 
+.printess-cart-item-tracking {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacer-xs $spacer-sm;
+    margin-top: $spacer-sm;
+    font-size: $font-size-sm;
+}
+
+.printess-cart-item-tracking-label {
+    color: $body-secondary-color;
+}
+
 .printess-cart-item-price-breakdown {
     list-style: none;
     margin: $spacer-sm 0 0;

@@ -214,10 +214,21 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
             <argument type="service" id="PrintessShopwareIntegration\Service\Production\ProductionDropshippingResolver"/>
             <argument type="service" id="http_client"/>
-            <argument type="service" id="order.repository"/>
             <argument type="service" id="order_line_item.repository"/>
             <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
             <argument>%env(APP_URL)%</argument>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessOrderReproductionService"/>
+            <argument type="service" id="order.repository"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Production\PrintessOrderReproductionService">
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="state_machine_state.repository"/>
+            <argument type="service" id="Shopware\Core\System\NumberRange\ValueGenerator\NumberRangeValueGeneratorInterface"/>
+            <argument type="service" id="Shopware\Core\System\StateMachine\Loader\InitialStateIdLoader"/>
+            <argument type="service" id="Shopware\Core\Content\Product\Stock\StockStorage"/>
+            <argument>%shopware.stock.enable_stock_management%</argument>
         </service>
 
         <service id="PrintessShopwareIntegration\Subscriber\OrderTransactionPaidSubscriber">
@@ -226,10 +237,18 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService">
+            <argument type="service" id="order.repository"/>
+            <argument type="service" id="order_line_item.repository"/>
+            <argument type="service" id="order_delivery.repository"/>
+            <argument type="service" id="Shopware\Core\System\StateMachine\StateMachineRegistry"/>
+        </service>
+
         <service id="PrintessShopwareIntegration\Controller\Api\PrintessProductionController" public="true">
             <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessProductionService"/>
             <argument type="service" id="order.repository"/>
             <argument type="service" id="order_line_item.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>

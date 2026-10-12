@@ -28,6 +28,9 @@
 
 namespace PrintessShopwareIntegration\Controller\Api;
 
+use PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackException;
+use PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService;
+use PrintessShopwareIntegration\Service\Production\PrintessProductionActionException;
 use PrintessShopwareIntegration\Service\Production\PrintessProductionService;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
@@ -47,6 +50,7 @@ class PrintessProductionController extends AbstractController
         private readonly PrintessProductionService $printessProductionService,
         private readonly EntityRepository $orderRepository,
         private readonly EntityRepository $orderLineItemRepository,
+        private readonly PrintessDropshipCallbackService $dropshipCallbackService,
     ) {
     }
 
@@ -74,6 +78,35 @@ class PrintessProductionController extends AbstractController
         return new JsonResponse(['status' => 'ok']);
     }
 
+    /**
+     * Called by Printess when a dropshipper shipped items of an order (the `callbackPayload.url`
+     * sent with `/dropship/produce`). Unauthenticated like `productionCallback()`; each line item is
+     * verified by the nonce sent with it, see `PrintessDropshipCallbackService`. Printess treats any
+     * non-2xx answer as a failed callback.
+     */
+    #[Route(
+        path: '/api/_action/printess/dropship/callback',
+        name: 'api.action.printess.dropship.callback',
+        defaults: ['auth_required' => false],
+        methods: ['POST'],
+    )]
+    public function dropshipCallback(Request $request): JsonResponse
+    {
+        $payload = json_decode((string) $request->getContent(), true);
+
+        if (!\is_array($payload)) {
+            return new JsonResponse(['error' => 'Invalid JSON body.'], 400);
+        }
+
+        try {
+            $updated = $this->dropshipCallbackService->handle((string) $request->query->get('orderId', ''), $payload, Context::createDefaultContext());
+        } catch (PrintessDropshipCallbackException $exception) {
+            return new JsonResponse(['error' => $exception->getMessage()], $exception->getCode());
+        }
+
+        return new JsonResponse(['status' => 'ok', 'updatedLineItems' => \count($updated)]);
+    }
+
     #[Route(
         path: '/api/_action/printess/orders/{orderId}/line-items/{lineItemId}/approve',
         name: 'api.action.printess.order_line_item.approve',
@@ -88,9 +121,13 @@ class PrintessProductionController extends AbstractController
             return new JsonResponse(['error' => 'Order or line item not found.'], 404);
         }
 
-        $this->printessProductionService->approveLineItem($order, $lineItem, $context);
+        try {
+            $sentIds = $this->printessProductionService->approveLineItem($order, $lineItem, $context);
+        } catch (PrintessProductionActionException $exception) {
+            return new JsonResponse(['error' => $exception->getMessage()], 409);
+        }
 
-        return new JsonResponse($this->printessProductionService->getLineItemState($lineItemId, $context));
+        return new JsonResponse($this->lineItemStates($sentIds, $context));
     }
 
     #[Route(
@@ -98,7 +135,7 @@ class PrintessProductionController extends AbstractController
         name: 'api.action.printess.order_line_item.restart',
         methods: ['POST'],
     )]
-    public function restart(string $orderId, string $lineItemId, Context $context): JsonResponse
+    public function restart(string $orderId, string $lineItemId, Request $request, Context $context): JsonResponse
     {
         $order = $this->loadOrder($orderId, $context);
         $lineItem = $order?->getLineItems()?->get($lineItemId);
@@ -107,9 +144,56 @@ class PrintessProductionController extends AbstractController
             return new JsonResponse(['error' => 'Order or line item not found.'], 404);
         }
 
-        $this->printessProductionService->restartProduction($order, $lineItem, $context);
+        // `{mode: "copy", lineItemIds, message, reduceStock}` duplicates the order and dropships the
+        // copy instead of sending again, see `PrintessProductionService::reproduceAsCopy()`.
+        $body = json_decode((string) $request->getContent(), true);
 
-        return new JsonResponse($this->printessProductionService->getLineItemState($lineItemId, $context));
+        if (\is_array($body) && ($body['mode'] ?? null) === 'copy') {
+            try {
+                $copy = $this->printessProductionService->reproduceAsCopy(
+                    $order,
+                    $lineItem,
+                    array_values(array_filter((array) ($body['lineItemIds'] ?? []), 'is_string')),
+                    \is_string($body['message'] ?? null) ? $body['message'] : '',
+                    (bool) ($body['reduceStock'] ?? false),
+                    $context,
+                );
+            } catch (PrintessProductionActionException $exception) {
+                return new JsonResponse(['error' => $exception->getMessage()], 409);
+            }
+
+            return new JsonResponse(['copy' => $copy, 'lineItems' => (object) []]);
+        }
+
+        try {
+            $sentIds = $this->printessProductionService->restartProduction($order, $lineItem, $context);
+        } catch (PrintessProductionActionException $exception) {
+            return new JsonResponse(['error' => $exception->getMessage()], 409);
+        }
+
+        return new JsonResponse($this->lineItemStates($sentIds, $context));
+    }
+
+    /**
+     * The line items approving or restarting this line item would send to production, so the admin
+     * can show them before the merchant confirms - a dropshipped line item takes its whole dropship
+     * group along.
+     */
+    #[Route(
+        path: '/api/_action/printess/orders/{orderId}/line-items/{lineItemId}/production-batch',
+        name: 'api.action.printess.order_line_item.production_batch',
+        methods: ['GET'],
+    )]
+    public function productionBatch(string $orderId, string $lineItemId, Context $context): JsonResponse
+    {
+        $order = $this->loadOrder($orderId, $context);
+        $lineItem = $order?->getLineItems()?->get($lineItemId);
+
+        if ($order === null || $lineItem === null) {
+            return new JsonResponse(['error' => 'Order or line item not found.'], 404);
+        }
+
+        return new JsonResponse($this->printessProductionService->describeProductionBatch($order, $lineItem));
     }
 
     #[Route(
@@ -127,6 +211,23 @@ class PrintessProductionController extends AbstractController
         }
 
         return new JsonResponse($this->printessProductionService->checkStatus($lineItem, $context));
+    }
+
+    /**
+     * @param list<string> $lineItemIds
+     *
+     * @return array{lineItems: object}
+     */
+    private function lineItemStates(array $lineItemIds, Context $context): array
+    {
+        $states = [];
+
+        foreach ($lineItemIds as $lineItemId) {
+            $states[$lineItemId] = $this->printessProductionService->getLineItemState($lineItemId, $context);
+        }
+
+        // An object even when empty, so the admin can always iterate it by id.
+        return ['lineItems' => (object) $states];
     }
 
     private function loadOrder(string $orderId, Context $context): ?OrderEntity

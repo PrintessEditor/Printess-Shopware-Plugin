@@ -30,8 +30,11 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
     {{ parent() }}
 
     {% set printessSaveToken = lineItem.payload is defined and lineItem.payload._printessSaveToken is defined ? lineItem.payload._printessSaveToken : null %}
+    {# Editing ends where the customer confirms the order: the confirm page lists what is about to
+       be ordered, and on the finish page the items already belong to a placed order. #}
+    {% set printessIsCheckoutSummary = activeRoute is defined and activeRoute in ['frontend.checkout.confirm.page', 'frontend.checkout.finish.page'] %}
 
-    {% if printessSaveToken %}
+    {% if printessSaveToken and (displayMode === 'order' or not printessIsCheckoutSummary) %}
         <div class="printess-cart-item-edit-button-container">
             {% if displayMode === 'order' %}
                 {# An already-placed order must never be edited in place - this leads to the
@@ -51,6 +54,26 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 </a>
             {% endif %}
         </div>
+    {% endif %}
+
+    {# Shipments the dropshipper reported for this item (Printess dropship callback). #}
+    {% if displayMode === 'order' %}
+        {% set printessTracking = printess_dropship_tracking(lineItem) %}
+
+        {% if printessTracking is not empty %}
+            <div class="printess-cart-item-tracking">
+                <span class="printess-cart-item-tracking-label">{{ 'printess.cartItem.tracking.label'|trans|sw_sanitize }}</span>
+                {% for printessShipment in printessTracking %}
+                    {% if printessShipment.trackingUrl %}
+                        <a href="{{ printessShipment.trackingUrl }}" target="_blank" rel="noopener noreferrer" class="printess-cart-item-tracking-link">
+                            {{ printessShipment.trackingId ?: 'printess.cartItem.tracking.link'|trans|sw_sanitize }}
+                        </a>
+                    {% else %}
+                        <span class="printess-cart-item-tracking-code">{{ printessShipment.trackingId }}</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
     {% endif %}
 
     {% set printessPriceBreakdown = lineItem.payload is defined and lineItem.payload._printessPriceBreakdown is defined ? lineItem.payload._printessPriceBreakdown : null %}

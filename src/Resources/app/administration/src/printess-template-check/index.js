@@ -77,6 +77,9 @@ export default Shopware.Component.wrapComponentConfig({
             isChecking: false,
             checkError: null,
             groups: [],
+            // The base template the check read along with the template, and why it could not be.
+            baseTemplate: '',
+            baseTemplateError: '',
             isVariant: false,
             checkedAt: null,
             requestId: 0,
@@ -120,6 +123,8 @@ export default Shopware.Component.wrapComponentConfig({
             const requestId = ++this.requestId;
 
             this.checkError = null;
+            this.baseTemplate = '';
+            this.baseTemplateError = '';
 
             if (!templateName || !this.productId) {
                 this.groups = [];
@@ -140,6 +145,8 @@ export default Shopware.Component.wrapComponentConfig({
 
                 this.groups = Array.isArray(result?.groups) ? result.groups : [];
                 this.isVariant = !!result?.isVariant;
+                this.baseTemplate = result?.baseTemplate ?? '';
+                this.baseTemplateError = result?.baseTemplateError ?? '';
                 this.checkedAt = result?.checkedAt ?? null;
             } catch (error) {
                 if (requestId !== this.requestId) {

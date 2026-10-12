@@ -80,14 +80,18 @@ class PrintessTemplateCheckController extends AbstractController
         }
 
         try {
-            $fields = $this->formFieldsClient->load($templateName);
+            $loaded = $this->formFieldsClient->load($templateName);
         } catch (PrintessFormFieldsException $exception) {
             return new JsonResponse(['error' => $exception->getMessage()], 502);
         }
 
         return new JsonResponse([
-            'groups' => $this->templateCheckService->check($fields, $state['groups']),
+            'groups' => $this->templateCheckService->check($loaded['fields'], $state['groups']),
             'isVariant' => $state['isVariant'],
+            // Named so the card can say that the base template's form fields were compared too,
+            // or why they could not be.
+            'baseTemplate' => $loaded['baseTemplate'],
+            'baseTemplateError' => $loaded['baseTemplateError'],
             'checkedAt' => (new \DateTimeImmutable())->format(\DATE_ATOM),
         ]);
     }
@@ -125,7 +129,7 @@ class PrintessTemplateCheckController extends AbstractController
         }
 
         try {
-            $fields = $this->formFieldsClient->load($templateName);
+            $fields = $this->formFieldsClient->load($templateName)['fields'];
         } catch (PrintessFormFieldsException $exception) {
             return new JsonResponse(['error' => $exception->getMessage()], 502);
         }

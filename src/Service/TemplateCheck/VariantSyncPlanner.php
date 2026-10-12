@@ -61,7 +61,7 @@ class VariantSyncPlanner
     private const STATUS_CREATE = 'create';
 
     /**
-     * @param list<array<string, mixed>> $fields       template form fields, as from `PrintessFormFieldsClient::load()`
+     * @param list<array<string, mixed>> $fields       template form fields, the `fields` of `PrintessFormFieldsClient::load()`
      * @param array<string, mixed>       $state        as from `ProductVariantStateReader::read()`
      * @param list<array<string, mixed>> $sharedGroups as from `ProductVariantStateReader::findSharedGroups()`
      * @param list<string>               $selected     names of the fields to build property groups from

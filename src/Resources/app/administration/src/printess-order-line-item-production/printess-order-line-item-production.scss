@@ -100,3 +100,50 @@
         object-fit: contain;
     }
 }
+
+.printess-order-line-item-production__batch-text {
+    margin: 0 0 16px;
+}
+
+.printess-order-line-item-production__tracking {
+    margin-bottom: 8px;
+}
+
+.printess-order-line-item-production__tracking-code {
+    display: block;
+    font-family: var(--font-family-code, monospace);
+    font-size: var(--font-size-xs);
+}
+
+.printess-order-line-item-production__dropship-order {
+    margin: 0 0 4px;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary-default);
+}
+
+.printess-order-line-item-production__choice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.printess-order-line-item-production__choice-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.printess-order-line-item-production__batch-label {
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.printess-order-line-item-production__copy-message {
+    margin-top: 16px;
+}
+
+.printess-order-line-item-production__copy-created {
+    margin-bottom: 8px;
+}

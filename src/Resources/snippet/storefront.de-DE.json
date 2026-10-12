@@ -3,6 +3,10 @@
         "cartItem": {
             "editButton": "Design bearbeiten",
             "reorderButton": "Erneut bestellen",
+            "tracking": {
+                "label": "Sendungsverfolgung:",
+                "link": "Sendung verfolgen"
+            },
             "priceBreakdown": {
                 "additionalPages": "{1} 1 zusätzliche Seite|[0,Inf[ %count% zusätzliche Seiten"
             }

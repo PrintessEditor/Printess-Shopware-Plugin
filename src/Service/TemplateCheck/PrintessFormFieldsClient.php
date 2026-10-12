@@ -38,6 +38,11 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *
  * `{name, label, isPriceRelevant, isList, dataType, userInterface, entries: [{key, label}]}`
  *
+ * A design template names a base template, and the storefront opens the base template with the
+ * design merged into it. Form fields meant for every product therefore live on the base template,
+ * and the template the shopper gets has them - so the base template's form fields are read as well,
+ * or the check would report every one of them as missing.
+ *
  * Deliberately not cached: "Check again" exists because the merchant has just changed the template
  * in Printess, and a cached answer would repeat the old problem.
  */
@@ -56,11 +61,105 @@ class PrintessFormFieldsClient
     }
 
     /**
-     * @throws PrintessFormFieldsException when the token is missing or Printess cannot be read
+     * The template's form fields, and those of its base template when it is built on one.
+     *
+     * A base template that cannot be read is reported in `baseTemplateError` rather than thrown:
+     * the rest of the check is still worth showing, and a base template owned by the global
+     * account cannot be read at all, because Printess resolves the name in the calling account.
+     *
+     * @throws PrintessFormFieldsException when the token is missing or the template itself cannot be read
+     *
+     * @return array{fields: list<array{name: string, label: string, isPriceRelevant: bool, isList: bool, dataType: string, userInterface: string, entries: list<array{key: string, label: string}>}>, baseTemplate: string, baseTemplateError: string}
+     */
+    public function load(string $templateName): array
+    {
+        $result = [
+            'fields' => $this->normalize($this->request('/template/formFields/list', [
+                'templateName' => $templateName,
+                'usePublishedVersion' => true,
+            ], 'the template form fields')),
+            'baseTemplate' => '',
+            'baseTemplateError' => '',
+        ];
+
+        try {
+            $stored = $this->baseTemplateOf($templateName);
+
+            if ($stored === '') {
+                return $result;
+            }
+
+            $result['baseTemplate'] = $this->cleanTemplateName($stored);
+            $result['fields'] = $this->merge($result['fields'], $this->normalize($this->request('/template/formFields/list', [
+                'templateName' => $result['baseTemplate'],
+                // The published version, which is what the storefront opens, unless the stored
+                // name asks for the draft.
+                'usePublishedVersion' => !str_contains($stored, '~draft'),
+            ], "the base template's form fields")));
+        } catch (PrintessFormFieldsException $exception) {
+            $result['baseTemplateError'] = $exception->getMessage();
+        }
+
+        return $result;
+    }
+
+    /**
+     * The base template this template is built on, as Printess stores it, or `''` when it has none.
+     *
+     * @throws PrintessFormFieldsException
+     */
+    private function baseTemplateOf(string $templateName): string
+    {
+        $data = $this->request('/template/details', ['templateName' => $templateName], 'the template details');
+        $template = \is_array($data['template'] ?? null) ? $data['template'] : [];
+
+        return \is_scalar($template['baseTemplate'] ?? null) ? trim((string) $template['baseTemplate']) : '';
+    }
+
+    /**
+     * The stored name carries the version and where the template lives: `~draft`, `~published`,
+     * `~merged`, and `~gid` for a template of the global account. Printess strips them the same way
+     * when it loads the template for the editor.
+     */
+    private function cleanTemplateName(string $baseTemplate): string
+    {
+        $name = str_replace(['~draft', '~published', '~merged'], '', $baseTemplate);
+
+        return str_ends_with($name, '~gid') ? substr($name, 0, -4) : $name;
+    }
+
+    /**
+     * The extra fields appended under every name the template does not define itself, so the
+     * template the product points at keeps precedence over its base template.
+     *
+     * @param list<array{name: string, label: string, isPriceRelevant: bool, isList: bool, dataType: string, userInterface: string, entries: list<array{key: string, label: string}>}> $fields
+     * @param list<array{name: string, label: string, isPriceRelevant: bool, isList: bool, dataType: string, userInterface: string, entries: list<array{key: string, label: string}>}> $extra
      *
      * @return list<array{name: string, label: string, isPriceRelevant: bool, isList: bool, dataType: string, userInterface: string, entries: list<array{key: string, label: string}>}>
      */
-    public function load(string $templateName): array
+    private function merge(array $fields, array $extra): array
+    {
+        $seen = array_fill_keys(array_column($fields, 'name'), true);
+
+        foreach ($extra as $field) {
+            if (!isset($seen[$field['name']])) {
+                $seen[$field['name']] = true;
+                $fields[] = $field;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param string                $subject what the message names when the call fails
+     *
+     * @throws PrintessFormFieldsException when the token is missing or Printess cannot be read
+     *
+     * @return array<mixed>
+     */
+    private function request(string $path, array $payload, string $subject): array
     {
         $serviceToken = $this->printessConfigService->getServiceToken();
 
@@ -69,27 +168,24 @@ class PrintessFormFieldsClient
         }
 
         try {
-            $response = $this->httpClient->request('POST', $this->printessConfigService->getApiUrl() . '/template/formFields/list', [
+            $response = $this->httpClient->request('POST', $this->printessConfigService->getApiUrl() . $path, [
                 'auth_bearer' => $serviceToken,
-                'json' => [
-                    'templateName' => $templateName,
-                    'usePublishedVersion' => true,
-                ],
+                'json' => $payload,
             ]);
 
             $statusCode = $response->getStatusCode();
             $data = $response->toArray(false);
         } catch (ExceptionInterface $exception) {
-            throw new PrintessFormFieldsException('Could not read the template form fields from Printess: ' . $exception->getMessage(), 0, $exception);
+            throw new PrintessFormFieldsException('Could not read ' . $subject . ' from Printess: ' . $exception->getMessage(), 0, $exception);
         }
 
         if ($statusCode >= 300) {
             $message = \is_string($data['m'] ?? null) && $data['m'] !== '' ? $data['m'] : 'HTTP ' . $statusCode;
 
-            throw new PrintessFormFieldsException('Could not read the template form fields from Printess: ' . $message);
+            throw new PrintessFormFieldsException('Could not read ' . $subject . ' from Printess: ' . $message);
         }
 
-        return $this->normalize($data);
+        return $data;
     }
 
     /**

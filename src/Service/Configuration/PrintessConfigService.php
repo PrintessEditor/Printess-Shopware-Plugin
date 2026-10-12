@@ -151,6 +151,15 @@ class PrintessConfigService
     }
 
     /**
+     * How a dropship reproduction is sent: `suffix` (default) - again under the order number with
+     * `-R1`, `-R2`, ...; `ask` - the merchant may instead duplicate the order and dropship the copy.
+     */
+    public function getDropshipReproductionMode(?string $salesChannelId = null): string
+    {
+        return $this->systemConfigService->getString(self::CONFIG_PREFIX . 'dropshipReproductionMode', $salesChannelId) === 'ask' ? 'ask' : 'suffix';
+    }
+
+    /**
      * Whether a product's Printess template/form fields/merge templates/print setting/dropshipping
      * config may differ per language. Deliberately not sales-channel-scoped like the other getters
      * here - it governs how product data is edited/read in the admin and during production, which
@@ -181,6 +190,33 @@ class PrintessConfigService
     public function isDebugModeEnabled(): bool
     {
         return $this->systemConfigService->getBool(self::CONFIG_PREFIX . 'debugMode');
+    }
+
+    /**
+     * The URL Printess's production and dropship callbacks are sent to instead of the shop's own,
+     * for a shop Printess can't reach (e.g. a local one behind an HTTP tunnel). A bare domain gets
+     * `https://`. Empty when not set or not a usable http(s) URL - then the shop's own URL applies.
+     * Global, like the other debugging settings.
+     */
+    public function getCallbackBaseUrl(): string
+    {
+        $url = trim($this->systemConfigService->getString(self::CONFIG_PREFIX . 'callbackBaseUrl'));
+
+        if ($url === '') {
+            return '';
+        }
+
+        if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $url) && !preg_match('#^https?://#i', $url)) {
+            return '';
+        }
+
+        if (!preg_match('#^https?://#i', $url)) {
+            $url = 'https://' . $url;
+        }
+
+        $url = rtrim($url, '/');
+
+        return filter_var($url, \FILTER_VALIDATE_URL) !== false ? $url : '';
     }
 
     /**
