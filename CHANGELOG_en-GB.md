@@ -1,0 +1,31 @@
+# 1.2.4
+- Production jobs now carry the shop's order number as the external order id, so orders are easier to find in Printess and at a dropshipper.
+- Order, customer and address data is sent to the template's form fields (order number, order date, quantity, product name and number, shipping and billing address, shipping method, customer name and email), using the same field names as the previous Printess plugin.
+
+# 1.2.3
+- Dropshipped items of an order that ship to the same address are now produced as one dropship order, so they are shipped together.
+- Approving or restarting a dropshipped item now covers all items of its shipment, after a dialog that shows every design with a preview and lets it be opened in the editor.
+- Shipments reported by the dropshipper are written back to the order: the delivery becomes shipped or partially shipped, and the tracking code and link are shown in the administration and in the customer's account.
+- Items produced again are sent under the order number with a suffix, for dropshippers that refuse an order number they have already received.
+- Optionally, an order can be duplicated for a repeat production instead: the copy keeps its prices, is free of charge for the customer through a discount line, and carries a message explaining why it was created.
+- A product set to "No drop shipping" is no longer dropshipped when a default is configured in the plugin settings. The new "Use plugin default" option takes the default.
+- "Use dropshipping with template settings" now reaches Printess correctly; such products were not dropshipped before.
+- New setting for a public shop URL, so Printess can reach a shop that is only available through a tunnel.
+- The product page no longer shows an "Edit design" button on the checkout confirmation and order completed pages.
+- The order view now states when production is waiting for the payment, and only offers a restart once an item has been in production.
+
+# 1.2.0
+- New "Template check" card on the product's Printess tab: it compares the product's variant properties with the template's form fields and reports what is missing.
+- Variant properties and variants can be created from the template's form fields.
+
+# 1.1.5
+- Fixed a progress display that stayed on top of the SlimUi while text was being edited.
+
+# 1.1.4
+- Fixed the SlimUi on products with several preview images.
+
+# 1.1.0
+- Added support for the SlimUi, the compact buyer interface for simple personalizations.
+
+# 1.0.0
+- Complete rewrite of the Printess Shopware plugin for Shopware 6.7.

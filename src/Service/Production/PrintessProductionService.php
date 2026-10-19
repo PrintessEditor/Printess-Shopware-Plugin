@@ -32,9 +32,11 @@ use PrintessShopwareIntegration\Service\Configuration\PrintessConfigService;
 use PrintessShopwareIntegration\Service\CustomField\OrderCustomFieldsInstaller;
 use PrintessShopwareIntegration\Service\CustomField\OrderLineItemCustomFieldsInstaller;
 use PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver;
+use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -489,23 +491,20 @@ class PrintessProductionService
         }
 
         $meta = ['orderId' => $order->getId(), 'orderLineItemId' => $lineItem->getId()];
+        // The number the merchant knows the order by; the callback finds the line item via `meta`.
+        $orderNumber = $order->getOrderNumber() ?? $order->getId();
+        $vdpValues = $this->vdpValues($order, $lineItem, $saveToken, $orderNumber);
 
         $data = [
             'templateName' => $saveToken,
-            'externalOrderId' => $order->getId(),
+            'externalOrderId' => $orderNumber,
             'copies' => $lineItem->getQuantity(),
             'meta' => json_encode($meta, \JSON_THROW_ON_ERROR),
             'callbackUrl' => $this->callbackBaseUrl() . self::CALLBACK_PATH,
             'origin' => 'Shopware ' . $this->appUrl,
             'vdp' => [
-                'data' => [
-                    'orderId' => $order->getId(),
-                    'orderLineItemId' => $lineItem->getId(),
-                ],
-                'form' => [
-                    'orderId' => $order->getId(),
-                    'orderLineItemId' => $lineItem->getId(),
-                ],
+                'data' => $vdpValues,
+                'form' => $vdpValues,
             ],
         ];
 
@@ -578,6 +577,73 @@ class PrintessProductionService
             OrderLineItemCustomFieldsInstaller::STATUS_FIELD_NAME => PrintessProductionStatus::ERROR,
             OrderLineItemCustomFieldsInstaller::ERROR_FIELD_NAME => $errorMessage ?? 'Printess did not return a job id for this production request.',
         ]);
+    }
+
+    /**
+     * The order data a template's form fields can be mapped to, sent as `vdp.data` and `vdp.form`.
+     * The keys are the ones the pre-rewrite plugin sent (e.g. `orderName`, `ShippingCity`), so print
+     * settings set up back then keep working. Values Shopware doesn't have are left out, so the
+     * template keeps its default for them.
+     *
+     * @return array<string, string>
+     */
+    private function vdpValues(OrderEntity $order, OrderLineItemEntity $lineItem, string $saveToken, string $orderNumber): array
+    {
+        $product = $lineItem->getProduct();
+        $productNumber = $product?->getProductNumber() ?? (($lineItem->getPayload() ?? [])['productNumber'] ?? null);
+        $delivery = $this->resolveDeliveryForLineItem($order, $lineItem);
+        $customer = $order->getOrderCustomer();
+
+        $values = [
+            'orderId' => $order->getId(),
+            'orderNumber' => $orderNumber,
+            'orderName' => $orderNumber,
+            'orderDate' => $order->getOrderDateTime()->format(Defaults::STORAGE_DATE_TIME_FORMAT),
+            'orderLineItemId' => $lineItem->getId(),
+            'lineItemId' => $lineItem->getId(),
+            'itemQuantity' => (string) $lineItem->getQuantity(),
+            'saveToken' => $saveToken,
+            'productName' => $lineItem->getLabel(),
+            'itemSku' => \is_string($productNumber) ? $productNumber : null,
+            'variantId' => $product?->getParentId() !== null ? $product?->getId() : null,
+            'shippingDateEarliest' => $delivery?->getShippingDateEarliest()->format(Defaults::STORAGE_DATE_TIME_FORMAT),
+            'shippingDateLatest' => $delivery?->getShippingDateLatest()->format(Defaults::STORAGE_DATE_TIME_FORMAT),
+            'ShippingMethod' => $delivery?->getShippingMethod()?->getName(),
+            'customerEmail' => $customer?->getEmail(),
+            'customerFirstName' => $customer?->getFirstName(),
+            'customerLastName' => $customer?->getLastName(),
+            'customerName' => $customer !== null ? trim($customer->getFirstName() . ' ' . $customer->getLastName()) : null,
+        ];
+
+        $values += $this->addressVdpValues($delivery?->getShippingOrderAddress(), 'Shipping');
+        $values += $this->addressVdpValues($order->getBillingAddress(), 'Billing');
+
+        return array_filter($values, static fn (?string $value): bool => $value !== null && $value !== '');
+    }
+
+    /**
+     * @return array<string, string|null>
+     */
+    private function addressVdpValues(?OrderAddressEntity $address, string $prefix): array
+    {
+        if ($address === null) {
+            return [];
+        }
+
+        return [
+            $prefix . 'CompanyName' => $address->getCompany(),
+            $prefix . 'DepartmentName' => $address->getDepartment(),
+            $prefix . 'FirstName' => $address->getFirstName(),
+            $prefix . 'LastName' => $address->getLastName(),
+            $prefix . 'Address1' => $address->getStreet(),
+            $prefix . 'Address2' => $address->getAdditionalAddressLine1(),
+            $prefix . 'Address3' => $address->getAdditionalAddressLine2(),
+            $prefix . 'Zip' => $address->getZipcode(),
+            $prefix . 'City' => $address->getCity(),
+            $prefix . 'Phone' => $address->getPhoneNumber(),
+            $prefix . 'Country' => $address->getCountry()?->getIso3(),
+            $prefix . 'CountryState' => $address->getCountryState()?->getShortCode(),
+        ];
     }
 
     /**
