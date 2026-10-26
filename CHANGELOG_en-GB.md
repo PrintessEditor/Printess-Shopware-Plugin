@@ -1,3 +1,9 @@
+# 1.2.5
+- Fixed the SlimUi adding the product's default variant to the cart instead of the variant selected in the editor.
+- The full editor no longer adds the previously selected variant to the cart when "Add to basket" is clicked while a variant change is still loading, or when the variant change failed.
+- The product definition list of the drop shipping setting is no longer cut off by the card around it, and opens upwards when there is not enough room below.
+- Editing a cart item in the full editor now saves the variant whose price the editor shows.
+
 # 1.2.4
 - Production jobs now carry the shop's order number as the external order id, so orders are easier to find in Printess and at a dropshipper.
 - Order, customer and address data is sent to the template's form fields (order number, order date, quantity, product name and number, shipping and billing address, shipping method, customer name and email), using the same field names as the previous Printess plugin.

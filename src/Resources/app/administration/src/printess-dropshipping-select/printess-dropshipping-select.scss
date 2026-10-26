@@ -72,12 +72,14 @@
     // searchable list. This panel is just regular DOM, so it re-renders on every keystroke like any
     // other autocomplete, while still reusing Meltdown's own elevation/border tokens so it looks
     // like a native part of the admin rather than a bespoke widget.
+    //
+    // Teleported into <body> and placed by `updateProductDefinitionPopoverPosition()` (top/bottom,
+    // left, width, max-height), with the same fixed positioning and z-index as Meteor's own
+    // `.mt-floating-ui__content`, so it sits over the surrounding card instead of being clipped by
+    // it. Every class here is a flat BEM name, so the styles still apply outside the component root.
     &__product-definition-popover {
-        position: absolute;
-        top: calc(100% + 4px);
-        left: 0;
-        right: 0;
-        z-index: 100;
+        position: fixed;
+        z-index: 1070;
         max-height: 260px;
         overflow-y: auto;
         background-color: var(--color-background-primary-default);

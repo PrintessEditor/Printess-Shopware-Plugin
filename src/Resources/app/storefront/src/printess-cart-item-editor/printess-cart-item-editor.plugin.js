@@ -124,6 +124,12 @@ export default class PrintessCartItemEditorPlugin extends Plugin {
         this.printessApi = await printessLoader.load(loadParams);
     }
 
+    /**
+     * Submits the same selection the displayed price was resolved for (`_resolveSelection`), not
+     * just `currentSelection`: `priceChangeCallback` also fires on load with the saved design's own
+     * values, without a `formFieldChangedCallback`, so a design whose variant fields differ from
+     * the cart line's variant would otherwise show one variant's price and save the other.
+     */
     async _onAddToBasket(saveToken, thumbnailUrl) {
         try {
             const response = await fetch(this.updateUrl, {
@@ -135,7 +141,7 @@ export default class PrintessCartItemEditorPlugin extends Plugin {
                 body: JSON.stringify({
                     saveToken,
                     thumbnailUrl,
-                    options: this.currentSelection,
+                    options: this._resolveSelection(this._lastPriceInfo),
                     pageCount: this._lastPriceInfo?.pageCount ?? 0,
                     priceRelevantFormFields: this._extractFormFieldValues(this._lastPriceInfo),
                 }),
@@ -196,11 +202,7 @@ export default class PrintessCartItemEditorPlugin extends Plugin {
      * currently-tracked configurator selection is the baseline, overlaid with whichever
      * price-relevant fields from `priceInfo` actually match a configurator option.
      */
-    async _resolvePrice(priceInfo) {
-        if (!this.priceUrl) {
-            return null;
-        }
-
+    _resolveSelection(priceInfo) {
         const resolvedSelection = { ...this.currentSelection };
 
         Object.entries(priceInfo?.priceRelevantFormFields ?? {}).forEach(([name, field]) => {
@@ -210,6 +212,16 @@ export default class PrintessCartItemEditorPlugin extends Plugin {
                 resolvedSelection[match.groupId] = match.optionId;
             }
         });
+
+        return resolvedSelection;
+    }
+
+    async _resolvePrice(priceInfo) {
+        if (!this.priceUrl) {
+            return null;
+        }
+
+        const resolvedSelection = this._resolveSelection(priceInfo);
 
         const pageCount = priceInfo?.pageCount ?? 0;
         const formFieldValues = this._extractFormFieldValues(priceInfo);

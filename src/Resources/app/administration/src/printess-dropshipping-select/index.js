@@ -36,6 +36,11 @@ const PRODUCT_DEFINITION_ID_PLUGIN_DEFAULT = -2;
 const PRODUCT_DEFINITION_ID_NONE = -1;
 const PRODUCT_DEFINITION_ID_TEMPLATE = 0;
 
+/** Matches the popover's `max-height` in the stylesheet. */
+const POPOVER_MAX_HEIGHT = 260;
+const POPOVER_OFFSET = 4;
+const POPOVER_VIEWPORT_MARGIN = 8;
+
 /**
  * Dropshipping configuration control, used both as the plugin-wide default (embedded into the
  * extension config page via config.xml's `<component>` field) and as the per-product setting in
@@ -90,6 +95,7 @@ export default Shopware.Component.wrapComponentConfig({
             isProductDefinitionDropdownOpen: false,
             highlightedDefinitionId: null,
             productDefinitionSearchTerm: '',
+            productDefinitionPopoverStyle: {},
         };
     },
 
@@ -215,7 +221,7 @@ export default Shopware.Component.wrapComponentConfig({
     },
 
     beforeUnmount() {
-        document.removeEventListener('click', this.onDocumentClickOutside, true);
+        this.removeProductDefinitionDropdownListeners();
     },
 
     methods: {
@@ -308,17 +314,67 @@ export default Shopware.Component.wrapComponentConfig({
             this.productDefinitionSearchTerm = '';
             this.highlightedDefinitionId = this.productDefinitionId;
 
-            document.addEventListener('click', this.onDocumentClickOutside, true);
+            this.addProductDefinitionDropdownListeners();
         },
 
         closeProductDefinitionDropdown() {
             this.isProductDefinitionDropdownOpen = false;
 
-            document.removeEventListener('click', this.onDocumentClickOutside, true);
+            this.removeProductDefinitionDropdownListeners();
         },
 
+        /**
+         * Besides closing on an outside click, keeps the popover attached to the input while it is
+         * open: it is `position: fixed` in `<body>` (see the template), so scrolling the page or
+         * the admin's own scroll container would otherwise leave it floating where it was.
+         * Capturing `scroll` catches every scrolling ancestor, not just the window.
+         */
+        addProductDefinitionDropdownListeners() {
+            this.updateProductDefinitionPopoverPosition();
+
+            document.addEventListener('click', this.onDocumentClickOutside, true);
+            window.addEventListener('scroll', this.updateProductDefinitionPopoverPosition, true);
+            window.addEventListener('resize', this.updateProductDefinitionPopoverPosition);
+        },
+
+        removeProductDefinitionDropdownListeners() {
+            document.removeEventListener('click', this.onDocumentClickOutside, true);
+            window.removeEventListener('scroll', this.updateProductDefinitionPopoverPosition, true);
+            window.removeEventListener('resize', this.updateProductDefinitionPopoverPosition);
+        },
+
+        /**
+         * Places the popover under the input, or above it when there is less room below than the
+         * popover needs and more above - the same flip mt-select does - and shrinks it to the space
+         * that side has, so the list never runs off screen.
+         */
+        updateProductDefinitionPopoverPosition() {
+            const field = this.$refs.productDefinitionField;
+
+            if (!field) {
+                return;
+            }
+
+            const rect = field.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom - POPOVER_OFFSET - POPOVER_VIEWPORT_MARGIN;
+            const spaceAbove = rect.top - POPOVER_OFFSET - POPOVER_VIEWPORT_MARGIN;
+            const above = spaceBelow < POPOVER_MAX_HEIGHT && spaceAbove > spaceBelow;
+
+            this.productDefinitionPopoverStyle = {
+                left: `${rect.left}px`,
+                width: `${rect.width}px`,
+                maxHeight: `${Math.min(POPOVER_MAX_HEIGHT, above ? spaceAbove : spaceBelow)}px`,
+                ...(above
+                    ? { bottom: `${window.innerHeight - rect.top + POPOVER_OFFSET}px` }
+                    : { top: `${rect.bottom + POPOVER_OFFSET}px` }),
+            };
+        },
+
+        /** The popover is not inside `$el` any more (see the template), so it is checked on its own. */
         onDocumentClickOutside(event) {
-            if (!this.$el.contains(event.target)) {
+            const popover = this.$refs.productDefinitionPopover;
+
+            if (!this.$el.contains(event.target) && !popover?.contains(event.target)) {
                 this.closeProductDefinitionDropdown();
             }
         },
@@ -326,7 +382,7 @@ export default Shopware.Component.wrapComponentConfig({
         onProductDefinitionSearchInput(event) {
             if (!this.isProductDefinitionDropdownOpen) {
                 this.isProductDefinitionDropdownOpen = true;
-                document.addEventListener('click', this.onDocumentClickOutside, true);
+                this.addProductDefinitionDropdownListeners();
             }
 
             this.productDefinitionSearchTerm = event.target.value;

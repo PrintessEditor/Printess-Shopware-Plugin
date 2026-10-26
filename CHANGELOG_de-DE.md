@@ -1,3 +1,9 @@
+# 1.2.5
+- Behoben: Die SlimUi hat die Standardvariante des Produkts in den Warenkorb gelegt statt der im Editor gewählten Variante.
+- Der volle Editor legt nicht mehr die zuvor gewählte Variante in den Warenkorb, wenn "In den Warenkorb" geklickt wird, während ein Variantenwechsel noch lädt oder fehlgeschlagen ist.
+- Die Liste der Produktdefinitionen in der Dropshipping-Einstellung wird nicht mehr von der umgebenden Karte abgeschnitten und öffnet sich nach oben, wenn darunter nicht genug Platz ist.
+- Beim Bearbeiten eines Warenkorbartikels im vollen Editor wird jetzt die Variante gespeichert, deren Preis der Editor anzeigt.
+
 # 1.2.4
 - Produktionsaufträge enthalten jetzt die Bestellnummer des Shops als externe Bestell-ID, wodurch sich Bestellungen in Printess und beim Dropshipper leichter wiederfinden lassen.
 - Bestell-, Kunden- und Adressdaten werden an die Formularfelder des Templates übergeben (Bestellnummer, Bestelldatum, Menge, Produktname und -nummer, Liefer- und Rechnungsadresse, Versandart, Kundenname und E-Mail-Adresse) – mit denselben Feldnamen wie im bisherigen Printess-Plugin.

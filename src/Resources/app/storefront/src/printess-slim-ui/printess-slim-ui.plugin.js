@@ -25,6 +25,7 @@
  */
 
 import Plugin from 'src/plugin-system/plugin.class';
+import { retargetBuyFormLineItem } from '../helper/printess-buy-form.helper';
 
 /**
  * Matches ONLY `buy-widget.html.twig`'s own root div (rendered as
@@ -126,14 +127,16 @@ const MEDIA_INDEX_ATTRIBUTE = 'data-printess-media-index';
  * INSIDE the buy widget subtree, at the configurator's own location. That difference rules out
  * reusing the full editor's variant-switch mechanism as-is: `_performVariantSwitch()` there replaces
  * the buy widget subtree's entire `innerHTML` with a freshly rendered page fragment, which would tear
- * down the very SlimUi instance mounted inside it. Since nothing in THIS integration (yet) depends on
- * a real page navigation - add-to-cart wiring for SlimUi is a later step - variant changes are instead
- * tracked purely in JS (`this._selection`) and mirrored onto the (hidden) configurator's own
- * radio/select inputs without dispatching a `change` event, so the storefront's own
- * `VariantSwitchPlugin` never fires a full navigation. The resulting price is fetched directly from
- * `frontend.printess.product.price` and written straight into `.product-detail-price`, since there's
- * no separate "editor UI" to hand a price string to the way the full editor's `priceChangeCallback`
- * does.
+ * down the very SlimUi instance mounted inside it. Variant changes are instead tracked purely in JS
+ * (`this._selection`) and mirrored onto the (hidden) configurator's own radio/select inputs without
+ * dispatching a `change` event, so the storefront's own `VariantSwitchPlugin` never fires a full
+ * navigation. The resulting price is fetched directly from `frontend.printess.product.price` and
+ * written straight into `.product-detail-price`, since there's no separate "editor UI" to hand a
+ * price string to the way the full editor's `priceChangeCallback` does.
+ *
+ * Without a re-render, the buy form's own line item fields still name the variant the page was
+ * rendered for - `_onAddToBasketClick` points them at the variant that same price lookup resolved
+ * before submitting (see `retargetBuyFormLineItem`).
  */
 export default class PrintessSlimUiPlugin extends Plugin {
     init() {
@@ -147,6 +150,7 @@ export default class PrintessSlimUiPlugin extends Plugin {
         this.features = this._parseJsonAttribute(this.el.dataset.printessSlimUiFeatures) ?? [];
         this.priceUrl = this.el.dataset.printessPriceUrl;
         this.debugMode = this.el.dataset.printessDebug === 'true';
+        this.variantResolveErrorText = this.el.dataset.printessVariantResolveErrorText || '';
         this.buyWidgetContainer = this.el.closest(BUY_WIDGET_SELECTOR);
 
         this.slimApi = null;
@@ -220,8 +224,8 @@ export default class PrintessSlimUiPlugin extends Plugin {
     }
 
     /**
-     * Hides the storefront's own variant configurator (kept in the DOM, not removed - a future
-     * add-to-cart flow may still need to read its inputs) and inserts the containers SlimUi renders
+     * Hides the storefront's own variant configurator (kept in the DOM, not removed - its inputs
+     * are the baseline `_getSelection` builds on) and inserts the containers SlimUi renders
      * into at that same location. `previewContainer`/`previewImage`/`loader` are mandatory for
      * `createSlimUi()` but never actually shown - see `.printess-slim-ui-hidden-preview` and
      * `_onRenderPreviewImageCallback`.
@@ -492,6 +496,14 @@ export default class PrintessSlimUiPlugin extends Plugin {
      * on e.g. missing text/image), then hand the result to the SAME hidden fields/submit button the
      * full editor's `addToBasketCallback` uses - `pageCount` is always 0, SlimUi never has a billable
      * page count (see `_resolvePrice`'s identical reasoning).
+     *
+     * Before submitting, the buy form's line item is pointed at the variant the displayed price was
+     * resolved for - see the class comment. A still pending debounced refresh is taken over rather
+     * than left to fire: started later, it would supersede this lookup, which `_resolvePrice()` then
+     * answers with the previous selection's cached result. Refreshing the display along with it also
+     * keeps the price on screen in step with the variant actually added. If no variant can be
+     * resolved after SlimUi changed one, the submit is refused rather than silently adding the
+     * rendered variant at a price the shopper never saw.
      */
     async _onAddToBasketClick() {
         if (!this.slimApi || !this.addToBasketTriggerButton || this.addToBasketTriggerButton.disabled) {
@@ -503,6 +515,18 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         try {
             const { saveToken, thumbnailUrl } = await this.slimApi.createSaveToken();
+            clearTimeout(this._priceChangeDebounceTimer);
+            const resolved = await this._refreshPriceDisplay();
+
+            if (resolved?.productId) {
+                if (retargetBuyFormLineItem(this.form, resolved.productId)) {
+                    this._debugLog('onAddToBasketClick: pointed the line item at the selected variant', resolved.productId);
+                }
+            } else if (Object.keys(this._selection).length) {
+                this._debugLog('onAddToBasketClick: could not resolve the selected variant, not submitting', this._selection);
+                this._setStatus(this.variantResolveErrorText, true);
+                return;
+            }
 
             this._setFieldValue(this.saveTokenInput, saveToken);
             this._setFieldValue(this.thumbnailUrlInput, thumbnailUrl);
@@ -703,21 +727,27 @@ export default class PrintessSlimUiPlugin extends Plugin {
         }, PRICE_REFRESH_DEBOUNCE_MS);
     }
 
+    /**
+     * Returns what `_resolvePrice()` resolved (including the variant's `productId`), for
+     * `_onAddToBasketClick`.
+     */
     async _refreshPriceDisplay() {
         const resolved = await this._resolvePrice();
 
         if (!resolved) {
-            return;
+            return null;
         }
 
         const priceEl = this.buyWidgetContainer ? this.buyWidgetContainer.querySelector('.product-detail-price') : null;
 
         if (!priceEl) {
             this._debugLog('refreshPriceDisplay: no .product-detail-price element found, cannot update the displayed price');
-            return;
+            return resolved;
         }
 
         priceEl.textContent = this._formatPrice(resolved.price, resolved.currencyIsoCode);
+
+        return resolved;
     }
 
     /**
@@ -767,7 +797,7 @@ export default class PrintessSlimUiPlugin extends Plugin {
             }
 
             this._lastPriceSelectionKey = cacheKey;
-            this._lastPrice = { price: data.price, currencyIsoCode: data.currencyIsoCode };
+            this._lastPrice = { price: data.price, currencyIsoCode: data.currencyIsoCode, productId: data.productId };
 
             return this._lastPrice;
         } catch (error) {

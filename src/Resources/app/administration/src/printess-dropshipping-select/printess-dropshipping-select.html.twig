@@ -48,6 +48,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         class="printess-dropshipping-select__product-definition-combobox"
     >
         <div
+            ref="productDefinitionField"
             class="mt-field mt-field--text printess-dropshipping-select__product-definition"
             :class="{ 'has--focus': isProductDefinitionDropdownOpen, 'is--disabled': disabled || isLoading }"
         >
@@ -74,43 +75,50 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 </div>
             </div>
 
-            <div
-                v-if="isProductDefinitionDropdownOpen"
-                class="printess-dropshipping-select__product-definition-popover"
-                role="listbox"
-            >
-                <template v-if="filteredGroupedProductDefinitions.length > 0">
-                    <ul
-                        v-for="group in filteredGroupedProductDefinitions"
-                        :key="group.name"
-                        class="printess-dropshipping-select__product-definition-group"
-                    >
-                        <li class="printess-dropshipping-select__product-definition-group-label">
-                            {{ group.name }}
-                        </li>
-
-                        <li
-                            v-for="definition in group.definitions"
-                            :key="definition.id"
-                            class="printess-dropshipping-select__product-definition-option"
-                            :class="{
-                                'is--active': definition.id === highlightedDefinitionId,
-                                'is--selected': definition.id === productDefinitionId,
-                            }"
-                            role="option"
-                            :aria-selected="definition.id === productDefinitionId"
-                            @mouseenter="highlightedDefinitionId = definition.id"
-                            @mousedown.prevent="selectProductDefinition(definition)"
+            {# Rendered into <body>, like mt-select's own option list: the surrounding mt-card
+               clips its content (`overflow: hidden`), which cut off a popover positioned inside
+               it. See `updateProductDefinitionPopoverPosition`. #}
+            <teleport to="body">
+                <div
+                    v-if="isProductDefinitionDropdownOpen"
+                    ref="productDefinitionPopover"
+                    class="printess-dropshipping-select__product-definition-popover"
+                    :style="productDefinitionPopoverStyle"
+                    role="listbox"
+                >
+                    <template v-if="filteredGroupedProductDefinitions.length > 0">
+                        <ul
+                            v-for="group in filteredGroupedProductDefinitions"
+                            :key="group.name"
+                            class="printess-dropshipping-select__product-definition-group"
                         >
-                            {{ definition.label }}
-                        </li>
-                    </ul>
-                </template>
+                            <li class="printess-dropshipping-select__product-definition-group-label">
+                                {{ group.name }}
+                            </li>
 
-                <p v-else class="printess-dropshipping-select__product-definition-empty">
-                    {{ $t('printess-shopware-integration.dropshippingSelect.noProductDefinitionsFound') }}
-                </p>
-            </div>
+                            <li
+                                v-for="definition in group.definitions"
+                                :key="definition.id"
+                                class="printess-dropshipping-select__product-definition-option"
+                                :class="{
+                                    'is--active': definition.id === highlightedDefinitionId,
+                                    'is--selected': definition.id === productDefinitionId,
+                                }"
+                                role="option"
+                                :aria-selected="definition.id === productDefinitionId"
+                                @mouseenter="highlightedDefinitionId = definition.id"
+                                @mousedown.prevent="selectProductDefinition(definition)"
+                            >
+                                {{ definition.label }}
+                            </li>
+                        </ul>
+                    </template>
+
+                    <p v-else class="printess-dropshipping-select__product-definition-empty">
+                        {{ $t('printess-shopware-integration.dropshippingSelect.noProductDefinitionsFound') }}
+                    </p>
+                </div>
+            </teleport>
         </div>
     </div>
 

@@ -1,7 +1,8 @@
 {
     "printess-shopware-integration": {
         "detail": {
-            "designNowButton": "Jetzt gestalten"
+            "designNowButton": "Jetzt gestalten",
+            "variantResolveError": "Die gewählte Produktvariante konnte nicht ermittelt werden. Bitte versuche es erneut."
         }
     }
 }

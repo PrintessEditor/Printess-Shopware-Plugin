@@ -26,6 +26,7 @@
 
 import Plugin from 'src/plugin-system/plugin.class';
 import ElementReplaceHelper from 'src/helper/element-replace.helper';
+import { retargetBuyFormLineItem } from '../helper/printess-buy-form.helper';
 
 const BASKET_ID_STORAGE_KEY = 'printess-basket-id';
 const EDITOR_NODE_SELECTOR = '.printess-loader-container, printess-component';
@@ -117,6 +118,9 @@ export default class PrintessDesignNowPlugin extends Plugin {
         this._switchRequestId = 0;
         this._priceRequestId = 0;
 
+        /** The most recently started `_performVariantSwitch()` - see `_onEditorAddToBasket`. */
+        this._pendingVariantSwitch = null;
+
         this._debugLog('init: plugin attached, click "Design now" to load the editor', {
             templateName: this.templateName,
             formFields: this.formFields,
@@ -157,18 +161,9 @@ export default class PrintessDesignNowPlugin extends Plugin {
             basketId: this.basketId,
             usePublishedVersion: true,
             addToBasketCallback: (saveToken, thumbnailUrl) => {
-                this._setFieldValue(this.saveTokenInput, saveToken);
-                this._setFieldValue(this.thumbnailUrlInput, thumbnailUrl);
-                this._setFieldValue(this.pageCountInput, String(this._lastPriceInfo?.pageCount ?? 0));
-                this._setFieldValue(this.priceRelevantFormFieldsInput, JSON.stringify(this._extractFormFieldValues(this._lastPriceInfo)));
-
-                if (this.printessApi) {
-                    this.printessApi.ui.hide();
-                }
-
-                if (this.addToBasketButton) {
-                    this.addToBasketButton.click();
-                }
+                this._onEditorAddToBasket(saveToken, thumbnailUrl).catch((error) => {
+                    this._debugLog('addToBasketCallback: failed', error);
+                });
             },
             backButtonCallback: () => {
                 this._setFieldValue(this.saveTokenInput, '');
@@ -226,6 +221,51 @@ export default class PrintessDesignNowPlugin extends Plugin {
 
         this.printessApi = await printessLoader.load(loadParams);
         this._scheduleAfterEditorReadyActions();
+    }
+
+    /**
+     * Makes sure the buy form adds the variant whose price the editor shows before submitting it.
+     *
+     * A variant switch re-renders the buy widget for the new variant (`_performVariantSwitch`), so
+     * normally the form is already right - but not while that switch is still fetching, and never
+     * when it failed or found no url, in which case `_selection` (and with it the displayed price)
+     * has moved on while the form still names the previous variant. So the latest switch is awaited
+     * first - which also means the field writes below must come after it, since a switch that lands
+     * replaces the form and its inputs (`_rebindFormReferences`) - and the form is then pointed at
+     * whatever variant the price lookup resolved, a no-op whenever the re-render did its job.
+     *
+     * A still pending debounced price refresh is taken over rather than left to fire: started later,
+     * it would supersede this lookup, which `_resolvePrice()` then answers with the previous
+     * selection's cached result.
+     */
+    async _onEditorAddToBasket(saveToken, thumbnailUrl) {
+        if (this._pendingVariantSwitch) {
+            try {
+                await this._pendingVariantSwitch;
+            } catch (error) {
+                this._debugLog('onEditorAddToBasket: pending variant switch failed', error);
+            }
+        }
+
+        clearTimeout(this._priceChangeDebounceTimer);
+        const resolved = await this._refreshPriceDisplay(this._lastPriceInfo);
+
+        if (resolved?.productId && retargetBuyFormLineItem(this.form, resolved.productId)) {
+            this._debugLog('onEditorAddToBasket: pointed the line item at the selected variant', resolved.productId);
+        }
+
+        this._setFieldValue(this.saveTokenInput, saveToken);
+        this._setFieldValue(this.thumbnailUrlInput, thumbnailUrl);
+        this._setFieldValue(this.pageCountInput, String(this._lastPriceInfo?.pageCount ?? 0));
+        this._setFieldValue(this.priceRelevantFormFieldsInput, JSON.stringify(this._extractFormFieldValues(this._lastPriceInfo)));
+
+        if (this.printessApi) {
+            this.printessApi.ui.hide();
+        }
+
+        if (this.addToBasketButton) {
+            this.addToBasketButton.click();
+        }
     }
 
     /**
@@ -398,7 +438,8 @@ export default class PrintessDesignNowPlugin extends Plugin {
             if (configuratorForm) {
                 const targetSelection = { ...this._getSelection(configuratorForm), ...data.options };
 
-                this._performVariantSwitch(configuratorForm, targetSelection, null).catch((error) => {
+                this._pendingVariantSwitch = this._performVariantSwitch(configuratorForm, targetSelection, null);
+                this._pendingVariantSwitch.catch((error) => {
                     this._debugLog('getShopSavedDataCallback: variant switch failed', error);
                 });
             } else {
@@ -606,20 +647,26 @@ export default class PrintessDesignNowPlugin extends Plugin {
         }, PRICE_CHANGE_DEBOUNCE_MS);
     }
 
+    /**
+     * Returns what `_resolvePrice()` resolved (including the variant's `productId`), for
+     * `_onEditorAddToBasket`.
+     */
     async _refreshPriceDisplay(priceInfo) {
         if (!this.printessApi) {
-            return;
+            return null;
         }
 
         const resolved = await this._resolvePrice(priceInfo);
 
         if (!resolved) {
-            return;
+            return null;
         }
 
         this.printessApi.ui.refreshPriceDisplay({
             price: this._formatPrice(resolved.price, resolved.currencyIsoCode),
         });
+
+        return resolved;
     }
 
     /**
@@ -712,7 +759,7 @@ export default class PrintessDesignNowPlugin extends Plugin {
             }
 
             this._lastPriceSelectionKey = cacheKey;
-            this._lastPrice = { price: data.price, currencyIsoCode: data.currencyIsoCode };
+            this._lastPrice = { price: data.price, currencyIsoCode: data.currencyIsoCode, productId: data.productId };
 
             return this._lastPrice;
         } catch (error) {
@@ -759,7 +806,8 @@ export default class PrintessDesignNowPlugin extends Plugin {
         const selectedOptions = this._getSelection(configuratorForm);
         selectedOptions[match.groupId] = match.optionId;
 
-        await this._performVariantSwitch(configuratorForm, selectedOptions, match.groupId);
+        this._pendingVariantSwitch = this._performVariantSwitch(configuratorForm, selectedOptions, match.groupId);
+        await this._pendingVariantSwitch;
     }
 
     /**
@@ -833,7 +881,7 @@ export default class PrintessDesignNowPlugin extends Plugin {
         } catch (error) {
             this._debugLog('performVariantSwitch: failed, keeping editor open', error);
             // Keep the editor open even if the storefront variant sync fails; the user can still
-            // finish and add the currently displayed variant to the basket.
+            // finish, and `_onEditorAddToBasket` points the form at the selected variant itself.
         }
     }
 

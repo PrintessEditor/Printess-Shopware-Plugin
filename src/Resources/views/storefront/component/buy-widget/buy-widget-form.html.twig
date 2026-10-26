@@ -170,6 +170,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                          {% if printessSlimUiMergeTemplate %}data-printess-slim-ui-merge-template="{{ printessSlimUiMergeTemplate|e('html_attr') }}"{% endif %}
                          data-printess-slim-ui-features="{{ printessSlimUiFeatures|json_encode|e('html_attr') }}"
                          data-printess-price-url="{{ path('frontend.printess.product.price', { productId: product.id }) }}"
+                         data-printess-variant-resolve-error-text="{{ 'printess-shopware-integration.detail.variantResolveError'|trans|striptags|e('html_attr') }}"
                          data-printess-debug="{{ printess_debug_mode() ? 'true' : 'false' }}">
                     </div>
 
