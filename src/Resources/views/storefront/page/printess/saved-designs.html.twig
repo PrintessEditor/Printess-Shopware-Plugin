@@ -31,6 +31,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
          {% if isImpersonating %}
              data-printess-saved-design-admin-editor="true"
              data-printess-loader-url="{{ loaderScriptUrl }}"
+             {% if apiDomain %}data-printess-api-domain="{{ apiDomain }}"{% endif %}
              data-printess-shop-token="{{ shopToken }}"
              data-printess-shop-id="{{ shopId }}"
              data-printess-shop-user-id="{{ shopUserId }}"

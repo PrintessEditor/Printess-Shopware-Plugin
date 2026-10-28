@@ -88,6 +88,7 @@ class PrintessCartItemController extends StorefrontController
             'shopToken' => $this->printessConfigService->getShopToken($salesChannelId),
             'defaultTheme' => $this->printessConfigService->getDefaultTheme($salesChannelId),
             'editorLanguage' => $this->printessConfigService->getEditorLanguage($salesChannelId),
+            'apiDomain' => $this->printessConfigService->getApiDomain($salesChannelId),
             'basketThumbnailMaxWidth' => $this->printessConfigService->getBasketThumbnailMaxWidth($salesChannelId),
             'basketThumbnailMaxHeight' => $this->printessConfigService->getBasketThumbnailMaxHeight($salesChannelId),
             'photobookTheme' => $this->productCustomFieldResolver->resolveDefaultLanguage($editorContext['parentProductId'], 'PrintessPhotobookTheme'),

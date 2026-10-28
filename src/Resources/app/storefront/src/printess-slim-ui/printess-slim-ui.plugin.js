@@ -36,6 +36,7 @@ import { retargetBuyFormLineItem } from '../helper/printess-buy-form.helper';
  * updates directly live inside this same subtree.
  */
 const BUY_WIDGET_SELECTOR = '[class*="product-detail-buy-"]';
+const BUY_WIDGET_ROW_SELECTOR = '.buy-widget-container';
 const CONFIGURATOR_RADIO_SELECTOR = '.product-detail-configurator-option-input';
 const CONFIGURATOR_SELECT_SELECTOR = '.product-detail-configurator-select-input';
 const HIDDEN_CONFIGURATOR_CLASS = 'printess-slim-ui-hidden-configurator';
@@ -142,6 +143,7 @@ export default class PrintessSlimUiPlugin extends Plugin {
     init() {
         this.slimUiLoaderUrl = this.el.dataset.printessSlimUiLoaderUrl;
         this.shopToken = this.el.dataset.printessShopToken;
+        this.apiDomain = this.el.dataset.printessApiDomain;
         this.templateName = this.el.dataset.printessTemplateName;
         this.theme = this.el.dataset.printessTheme;
         this.editorLanguage = this.el.dataset.printessEditorLanguage;
@@ -250,7 +252,18 @@ export default class PrintessSlimUiPlugin extends Plugin {
         const previewWrapper = document.createElement('div');
         previewWrapper.className = 'printess-slim-ui-hidden-preview';
         previewWrapper.innerHTML = '<div class="printess-preview"><img class="printess-preview-image"><div class="printess-image-loader"></div></div>';
-        mountAnchor.insertAdjacentElement('afterend', previewWrapper);
+
+        // Without a configurator (a product without variants) the marker is the only anchor left, and
+        // it sits in core's `col-8` add-to-cart column next to the `col-4` quantity fieldset - mounting
+        // there would squeeze SlimUi into that column and stretch the quantity field to its height. So
+        // SlimUi goes above that whole row instead, the same place the configurator would have been.
+        const buyRow = this.configuratorForm ? null : this.el.closest(BUY_WIDGET_ROW_SELECTOR);
+
+        if (buyRow) {
+            buyRow.insertAdjacentElement('beforebegin', previewWrapper);
+        } else {
+            mountAnchor.insertAdjacentElement('afterend', previewWrapper);
+        }
 
         this.previewContainer = previewWrapper.querySelector('.printess-preview');
         this.previewImage = previewWrapper.querySelector('.printess-preview-image');
@@ -611,6 +624,10 @@ export default class PrintessSlimUiPlugin extends Plugin {
                 this._onProgressStateChanged(show);
             },
         };
+
+        // The configured (possibly custom) Printess API domain, so the editor talks to the same API
+        // as the shop backend; falls back to api.printess.com if unset.
+        loadParams.apiDomain = this.apiDomain || 'api.printess.com';
 
         if (this.theme) {
             loadParams.theme = this.theme;

@@ -41,6 +41,7 @@ export default class PrintessSavedDesignResumePlugin extends Plugin {
     init() {
         this.loaderUrl = this.el.dataset.printessLoaderUrl;
         this.shopToken = this.el.dataset.printessShopToken;
+        this.apiDomain = this.el.dataset.printessApiDomain;
         this.theme = this.el.dataset.printessTheme;
         this.editorLanguage = this.el.dataset.printessEditorLanguage;
         this.basketThumbnailMaxWidth = this.el.dataset.printessBasketThumbnailMaxWidth;
@@ -112,6 +113,10 @@ export default class PrintessSavedDesignResumePlugin extends Plugin {
                 this._onPriceChanged(priceInfo);
             },
         };
+
+        // The configured (possibly custom) Printess API domain, so the editor talks to the same API
+        // as the shop backend. BCUI takes it as `domain`; falls back to api.printess.com if unset.
+        loadParams.domain = this.apiDomain || 'api.printess.com';
 
         if (this.theme) {
             loadParams.theme = this.theme;

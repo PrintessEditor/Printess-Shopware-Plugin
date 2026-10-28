@@ -132,6 +132,9 @@ export default Shopware.Component.wrapComponentConfig({
                 },
             };
 
+            // BCUI takes the API domain as `domain`; falls back to api.printess.com if unset.
+            loadParams.domain = editorConfig.apiDomain || 'api.printess.com';
+
             if (editorConfig.defaultTheme) {
                 loadParams.theme = editorConfig.defaultTheme;
             }

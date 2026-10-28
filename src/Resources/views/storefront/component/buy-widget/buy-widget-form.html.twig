@@ -166,6 +166,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                          data-printess-template-name="{{ printessTemplateName }}"
                          data-printess-theme="{{ printess_default_theme(context.salesChannelId) }}"
                          data-printess-editor-language="{{ printess_editor_language(context.salesChannelId) }}"
+                         data-printess-api-domain="{{ printess_api_domain(context.salesChannelId) }}"
                          data-printess-form-fields="{{ printessFormFields|json_encode|e('html_attr') }}"
                          {% if printessSlimUiMergeTemplate %}data-printess-slim-ui-merge-template="{{ printessSlimUiMergeTemplate|e('html_attr') }}"{% endif %}
                          data-printess-slim-ui-features="{{ printessSlimUiFeatures|json_encode|e('html_attr') }}"
@@ -179,7 +180,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                        `slimApi.createSaveToken()`, stamp the result into the hidden fields shared
                        with the full editor above, then click the real (hidden, see
                        `buy_widget_buy_button_add_to_cart`) submit button. #}
-                    <div class="d-grid mt-3">
+                    <div class="d-grid">
                         <button type="button"
                                 class="btn btn-primary btn-buy"
                                 data-printess-slim-ui-add-to-basket="true"
@@ -202,6 +203,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                                 data-printess-template-name="{{ printessTemplateName }}"
                                 data-printess-theme="{{ printess_default_theme(context.salesChannelId) }}"
                                 data-printess-editor-language="{{ printess_editor_language(context.salesChannelId) }}"
+                                data-printess-api-domain="{{ printess_api_domain(context.salesChannelId) }}"
                                 {% set printessBasketThumbnailMaxWidth = printess_basket_thumbnail_max_width(context.salesChannelId) %}
                                 {% if printessBasketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ printessBasketThumbnailMaxWidth }}"{% endif %}
                                 {% set printessBasketThumbnailMaxHeight = printess_basket_thumbnail_max_height(context.salesChannelId) %}

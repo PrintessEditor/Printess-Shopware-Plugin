@@ -50,6 +50,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 data-printess-shop-token="{{ shopToken }}"
                 {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
                 {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
+                {% if apiDomain %}data-printess-api-domain="{{ apiDomain }}"{% endif %}
                 {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}
                 data-printess-save-token="{{ saveToken }}"
                 data-printess-price-url="{{ path('frontend.printess.product.price', { productId: parentProductId }) }}"
@@ -128,6 +129,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 data-printess-shop-token="{{ shopToken }}"
                 {% if defaultTheme %}data-printess-theme="{{ defaultTheme }}"{% endif %}
                 {% if editorLanguage and editorLanguage != 'auto' %}data-printess-editor-language="{{ editorLanguage }}"{% endif %}
+                {% if apiDomain %}data-printess-api-domain="{{ apiDomain }}"{% endif %}
                 {% if basketThumbnailMaxWidth %}data-printess-basket-thumbnail-max-width="{{ basketThumbnailMaxWidth }}"{% endif %}
                 {% if basketThumbnailMaxHeight %}data-printess-basket-thumbnail-max-height="{{ basketThumbnailMaxHeight }}"{% endif %}
                 {% if photobookTheme %}data-printess-photobook-theme="{{ photobookTheme }}"{% endif %}

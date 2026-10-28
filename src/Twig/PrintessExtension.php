@@ -69,6 +69,7 @@ class PrintessExtension extends AbstractExtension
             new TwigFunction('printess_shop_token', $this->getShopToken(...)),
             new TwigFunction('printess_default_theme', $this->getDefaultTheme(...)),
             new TwigFunction('printess_editor_language', $this->getEditorLanguage(...)),
+            new TwigFunction('printess_api_domain', $this->getApiDomain(...)),
             new TwigFunction('printess_basket_thumbnail_max_width', $this->getBasketThumbnailMaxWidth(...)),
             new TwigFunction('printess_basket_thumbnail_max_height', $this->getBasketThumbnailMaxHeight(...)),
             new TwigFunction('printess_product_option_form_fields', $this->getProductOptionFormFields(...)),
@@ -105,6 +106,11 @@ class PrintessExtension extends AbstractExtension
     public function getEditorLanguage(?string $salesChannelId = null): string
     {
         return $this->printessConfigService->getEditorLanguage($salesChannelId);
+    }
+
+    public function getApiDomain(?string $salesChannelId = null): string
+    {
+        return $this->printessConfigService->getApiDomain($salesChannelId);
     }
 
     public function getBasketThumbnailMaxWidth(?string $salesChannelId = null): ?string

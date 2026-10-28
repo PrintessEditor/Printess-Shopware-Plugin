@@ -56,6 +56,7 @@ export default class PrintessSlimUiCartItemEditorPlugin extends Plugin {
     init() {
         this.slimUiLoaderUrl = this.el.dataset.printessSlimUiLoaderUrl;
         this.shopToken = this.el.dataset.printessShopToken;
+        this.apiDomain = this.el.dataset.printessApiDomain;
         this.theme = this.el.dataset.printessTheme;
         this.editorLanguage = this.el.dataset.printessEditorLanguage;
         this.photobookTheme = this.el.dataset.printessPhotobookTheme;
@@ -126,6 +127,10 @@ export default class PrintessSlimUiCartItemEditorPlugin extends Plugin {
                 this._setLoadingState(show);
             },
         };
+
+        // The configured (possibly custom) Printess API domain, so the editor talks to the same API
+        // as the shop backend; falls back to api.printess.com if unset.
+        loadParams.apiDomain = this.apiDomain || 'api.printess.com';
 
         if (this.theme) {
             loadParams.theme = this.theme;

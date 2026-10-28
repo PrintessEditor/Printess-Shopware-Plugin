@@ -1,6 +1,6 @@
 {
   "main.js": {
-    "file": "assets/printess-shopware-integration-BnLluy5a.js",
+    "file": "assets/printess-shopware-integration-Bn8Dj64T.js",
     "name": "printess-shopware-integration",
     "src": "main.js",
     "isEntry": true,
@@ -90,7 +90,7 @@
     ]
   },
   "sw-order-line-item-printess-editor/index.js": {
-    "file": "assets/index-CXprYcz3.js",
+    "file": "assets/index-CHTcpLXV.js",
     "name": "index",
     "src": "sw-order-line-item-printess-editor/index.js",
     "isDynamicEntry": true,

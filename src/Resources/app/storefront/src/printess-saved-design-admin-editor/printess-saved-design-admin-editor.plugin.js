@@ -47,6 +47,7 @@ export default class PrintessSavedDesignAdminEditorPlugin extends Plugin {
     init() {
         this.loaderUrl = this.el.dataset.printessLoaderUrl;
         this.shopToken = this.el.dataset.printessShopToken;
+        this.apiDomain = this.el.dataset.printessApiDomain;
         this.deleteSavedDesignUrl = this.el.dataset.printessDeleteSavedDesignUrl;
 
         this.textSaveTokenRequired = this.el.dataset.printessTextSaveTokenRequired || 'A save token is required.';
@@ -112,12 +113,18 @@ export default class PrintessSavedDesignAdminEditorPlugin extends Plugin {
     async _createReplacementDesign(originalSaveToken, shopData, newSaveToken, newThumbnailUrl, displayName) {
         const printessLoader = await import(/* webpackIgnore: true */ this.loaderUrl);
 
-        const printessApi = await printessLoader.load({
+        const loadParams = {
             token: this.shopToken,
             templateName: originalSaveToken,
             templateVersion: 'published',
             usePublishedVersion: true,
-        });
+        };
+
+        // The configured (possibly custom) Printess API domain, so the editor talks to the same API
+        // as the shop backend. BCUI takes it as `domain`; falls back to api.printess.com if unset.
+        loadParams.domain = this.apiDomain || 'api.printess.com';
+
+        const printessApi = await printessLoader.load(loadParams);
 
         printessApi.ui.hide();
 

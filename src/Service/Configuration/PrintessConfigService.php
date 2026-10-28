@@ -72,6 +72,17 @@ class PrintessConfigService
         return $domain . $this->getVersionPath($salesChannelId);
     }
 
+    /**
+     * The configured Printess API domain as a bare host (no scheme, no trailing slash), e.g.
+     * `api.printess.com` - passed to the BCUI loader as its `domain` and to SlimUi as its `apiDomain`
+     * load parameter, so both talk to the same (possibly custom) API as the server side does via
+     * {@see getApiUrl()}. Both build their request URLs as `https://{apiDomain}/...` themselves.
+     */
+    public function getApiDomain(?string $salesChannelId = null): string
+    {
+        return substr($this->getApiUrl($salesChannelId), \strlen('https://'));
+    }
+
     public function getApiUrl(?string $salesChannelId = null): string
     {
         return $this->normalizeDomain(
