@@ -121,6 +121,14 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 {{ page.d || $t('printess-shopware-integration.orderLineItemProduction.unnamedPageLink') }}
             </a>
         </div>
+        <mt-button
+            class="printess-order-line-item-production__form-fields-button"
+            variant="secondary"
+            size="small"
+            @click="openFormFields"
+        >
+            {{ $t('printess-shopware-integration.orderLineItemProduction.formFieldsButton') }}
+        </mt-button>
     </template>
 
     <mt-banner v-if="createdCopy" variant="positive" class="printess-order-line-item-production__copy-created">
@@ -201,6 +209,85 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
 
         <template #modal-footer>
             <mt-button variant="secondary" @click="closeThumbnailOverlay">
+                {{ $t('printess-shopware-integration.orderLineItemProduction.closeButton') }}
+            </mt-button>
+        </template>
+    </sw-modal>
+
+    <sw-modal
+        v-if="showFormFields"
+        class="printess-order-line-item-production__form-fields-modal"
+        :title="$t('printess-shopware-integration.orderLineItemProduction.formFieldsTitle', { label: lineItem.label })"
+        @modal-close="closeFormFields"
+    >
+        <sw-loader v-if="isLoadingFormFields" />
+
+        <mt-banner v-else-if="formFieldsError" variant="critical">
+            {{ formFieldsError }}
+        </mt-banner>
+
+        <p v-else-if="!formFields" class="printess-order-line-item-production__message">
+            {{ $t('printess-shopware-integration.orderLineItemProduction.formFieldsUnavailable') }}
+        </p>
+
+        <template v-else>
+            <p v-if="!formFields.fields.length" class="printess-order-line-item-production__message">
+                {{ $t('printess-shopware-integration.orderLineItemProduction.formFieldsEmpty') }}
+            </p>
+
+            <table v-else class="printess-order-line-item-production__form-fields">
+                <thead>
+                    <tr>
+                        <th>{{ $t('printess-shopware-integration.orderLineItemProduction.formFieldsColumnName') }}</th>
+                        <th>{{ $t('printess-shopware-integration.orderLineItemProduction.formFieldsColumnValue') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="field in formFields.fields" :key="field.name">
+                        <td>
+                            {{ field.caption }}
+                            <span v-if="field.caption !== field.name" class="printess-order-line-item-production__form-field-raw">
+                                {{ field.name }}
+                            </span>
+                        </td>
+                        <td class="printess-order-line-item-production__form-field-value">
+                            {{ field.value }}
+                            <span v-if="field.value !== field.rawValue" class="printess-order-line-item-production__form-field-raw">
+                                {{ field.rawValue }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <template v-if="formFields.images.length">
+                <p class="printess-order-line-item-production__batch-label">
+                    {{ $t('printess-shopware-integration.orderLineItemProduction.formFieldsImages') }}
+                </p>
+                <table class="printess-order-line-item-production__form-fields">
+                    <tbody>
+                        <tr v-for="image in formFields.images" :key="image.exchangeId">
+                            <td>{{ image.exchangeId }}</td>
+                            <td>
+                                <a
+                                    v-if="image.url"
+                                    :href="image.url"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="printess-order-line-item-production__result-link"
+                                >
+                                    {{ image.name }}
+                                </a>
+                                <span v-else>{{ image.name }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </template>
+        </template>
+
+        <template #modal-footer>
+            <mt-button variant="secondary" @click="closeFormFields">
                 {{ $t('printess-shopware-integration.orderLineItemProduction.closeButton') }}
             </mt-button>
         </template>

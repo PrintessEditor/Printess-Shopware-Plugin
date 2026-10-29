@@ -1,3 +1,6 @@
+# 1.2.7
+- Abgeschlossene Printess-Artikel in der Bestellung haben jetzt die Schaltfläche "Formularfeldwerte anzeigen". Sie listet alle Formularfelder der Vorlage mit dem Wert, mit dem das Design produziert wurde, sowie die vom Kunden hochgeladenen Bilder. Die Werte werden nach Abschluss der Produktion mit der Bestellung gespeichert, da Printess die Datei nur 30 Tage aufbewahrt. Bei früher produzierten Artikeln werden sie beim ersten Anzeigen von Printess geladen.
+
 # 1.2.6
 - SlimUi: Vorschau-Dokumente, die durch ihre Dokumentbedingung ausgeblendet sind, werden nicht mehr in der Produktgalerie angezeigt. Die Galerie zeigt nur die sichtbaren Seiten, ein Bild, dessen Seite ausgeblendet wird, zeigt wieder das Produktfoto, und die Galerie wechselt mit, wenn die SlimUi auf eine andere Seite springt.
 - Die konfigurierten Printess-API- und Editor-URLs werden jetzt vom vollen Editor und der SlimUi im Storefront verwendet; bisher wurden immer die Standard-Domains von Printess genutzt.

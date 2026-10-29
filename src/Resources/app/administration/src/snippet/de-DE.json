@@ -283,7 +283,14 @@
             "thumbnailAlt": "Personalisierungsvorschau",
             "thumbnailOverlayTitle": "Personalisierungsvorschau",
             "closeButton": "Schließen",
-            "editSaveTokenTitle": "Personalisierung bearbeiten ({saveToken})"
+            "editSaveTokenTitle": "Personalisierung bearbeiten ({saveToken})",
+            "formFieldsButton": "Formularfeldwerte anzeigen",
+            "formFieldsTitle": "Formularfeldwerte: {label}",
+            "formFieldsColumnName": "Formularfeld",
+            "formFieldsColumnValue": "Wert",
+            "formFieldsImages": "Hochgeladene Bilder",
+            "formFieldsEmpty": "Die Vorlage hat keine Formularfelder.",
+            "formFieldsUnavailable": "Für diesen Artikel sind keine Formularfeldwerte verfügbar. Printess bewahrt die Datei nach der Produktion 30 Tage auf. Danach lassen sie sich nur durch einen Neustart der Produktion wiederherstellen."
         },
         "productionBatch": {
             "nextShopOrderId": "Der Dropshipper erhält die Bestellnummer {number}.",

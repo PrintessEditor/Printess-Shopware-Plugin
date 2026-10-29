@@ -64,6 +64,9 @@ export default Shopware.Component.wrapComponentConfig({
             isLoading: false,
             actionError: null,
             showThumbnailOverlay: false,
+            showFormFields: false,
+            isLoadingFormFields: false,
+            formFieldsError: null,
             // The line items an approve/restart sends along, shown for confirmation first.
             batch: null,
             batchAction: null,
@@ -188,6 +191,50 @@ export default Shopware.Component.wrapComponentConfig({
                 return { documents: [], pages: [] };
             }
         },
+
+        /**
+         * The values the design was produced with, from the job's form fields file (stored by
+         * `PrintessProductionService::downloadFormFields()`): `{fields: [{name, caption, value,
+         * rawValue}], images: [{exchangeId, name, url}]}`, or null when none are stored.
+         */
+        formFields() {
+            const data = this.parseCustomField(this.lineItem.customFields?.PrintessProductionFormFields, null);
+
+            if (!data || typeof data.environment !== 'object') {
+                return null;
+            }
+
+            const detailed = data.environmentDetailed ?? {};
+
+            const fields = Object.entries(data.environment).map(([name, value]) => {
+                const details = detailed[name] ?? null;
+                // A text field's details carry its caption as `label`; a select list's are the
+                // chosen entry, whose `label` is what the customer picked.
+                const isTextField = details !== null && 'maxCharacters' in details;
+                const rawValue = String(value ?? '');
+
+                return {
+                    name,
+                    caption: isTextField && details.label ? details.label : name,
+                    value: !isTextField && details?.label ? details.label : rawValue,
+                    rawValue,
+                };
+            });
+
+            const images = Object.entries(data.exchangeIds ?? {}).map(([exchangeId, exchange]) => {
+                const scales = Array.isArray(exchange?.images) ? exchange.images : [];
+                // Sorted from small to big - link the biggest. Only web links, it ends up in an href.
+                const url = scales[scales.length - 1]?.url ?? '';
+
+                return {
+                    exchangeId,
+                    name: exchange?.name ?? exchangeId,
+                    url: /^https?:\/\//i.test(url) ? url : '',
+                };
+            });
+
+            return { fields, images };
+        },
     },
 
     methods: {
@@ -220,6 +267,34 @@ export default Shopware.Component.wrapComponentConfig({
 
         closeThumbnailOverlay() {
             this.showThumbnailOverlay = false;
+        },
+
+        /**
+         * Items produced before the values were stored get them from Printess on first open, via
+         * the status check - as long as Printess still has the file (30 days).
+         */
+        openFormFields() {
+            this.showFormFields = true;
+            this.formFieldsError = null;
+
+            if (this.formFields) {
+                return;
+            }
+
+            this.isLoadingFormFields = true;
+
+            this.printessProductionService.checkLineItemStatus(this.order.id, this.lineItem.id)
+                .then((state) => this.applyState(state))
+                .catch((error) => {
+                    this.formFieldsError = error?.response?.data?.error ?? error?.message ?? null;
+                })
+                .finally(() => {
+                    this.isLoadingFormFields = false;
+                });
+        },
+
+        closeFormFields() {
+            this.showFormFields = false;
         },
 
         approve() {
@@ -352,6 +427,7 @@ export default Shopware.Component.wrapComponentConfig({
                 PrintessProductionJobId: state.jobId,
                 PrintessProductionResult: state.result ? JSON.stringify(state.result) : null,
                 PrintessProductionError: state.error,
+                PrintessProductionFormFields: state.formFields ? JSON.stringify(state.formFields) : null,
             };
         },
     },

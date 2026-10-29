@@ -56,6 +56,9 @@ class OrderLineItemCustomFieldsInstaller
     private const ERROR_FIELD_ID = 'FA164284E50B87F3CA02B3DAEAFA0A1A';
     public const ERROR_FIELD_NAME = 'PrintessProductionError';
 
+    private const FORM_FIELDS_FIELD_ID = '06B2B05683D922FF130B5A531A13413B';
+    public const FORM_FIELDS_FIELD_NAME = 'PrintessProductionFormFields';
+
     private const DROPSHIP_NONCE_FIELD_ID = 'A894B03EF81F4D9090464A7A2FA1BA3B';
     public const DROPSHIP_NONCE_FIELD_NAME = 'PrintessDropshipNonce';
 
@@ -181,6 +184,15 @@ class OrderLineItemCustomFieldsInstaller
                         'config' => [
                             'label' => ['en-GB' => 'Printess dropship order number', 'de-DE' => 'Printess Dropship-Bestellnummer'],
                             'customFieldPosition' => 8,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::FORM_FIELDS_FIELD_ID),
+                        'name' => self::FORM_FIELDS_FIELD_NAME,
+                        'type' => CustomFieldTypes::TEXT,
+                        'config' => [
+                            'label' => ['en-GB' => 'Printess form field values', 'de-DE' => 'Printess Formularfeldwerte'],
+                            'customFieldPosition' => 9,
                         ],
                     ],
                 ],

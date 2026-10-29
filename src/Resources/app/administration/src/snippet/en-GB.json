@@ -283,7 +283,14 @@
             "thumbnailAlt": "Personalization preview",
             "thumbnailOverlayTitle": "Personalization preview",
             "closeButton": "Close",
-            "editSaveTokenTitle": "Edit personalization ({saveToken})"
+            "editSaveTokenTitle": "Edit personalization ({saveToken})",
+            "formFieldsButton": "Show form field values",
+            "formFieldsTitle": "Form field values: {label}",
+            "formFieldsColumnName": "Form field",
+            "formFieldsColumnValue": "Value",
+            "formFieldsImages": "Uploaded images",
+            "formFieldsEmpty": "The template has no form fields.",
+            "formFieldsUnavailable": "No form field values are available for this item. Printess keeps the file for 30 days after production. After that, they can only be recovered by restarting production."
         },
         "productionBatch": {
             "nextShopOrderId": "The dropshipper receives the order number {number}.",

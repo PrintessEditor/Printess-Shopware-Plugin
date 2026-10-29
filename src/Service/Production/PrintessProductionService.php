@@ -41,6 +41,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -82,6 +83,12 @@ class PrintessProductionService
      * WooCommerce-specific). The general HTTP type (1) only echoes one value per dropship order.
      */
     private const DROPSHIP_CALLBACK_TYPE_URL_WITH_NONCES = 3;
+
+    /**
+     * The form fields file of a finished job holds the template's form field values and the images
+     * uploaded into it - a few KB. Anything far bigger isn't that file.
+     */
+    private const FORM_FIELDS_MAX_BYTES = 1024 * 1024;
 
     public function __construct(
         private readonly PrintessConfigService $printessConfigService,
@@ -179,6 +186,7 @@ class PrintessProductionService
                 OrderLineItemCustomFieldsInstaller::JOB_ID_FIELD_NAME => null,
                 OrderLineItemCustomFieldsInstaller::RESULT_FIELD_NAME => null,
                 OrderLineItemCustomFieldsInstaller::ERROR_FIELD_NAME => null,
+                OrderLineItemCustomFieldsInstaller::FORM_FIELDS_FIELD_NAME => null,
             ]);
         }
 
@@ -303,14 +311,14 @@ class PrintessProductionService
     }
 
     /**
-     * @return array{status: string|null, result: array<mixed>|null, error: string|null, jobId: string|null}
+     * @return array{status: string|null, result: array<mixed>|null, error: string|null, jobId: string|null, formFields: array<mixed>|null}
      */
     public function getLineItemState(string $orderLineItemId, Context $context): array
     {
         $lineItem = $this->loadLineItem($orderLineItemId, $context);
 
         if ($lineItem === null) {
-            return ['status' => null, 'result' => null, 'error' => null, 'jobId' => null];
+            return ['status' => null, 'result' => null, 'error' => null, 'jobId' => null, 'formFields' => null];
         }
 
         return [...$this->currentState($lineItem), 'jobId' => $lineItem->getCustomFieldsValue(OrderLineItemCustomFieldsInstaller::JOB_ID_FIELD_NAME)];
@@ -318,9 +326,10 @@ class PrintessProductionService
 
     /**
      * Called from the admin "Check production status" action, and used as a manual fallback for
-     * when Printess's production-finished callback never reached the shop.
+     * when Printess's production-finished callback never reached the shop. Also how the admin loads
+     * the form field values of a line item produced before they were stored.
      *
-     * @return array{status: string, result: array<mixed>|null, error: string|null}
+     * @return array{status: string, result: array<mixed>|null, error: string|null, formFields: array<mixed>|null}
      */
     public function checkStatus(OrderLineItemEntity $lineItem, Context $context): array
     {
@@ -757,7 +766,7 @@ class PrintessProductionService
     /**
      * @param array<mixed> $data
      *
-     * @return array{status: string, result: array<mixed>|null, error: string|null, jobId: string|null}
+     * @return array{status: string, result: array<mixed>|null, error: string|null, jobId: string|null, formFields: array<mixed>|null}
      */
     private function applyJobStatus(string $orderLineItemId, array $data, Context $context): array
     {
@@ -772,6 +781,7 @@ class PrintessProductionService
                 'result' => null,
                 'error' => null,
                 'jobId' => \is_string($data['jobId'] ?? null) ? $data['jobId'] : null,
+                'formFields' => null,
             ];
         }
 
@@ -797,13 +807,24 @@ class PrintessProductionService
                 ], \JSON_THROW_ON_ERROR),
                 OrderLineItemCustomFieldsInstaller::ERROR_FIELD_NAME => null,
             ];
+
+            // Printess keeps the file only for a limited time (30 days), so its contents are stored.
+            // A failed download keeps what is stored already - the next status check tries again.
+            $formFields = $this->downloadFormFields($result['ff'] ?? null);
+
+            if ($formFields !== null) {
+                $customFields[OrderLineItemCustomFieldsInstaller::FORM_FIELDS_FIELD_NAME] = $formFields;
+            }
+
             $this->updateLineItem($orderLineItemId, $context, $customFields);
+            $formFields ??= $this->loadLineItem($orderLineItemId, $context)?->getCustomFieldsValue(OrderLineItemCustomFieldsInstaller::FORM_FIELDS_FIELD_NAME);
 
             return [
                 'status' => PrintessProductionStatus::COMPLETED,
                 'result' => json_decode($customFields[OrderLineItemCustomFieldsInstaller::RESULT_FIELD_NAME], true),
                 'error' => null,
                 'jobId' => \is_string($data['jobId'] ?? null) ? $data['jobId'] : null,
+                'formFields' => $this->decodeFormFields($formFields),
             ];
         }
 
@@ -820,11 +841,69 @@ class PrintessProductionService
             'result' => null,
             'error' => $errorMessage,
             'jobId' => \is_string($data['jobId'] ?? null) ? $data['jobId'] : null,
+            'formFields' => null,
         ];
     }
 
     /**
-     * @return array{status: string, result: array<mixed>|null, error: string|null, jobId: string|null}
+     * Downloads the job's form fields file (`result.ff`): `{environment, environmentDetailed,
+     * exchangeIds}`, written by Printess's renderer. `environment` maps each form field to its value;
+     * `environmentDetailed` holds `{label, value, info, maxCharacters}` for a text field (`label`
+     * being its caption) and the chosen entry for a select list (`label` being the entry's);
+     * `exchangeIds` lists the images uploaded per image exchange id.
+     *
+     * The URL comes from an unauthenticated callback (matched to the line item by its job id), so
+     * only HTTPS is fetched, without following redirects, and only JSON of that shape is kept.
+     *
+     * @return string|null the file's JSON, or null when there is none or it can't be loaded
+     */
+    private function downloadFormFields(mixed $url): ?string
+    {
+        if (!\is_string($url) || parse_url($url, \PHP_URL_SCHEME) !== 'https') {
+            return null;
+        }
+
+        try {
+            $response = $this->httpClient->request('GET', $url, ['timeout' => 10, 'max_redirects' => 0]);
+
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+
+            $content = $response->getContent();
+        } catch (TransportExceptionInterface|HttpExceptionInterface) {
+            return null;
+        }
+
+        if (\strlen($content) > self::FORM_FIELDS_MAX_BYTES) {
+            return null;
+        }
+
+        $formFields = $this->decodeFormFields($content);
+
+        return $formFields === null ? null : json_encode($formFields, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * @return array<mixed>|null
+     */
+    private function decodeFormFields(mixed $json): ?array
+    {
+        if (!\is_string($json) || $json === '') {
+            return null;
+        }
+
+        try {
+            $decoded = json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return null;
+        }
+
+        return \is_array($decoded) && \is_array($decoded['environment'] ?? null) ? $decoded : null;
+    }
+
+    /**
+     * @return array{status: string, result: array<mixed>|null, error: string|null, jobId: string|null, formFields: array<mixed>|null}
      */
     private function currentState(OrderLineItemEntity $lineItem): array
     {
@@ -835,6 +914,7 @@ class PrintessProductionService
             'result' => \is_string($resultJson) && $resultJson !== '' ? json_decode($resultJson, true) : null,
             'error' => $lineItem->getCustomFieldsValue(OrderLineItemCustomFieldsInstaller::ERROR_FIELD_NAME),
             'jobId' => $lineItem->getCustomFieldsValue(OrderLineItemCustomFieldsInstaller::JOB_ID_FIELD_NAME),
+            'formFields' => $this->decodeFormFields($lineItem->getCustomFieldsValue(OrderLineItemCustomFieldsInstaller::FORM_FIELDS_FIELD_NAME)),
         ];
     }
 
