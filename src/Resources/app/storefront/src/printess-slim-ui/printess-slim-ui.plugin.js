@@ -118,6 +118,15 @@ const GALLERY_SLIDER_SELECTOR = '[data-gallery-slider]';
 const MEDIA_INDEX_ATTRIBUTE = 'data-printess-media-index';
 
 /**
+ * What a product image showed before a preview was first applied to it - see `_applyPreviewUrlToImage`
+ * and `_restoreProductImage`, which puts it back once a document condition hides that preview page.
+ */
+const ORIGINAL_SRC_ATTRIBUTE = 'data-printess-original-src';
+const ORIGINAL_SRCSET_ATTRIBUTE = 'data-printess-original-srcset';
+const ORIGINAL_SIZES_ATTRIBUTE = 'data-printess-original-sizes';
+const ORIGINAL_FULL_IMAGE_ATTRIBUTE = 'data-printess-original-full-image';
+
+/**
  * Embeds the Printess SlimUi editor directly into the product page in place of the (hidden, not
  * removed) variant configurator, for products with `PrintessSlimUiEnabled` active - see
  * `sw-product-detail-printess` (admin) and `buy-widget-form.html.twig` (rendering the
@@ -191,10 +200,12 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         /**
          * Which product image the shopper is currently looking at, and the preview page mapped onto
-         * each of them (`_previewPages[mediaIndex]`, filled in by `_refreshPreviewImages`). SlimUi
-         * renders one page at a time and reports it through `renderPreviewImageCallback`, so knowing
-         * which image that page belongs on is what keeps a gallery of several pages coherent - see
-         * `_syncPreviewToGallerySlide`. Starts at 0: the gallery opens on its first slide.
+         * each of them (`_previewPages[mediaIndex]`, visible previews only, filled in by
+         * `_refreshPreviewImages` and `_onRenderPreviewImageCallback`). SlimUi renders one page at a
+         * time and reports it through `renderPreviewImageCallback`, so knowing which image that page
+         * belongs on is what keeps a gallery of several pages coherent - see
+         * `_syncPreviewToGallerySlide`, and `_resolveCurrentMediaIndex` for SlimUi switching pages by
+         * itself. Starts at 0: the gallery opens on its first slide.
          */
         this._currentMediaIndex = 0;
         this._previewPages = [];
@@ -853,9 +864,34 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         this._lastPreviewUrl = url;
 
+        // A form-field change can hide or show preview documents, which moves the pages to other product
+        // images, and hiding the current one has SlimUi switch to another page on its own. So the image
+        // the page SlimUi just rendered belongs on is looked up again - and the gallery is slid there,
+        // which keeps the product image on screen the page the form edits.
+        let applyToCurrentMediaIndex = true;
+
+        if (this.slimApi && !this.pageNavigationContainer) {
+            this._previewPages = this._getPreviewPages().slice(0, this._mediaCount);
+
+            const mediaIndex = this._resolveCurrentMediaIndex();
+
+            if (mediaIndex < 0) {
+                // The current page has no product image of its own, painting it onto another one
+                // would show it in the wrong place.
+                applyToCurrentMediaIndex = false;
+            } else if (mediaIndex !== this._currentMediaIndex) {
+                this._debugLog(`renderPreviewImageCallback: current page moved from product image ${this._currentMediaIndex} to ${mediaIndex}`);
+
+                this._currentMediaIndex = mediaIndex;
+                this._showGallerySlide(mediaIndex);
+            }
+        }
+
         // Onto whichever product image the shopper is looking at, which is the page SlimUi just
         // rendered - not necessarily the first one, once `_syncPreviewToGallerySlide` has moved it.
-        this._applyPreviewUrlToMediaIndex(this._currentMediaIndex, url);
+        if (applyToCurrentMediaIndex) {
+            this._applyPreviewUrlToMediaIndex(this._currentMediaIndex, url);
+        }
 
         // A page switch this plugin asked for changes only WHICH page is on screen, not the design, so
         // every other product image still holds a correct url and re-rendering them would be waste.
@@ -890,6 +926,10 @@ export default class PrintessSlimUiPlugin extends Plugin {
      * - more product images than preview pages: the surplus keeps the merchant's own product photos.
      *   A 2-page design on a 6-image product personalizes images 1-2 and leaves the frame detail shot
      *   and the room scene alone, rather than repeating a preview over them.
+     *
+     * Only the pages of visible previews count (see `_getPreviewPages`), so a form-field change hiding
+     * a preview document leaves fewer pages than before. The images their renders were on get the
+     * merchant's photo back, exactly as if the template had had that many pages all along.
      */
     async _refreshPreviewImages(currentPreviewUrl) {
         if (this.pageNavigationContainer) {
@@ -921,12 +961,19 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         const wanted = this._previewPages;
 
+        for (let index = wanted.length; index < this._mediaCount; index++) {
+            this._restoreMediaIndex(index);
+        }
+
+        // Counted before the early return below as well: a slower refresh started while more pages
+        // were visible must not paint a page that is hidden by now back over a restored photo.
+        const requestId = ++this._previewRequestId;
+
         if (wanted.length < 2) {
             return;
         }
 
-        const requestId = ++this._previewRequestId;
-        const currentMediaIndex = this._currentMediaIndex;
+        const currentMediaIndex = this._resolveCurrentMediaIndex();
 
         try {
             const urls = await Promise.all(wanted.map((page, index) => (index === currentMediaIndex
@@ -952,12 +999,20 @@ export default class PrintessSlimUiPlugin extends Plugin {
      * Every renderable preview page as a flat `{ previewIndex, pageIndex }` list, in the order the
      * previews and their pages are defined in the template. A template with no `previews` at all still
      * has its one implicit primary page, which is what `getPreviewImageInfo(0, 0)` renders.
+     *
+     * Previews whose document condition does not hold for the current form-field values (`visible`
+     * false) are left out, as SlimUi's own page navigation does - `setPreview()` ignores them anyway.
+     * Editor builds from before document conditions don't send the flag, every preview of theirs counts.
      */
     _getPreviewPages() {
         const previews = this.slimApi.previews?.length ? this.slimApi.previews : [{ pageCount: 1 }];
         const pages = [];
 
         previews.forEach((preview, previewIndex) => {
+            if (preview.visible === false) {
+                return;
+            }
+
             const pageCount = preview.pageCount > 0 ? preview.pageCount : 1;
 
             for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
@@ -966,6 +1021,23 @@ export default class PrintessSlimUiPlugin extends Plugin {
         });
 
         return pages;
+    }
+
+    /**
+     * The product image the page SlimUi currently shows belongs on, i.e. its position in
+     * `_previewPages`, or -1 when that page has no product image of its own. `getPreview()` is the
+     * authority, as SlimUi switches pages by itself when a form-field change hides the current one.
+     * Feature-detected like `setPreview()`: without it the image this plugin last moved to is the answer.
+     */
+    _resolveCurrentMediaIndex() {
+        if (typeof this.slimApi?.getPreview !== 'function') {
+            return this._currentMediaIndex;
+        }
+
+        const current = this.slimApi.getPreview();
+
+        return this._previewPages.findIndex((page) => page.previewIndex === current.previewIndex
+            && page.pageIndex === current.pageIndex);
     }
 
     /**
@@ -985,6 +1057,13 @@ export default class PrintessSlimUiPlugin extends Plugin {
         this._getMediaRoot()
             .querySelectorAll(`[${MEDIA_INDEX_ATTRIBUTE}="${index}"]`)
             .forEach((img) => this._applyPreviewUrlToImage(img, url));
+    }
+
+    /** Puts the merchant's photo back onto every copy of product image N - see `_restoreProductImage`. */
+    _restoreMediaIndex(index) {
+        this._getMediaRoot()
+            .querySelectorAll(`[${MEDIA_INDEX_ATTRIBUTE}="${index}"]`)
+            .forEach((img) => this._restoreProductImage(img));
     }
 
     /**
@@ -1015,18 +1094,9 @@ export default class PrintessSlimUiPlugin extends Plugin {
             return;
         }
 
-        // Absent for a single-image gallery: core only renders the attribute when there is more than
-        // one image, and with one image there is no slide to change.
-        const sliderEl = this._getMediaRoot().querySelector(GALLERY_SLIDER_SELECTOR);
-
-        if (!sliderEl) {
-            return;
-        }
-
-        const sliderPlugin = window.PluginManager.getPluginInstanceFromElement(sliderEl, 'GallerySlider');
+        const sliderPlugin = this._getGallerySliderPlugin();
 
         if (!sliderPlugin) {
-            this._debugLog('registerGallerySlideSync: no GallerySlider plugin instance on the gallery, slide changes will not be forwarded');
             return;
         }
 
@@ -1043,6 +1113,48 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         attach();
         sliderPlugin.$emitter.subscribe('afterInitSlider', attach);
+    }
+
+    /**
+     * Core's `GallerySliderPlugin` instance on the product gallery, or null. Absent for a single-image
+     * gallery: core only renders the attribute when there is more than one image, and with one image
+     * there is no slide to change.
+     */
+    _getGallerySliderPlugin() {
+        const sliderEl = this._getMediaRoot().querySelector(GALLERY_SLIDER_SELECTOR);
+
+        if (!sliderEl) {
+            return null;
+        }
+
+        const sliderPlugin = window.PluginManager.getPluginInstanceFromElement(sliderEl, 'GallerySlider');
+
+        if (!sliderPlugin) {
+            this._debugLog('getGallerySliderPlugin: no GallerySlider plugin instance on the gallery');
+            return null;
+        }
+
+        return sliderPlugin;
+    }
+
+    /**
+     * Slides the gallery to product image N, for when SlimUi's current page has moved to another image
+     * by itself (see `_onRenderPreviewImageCallback`) - otherwise the shopper would keep looking at a
+     * page the form doesn't edit, or at a merchant photo that just replaced a hidden page.
+     * `goTo()` takes the index of the original slide, not counting tiny-slider's clones - the same
+     * index core's own `_onDotClick()` passes. With `thumbnailNavigation` on, the `indexChanged` this
+     * fires reaches `_syncPreviewToGallerySlide`, which finds the image already current and does nothing.
+     */
+    _showGallerySlide(index) {
+        const sliderPlugin = this._getGallerySliderPlugin();
+
+        if (!sliderPlugin?._slider || sliderPlugin.getCurrentSliderIndex() === index) {
+            return;
+        }
+
+        this._debugLog(`showGallerySlide: sliding the gallery to product image ${index}`);
+
+        sliderPlugin._slider.goTo(index);
     }
 
     /**
@@ -1105,6 +1217,15 @@ export default class PrintessSlimUiPlugin extends Plugin {
      * lens zoom into the personalized design too, without having to reinitialize that plugin.
      */
     _applyPreviewUrlToImage(img, url) {
+        // Remembered before anything is stripped, so `_restoreProductImage` can put the merchant's photo
+        // back. Data attributes rather than a lookup table, as tiny-slider's clones copy them along.
+        if (!img.hasAttribute(ORIGINAL_SRC_ATTRIBUTE)) {
+            img.setAttribute(ORIGINAL_SRC_ATTRIBUTE, this._getOriginalImageUrl(img));
+            img.setAttribute(ORIGINAL_SRCSET_ATTRIBUTE, img.getAttribute('data-srcset') || img.getAttribute('srcset') || '');
+            img.setAttribute(ORIGINAL_SIZES_ATTRIBUTE, img.getAttribute('sizes') || '');
+            img.setAttribute(ORIGINAL_FULL_IMAGE_ATTRIBUTE, img.getAttribute('data-full-image') || '');
+        }
+
         const picture = img.closest('picture');
 
         if (picture) {
@@ -1119,6 +1240,42 @@ export default class PrintessSlimUiPlugin extends Plugin {
 
         if (img.hasAttribute('data-full-image')) {
             img.setAttribute('data-full-image', url);
+        }
+    }
+
+    /**
+     * Undoes `_applyPreviewUrlToImage` on an image whose preview page has been hidden by its document
+     * condition. Does nothing on an image that never had a preview applied, or has its photo back already.
+     *
+     * The zoom modal's deferred copies get their photo back as `src`, not as `data-src`: they stay on
+     * `ZoomModalPlugin._loadImages()`'s "already loaded" path that way, for the reasons given at
+     * `_applyPreviewUrlToImage`. The `<source>` elements removed there aren't recreated, the img's own
+     * `srcset` makes the same responsive pick.
+     */
+    _restoreProductImage(img) {
+        const originalSrc = img.getAttribute(ORIGINAL_SRC_ATTRIBUTE);
+
+        if (!originalSrc || img.getAttribute('src') === originalSrc) {
+            return;
+        }
+
+        const originalSrcset = img.getAttribute(ORIGINAL_SRCSET_ATTRIBUTE);
+        const originalSizes = img.getAttribute(ORIGINAL_SIZES_ATTRIBUTE);
+        const originalFullImage = img.getAttribute(ORIGINAL_FULL_IMAGE_ATTRIBUTE);
+
+        // Before `src`, so the browser doesn't start fetching `src` only to switch to a srcset candidate.
+        if (originalSizes) {
+            img.setAttribute('sizes', originalSizes);
+        }
+
+        if (originalSrcset) {
+            img.setAttribute('srcset', originalSrcset);
+        }
+
+        img.src = originalSrc;
+
+        if (originalFullImage) {
+            img.setAttribute('data-full-image', originalFullImage);
         }
     }
 

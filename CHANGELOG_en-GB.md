@@ -1,3 +1,7 @@
+# 1.2.6
+- SlimUi: preview documents hidden by their document condition are no longer shown in the product gallery. The gallery shows the visible pages only, an image whose page gets hidden shows the product photo again, and the gallery moves along when the SlimUi switches to another page.
+- The configured Printess API and editor URLs are now used by the full editor and the SlimUi in the storefront; before, they always used the default Printess domains.
+
 # 1.2.5
 - Fixed the SlimUi adding the product's default variant to the cart instead of the variant selected in the editor.
 - The full editor no longer adds the previously selected variant to the cart when "Add to basket" is clicked while a variant change is still loading, or when the variant change failed.

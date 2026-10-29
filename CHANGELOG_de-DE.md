@@ -1,3 +1,7 @@
+# 1.2.6
+- SlimUi: Vorschau-Dokumente, die durch ihre Dokumentbedingung ausgeblendet sind, werden nicht mehr in der Produktgalerie angezeigt. Die Galerie zeigt nur die sichtbaren Seiten, ein Bild, dessen Seite ausgeblendet wird, zeigt wieder das Produktfoto, und die Galerie wechselt mit, wenn die SlimUi auf eine andere Seite springt.
+- Die konfigurierten Printess-API- und Editor-URLs werden jetzt vom vollen Editor und der SlimUi im Storefront verwendet; bisher wurden immer die Standard-Domains von Printess genutzt.
+
 # 1.2.5
 - Behoben: Die SlimUi hat die Standardvariante des Produkts in den Warenkorb gelegt statt der im Editor gewählten Variante.
 - Der volle Editor legt nicht mehr die zuvor gewählte Variante in den Warenkorb, wenn "In den Warenkorb" geklickt wird, während ein Variantenwechsel noch lädt oder fehlgeschlagen ist.
