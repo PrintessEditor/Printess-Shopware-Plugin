@@ -29,11 +29,10 @@
 namespace PrintessShopwareIntegration\Service\CustomField;
 
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
 
-class ProductCustomFieldsInstaller
+class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
 {
     /**
      * Kept identical to the custom field set/field/relation IDs used by the legacy
@@ -140,12 +139,6 @@ class ProductCustomFieldsInstaller
 
     private const PRODUCT_RELATION_ID = '7dd240e628084f3cb5dfab30b69abc4e';
 
-    public function __construct(
-        private readonly EntityRepository $customFieldSetRepository,
-        private readonly EntityRepository $customFieldSetRelationRepository,
-    ) {
-    }
-
     public function install(Context $context): void
     {
         $this->upsertCustomFieldSet($context);
@@ -158,18 +151,18 @@ class ProductCustomFieldsInstaller
 
     public function activate(Context $context): void
     {
-        $this->customFieldSetRelationRepository->upsert([
-            [
-                'id' => Uuid::fromStringToHex(self::PRODUCT_RELATION_ID),
-                'customFieldSetId' => Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
-                'entityName' => 'product',
-            ],
-        ], $context);
+        $this->upsertCustomFieldSetRelation(
+            Uuid::fromStringToHex(self::PRODUCT_RELATION_ID),
+            Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
+            self::CUSTOM_FIELD_SET_NAME,
+            'product',
+            $context,
+        );
     }
 
     private function upsertCustomFieldSet(Context $context): void
     {
-        $this->customFieldSetRepository->upsert([
+        $this->upsertCustomFieldSetReusingExisting(
             [
                 'id' => Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
                 'name' => self::CUSTOM_FIELD_SET_NAME,
@@ -407,6 +400,7 @@ class ProductCustomFieldsInstaller
                     ],
                 ],
             ],
-        ], $context);
+            $context,
+        );
     }
 }

@@ -1,3 +1,6 @@
+# 1.2.8
+- Fixed installing or reinstalling the plugin failing with a duplicate entry error when custom fields from an earlier installation were still in the database. Existing Printess custom fields, field sets and their assignments are now reused.
+
 # 1.2.7
 - Completed Printess items in the order now have a "Show form field values" button. It lists every form field of the template with the value the design was produced with, and the images the customer uploaded. The values are stored with the order when production finishes, since Printess keeps the file for 30 days only. For items produced before, they are loaded from Printess the first time they are shown.
 

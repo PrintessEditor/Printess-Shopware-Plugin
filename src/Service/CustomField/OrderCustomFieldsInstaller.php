@@ -29,7 +29,6 @@
 namespace PrintessShopwareIntegration\Service\CustomField;
 
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
 
@@ -43,7 +42,7 @@ use Shopware\Core\System\CustomField\CustomFieldTypes;
  *   creates its own record (see `PrintessProductionService::produceLineItems()`) - and stays
  *   defined so the values on orders produced before remain visible.
  */
-class OrderCustomFieldsInstaller
+class OrderCustomFieldsInstaller extends AbstractCustomFieldsInstaller
 {
     private const CUSTOM_FIELD_SET_ID = '0B1C2D3E4F5648A7B8C9D0E1F2A3B4C5';
     private const CUSTOM_FIELD_SET_NAME = 'printess_order';
@@ -59,12 +58,6 @@ class OrderCustomFieldsInstaller
 
     private const ORDER_RELATION_ID = '2D3E4F5061728394A5B6C7D8E9F0A1B2';
 
-    public function __construct(
-        private readonly EntityRepository $customFieldSetRepository,
-        private readonly EntityRepository $customFieldSetRelationRepository,
-    ) {
-    }
-
     public function install(Context $context): void
     {
         $this->upsertCustomFieldSet($context);
@@ -77,18 +70,18 @@ class OrderCustomFieldsInstaller
 
     public function activate(Context $context): void
     {
-        $this->customFieldSetRelationRepository->upsert([
-            [
-                'id' => Uuid::fromStringToHex(self::ORDER_RELATION_ID),
-                'customFieldSetId' => Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
-                'entityName' => 'order',
-            ],
-        ], $context);
+        $this->upsertCustomFieldSetRelation(
+            Uuid::fromStringToHex(self::ORDER_RELATION_ID),
+            Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
+            self::CUSTOM_FIELD_SET_NAME,
+            'order',
+            $context,
+        );
     }
 
     private function upsertCustomFieldSet(Context $context): void
     {
-        $this->customFieldSetRepository->upsert([
+        $this->upsertCustomFieldSetReusingExisting(
             [
                 'id' => Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
                 'name' => self::CUSTOM_FIELD_SET_NAME,
@@ -129,6 +122,7 @@ class OrderCustomFieldsInstaller
                     ],
                 ],
             ],
-        ], $context);
+            $context,
+        );
     }
 }

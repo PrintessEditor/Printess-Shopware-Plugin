@@ -68,6 +68,7 @@ class PrintessShopwareIntegration extends Plugin
         return new ProductCustomFieldsInstaller(
             $this->container->get('custom_field_set.repository'),
             $this->container->get('custom_field_set_relation.repository'),
+            $this->container->get('custom_field.repository'),
         );
     }
 
@@ -76,6 +77,7 @@ class PrintessShopwareIntegration extends Plugin
         return new OrderLineItemCustomFieldsInstaller(
             $this->container->get('custom_field_set.repository'),
             $this->container->get('custom_field_set_relation.repository'),
+            $this->container->get('custom_field.repository'),
         );
     }
 
@@ -84,6 +86,7 @@ class PrintessShopwareIntegration extends Plugin
         return new OrderCustomFieldsInstaller(
             $this->container->get('custom_field_set.repository'),
             $this->container->get('custom_field_set_relation.repository'),
+            $this->container->get('custom_field.repository'),
         );
     }
 
@@ -92,6 +95,7 @@ class PrintessShopwareIntegration extends Plugin
         return new CustomerCustomFieldsInstaller(
             $this->container->get('custom_field_set.repository'),
             $this->container->get('custom_field_set_relation.repository'),
+            $this->container->get('custom_field.repository'),
         );
     }
 }

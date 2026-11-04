@@ -29,7 +29,6 @@
 namespace PrintessShopwareIntegration\Service\CustomField;
 
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
 
@@ -38,7 +37,7 @@ use Shopware\Core\System\CustomField\CustomFieldTypes;
  * the Printess editor as `shopUserId` so it can recognize the same customer's saved designs across
  * visits - see `PrintessCustomerShopUserIdResolver`. Not meant to be edited by shop staff.
  */
-class CustomerCustomFieldsInstaller
+class CustomerCustomFieldsInstaller extends AbstractCustomFieldsInstaller
 {
     private const CUSTOM_FIELD_SET_ID = '019f5fc2cfd570b7b2dcc4730560274c';
     private const CUSTOM_FIELD_SET_NAME = 'printess_customer';
@@ -47,12 +46,6 @@ class CustomerCustomFieldsInstaller
     private const SHOP_USER_ID_FIELD_NAME = 'PrintessShopUserId';
 
     private const CUSTOMER_RELATION_ID = '019f5fc2cfd570b7b2dcc473063fe265';
-
-    public function __construct(
-        private readonly EntityRepository $customFieldSetRepository,
-        private readonly EntityRepository $customFieldSetRelationRepository,
-    ) {
-    }
 
     public function install(Context $context): void
     {
@@ -66,18 +59,18 @@ class CustomerCustomFieldsInstaller
 
     public function activate(Context $context): void
     {
-        $this->customFieldSetRelationRepository->upsert([
-            [
-                'id' => Uuid::fromStringToHex(self::CUSTOMER_RELATION_ID),
-                'customFieldSetId' => Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
-                'entityName' => 'customer',
-            ],
-        ], $context);
+        $this->upsertCustomFieldSetRelation(
+            Uuid::fromStringToHex(self::CUSTOMER_RELATION_ID),
+            Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
+            self::CUSTOM_FIELD_SET_NAME,
+            'customer',
+            $context,
+        );
     }
 
     private function upsertCustomFieldSet(Context $context): void
     {
-        $this->customFieldSetRepository->upsert([
+        $this->upsertCustomFieldSetReusingExisting(
             [
                 'id' => Uuid::fromStringToHex(self::CUSTOM_FIELD_SET_ID),
                 'name' => self::CUSTOM_FIELD_SET_NAME,
@@ -107,6 +100,7 @@ class CustomerCustomFieldsInstaller
                     ],
                 ],
             ],
-        ], $context);
+            $context,
+        );
     }
 }

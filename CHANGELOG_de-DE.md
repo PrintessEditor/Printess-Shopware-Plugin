@@ -1,3 +1,6 @@
+# 1.2.8
+- Behoben: Die Installation oder Neuinstallation des Plugins schlug mit einem Fehler wegen doppelter Einträge fehl, wenn noch Zusatzfelder einer früheren Installation in der Datenbank vorhanden waren. Bestehende Printess-Zusatzfelder, -Zusatzfeld-Sets und deren Zuordnungen werden jetzt weiterverwendet.
+
 # 1.2.7
 - Abgeschlossene Printess-Artikel in der Bestellung haben jetzt die Schaltfläche "Formularfeldwerte anzeigen". Sie listet alle Formularfelder der Vorlage mit dem Wert, mit dem das Design produziert wurde, sowie die vom Kunden hochgeladenen Bilder. Die Werte werden nach Abschluss der Produktion mit der Bestellung gespeichert, da Printess die Datei nur 30 Tage aufbewahrt. Bei früher produzierten Artikeln werden sie beim ersten Anzeigen von Printess geladen.
 

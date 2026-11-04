@@ -7,7 +7,7 @@
         }
     ],
     "type": "shopware-platform-plugin",
-    "version": "1.2.7",
+    "version": "1.2.8",
     "license": "MIT",
     "require": {
         "shopware/core": "6.7.*"
