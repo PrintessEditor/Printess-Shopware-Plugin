@@ -38,6 +38,7 @@ Shopware.Component.register('printess-print-setting-select', () => import('./pri
 Shopware.Component.register('printess-photobook-theme-select', () => import('./printess-photobook-theme-select'));
 Shopware.Component.register('printess-imposition-select', () => import('./printess-imposition-select'));
 Shopware.Component.register('printess-dropshipping-select', () => import('./printess-dropshipping-select'));
+Shopware.Component.register('printess-pdf-metadata-config', () => import('./printess-pdf-metadata-config'));
 Shopware.Component.register('printess-order-line-item-production', () => import('./printess-order-line-item-production'));
 Shopware.Component.register('printess-production-batch-list', () => import('./printess-production-batch-list'));
 Shopware.Component.register('printess-template-check', () => import('./printess-template-check'));

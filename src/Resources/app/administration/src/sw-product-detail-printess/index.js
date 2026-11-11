@@ -393,6 +393,24 @@ export default Shopware.Component.wrapComponentConfig({
             return value ?? null;
         },
 
+        pdfMetadata() {
+            const value = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessPdfMetadata
+                : this.defaultLanguageFields.PrintessPdfMetadata;
+
+            return value ?? null;
+        },
+
+        /**
+         * The product's own name/number for the PDF document properties preview.
+         */
+        pdfMetadataPreviewProduct() {
+            return {
+                name: this.product?.translated?.name ?? this.product?.name ?? null,
+                number: this.product?.productNumber ?? null,
+            };
+        },
+
         selectedTemplate() {
             if (!this.selectedTemplateName) {
                 return null;
@@ -1685,6 +1703,21 @@ export default Shopware.Component.wrapComponentConfig({
                 this.product.customFields.PrintessPrintSettingName = value || null;
             } else {
                 this.saveDefaultLanguageField('PrintessPrintSettingName', value || null);
+            }
+        },
+
+        /**
+         * Typed text, so saved debounced like the other free-text settings.
+         */
+        updatePdfMetadata(value) {
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessPdfMetadata = value || null;
+            } else {
+                this.persistDefaultLanguageFieldDebounced('PrintessPdfMetadata', value || null);
             }
         },
 

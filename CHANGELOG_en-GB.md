@@ -1,3 +1,7 @@
+# 1.3.0
+- New setting "PDF document properties": title, subject and author of the produced PDFs (sent as the form fields PDF_Title, PDF_Subject and PDF_Author) can be configured in the plugin settings and overridden per product on the Printess tab. The texts can contain placeholders for order, line item, product, variant option, customer and shipping data, which are filled in when production starts. The editor explains the syntax, inserts placeholders from a searchable list and shows a preview. The template needs form fields with exactly these names.
+- Fixed: the theme could no longer be compiled on Shopware 6.7.16 because the plugin's config.xml contained a comment.
+
 # 1.2.8
 - Fixed installing or reinstalling the plugin failing with a duplicate entry error when custom fields from an earlier installation were still in the database. Existing Printess custom fields, field sets and their assignments are now reused.
 

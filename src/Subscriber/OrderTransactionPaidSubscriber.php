@@ -82,6 +82,7 @@ class OrderTransactionPaidSubscriber implements EventSubscriberInterface
         $criteria->addAssociation('billingAddress.country');
         $criteria->addAssociation('billingAddress.countryState');
         $criteria->addAssociation('orderCustomer');
+        $criteria->addAssociation('salesChannel');
 
         // Inheritance is off by default on this context - without it, a variant product's own
         // (empty) `PrintessDropshippingConfig`/`PrintessPrintSettingName` custom fields would shadow

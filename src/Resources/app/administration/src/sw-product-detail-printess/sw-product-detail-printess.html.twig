@@ -425,6 +425,24 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                     @update:value="updateDropshippingConfig"
                 />
             </div>
+
+            <div class="sw-product-detail-printess__pdf-metadata-field">
+                <label class="sw-product-detail-printess__pdf-metadata-label">
+                    {{ $t('printess-shopware-integration.productDetail.pdfMetadataLabel') }}
+                </label>
+                <p class="sw-product-detail-printess__pdf-metadata-description">
+                    {{ $t('printess-shopware-integration.productDetail.pdfMetadataDescription') }}
+                </p>
+
+                <printess-pdf-metadata-config
+                    :value="pdfMetadata"
+                    :disabled="!canEdit"
+                    :option-group-names="configuratorGroupNames"
+                    :preview-product="pdfMetadataPreviewProduct"
+                    show-plugin-defaults
+                    @update:value="updatePdfMetadata"
+                />
+            </div>
         </mt-card>
 
         <mt-card

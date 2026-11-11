@@ -220,6 +220,13 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService"/>
             <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessOrderReproductionService"/>
             <argument type="service" id="order.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Production\PdfMetadataResolver"/>
+        </service>
+
+        <service id="PrintessShopwareIntegration\Service\Production\PdfMetadataResolver">
+            <argument type="service" id="PrintessShopwareIntegration\Service\Configuration\PrintessConfigService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument type="service" id="product.repository"/>
         </service>
 
         <service id="PrintessShopwareIntegration\Service\Production\PrintessOrderReproductionService">

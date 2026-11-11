@@ -100,6 +100,7 @@ class PrintessProductionService
         private readonly PrintessDropshipCallbackService $dropshipCallbackService,
         private readonly PrintessOrderReproductionService $orderReproductionService,
         private readonly EntityRepository $orderRepository,
+        private readonly PdfMetadataResolver $pdfMetadataResolver,
     ) {
     }
 
@@ -502,7 +503,7 @@ class PrintessProductionService
         $meta = ['orderId' => $order->getId(), 'orderLineItemId' => $lineItem->getId()];
         // The number the merchant knows the order by; the callback finds the line item via `meta`.
         $orderNumber = $order->getOrderNumber() ?? $order->getId();
-        $vdpValues = $this->vdpValues($order, $lineItem, $saveToken, $orderNumber);
+        $vdpValues = $this->vdpValues($order, $lineItem, $saveToken, $orderNumber, $context);
 
         $data = [
             'templateName' => $saveToken,
@@ -592,11 +593,12 @@ class PrintessProductionService
      * The order data a template's form fields can be mapped to, sent as `vdp.data` and `vdp.form`.
      * The keys are the ones the pre-rewrite plugin sent (e.g. `orderName`, `ShippingCity`), so print
      * settings set up back then keep working. Values Shopware doesn't have are left out, so the
-     * template keeps its default for them.
+     * template keeps its default for them. Also carries the configured PDF document properties
+     * (`PDF_Title`, `PDF_Subject`, `PDF_Author`), see `PdfMetadataResolver`.
      *
      * @return array<string, string>
      */
-    private function vdpValues(OrderEntity $order, OrderLineItemEntity $lineItem, string $saveToken, string $orderNumber): array
+    private function vdpValues(OrderEntity $order, OrderLineItemEntity $lineItem, string $saveToken, string $orderNumber, Context $context): array
     {
         $product = $lineItem->getProduct();
         $productNumber = $product?->getProductNumber() ?? (($lineItem->getPayload() ?? [])['productNumber'] ?? null);
@@ -626,6 +628,7 @@ class PrintessProductionService
 
         $values += $this->addressVdpValues($delivery?->getShippingOrderAddress(), 'Shipping');
         $values += $this->addressVdpValues($order->getBillingAddress(), 'Billing');
+        $values += $this->pdfMetadataResolver->resolve($order, $lineItem, $delivery, $context);
 
         return array_filter($values, static fn (?string $value): bool => $value !== null && $value !== '');
     }
@@ -978,6 +981,7 @@ class PrintessProductionService
         $criteria->addAssociation('billingAddress.country');
         $criteria->addAssociation('billingAddress.countryState');
         $criteria->addAssociation('orderCustomer');
+        $criteria->addAssociation('salesChannel');
 
         $order = $this->orderRepository->search($criteria, $context)->first();
 

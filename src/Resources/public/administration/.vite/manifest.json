@@ -1,6 +1,6 @@
 {
   "main.js": {
-    "file": "assets/printess-shopware-integration-i2rCb6n_.js",
+    "file": "assets/printess-shopware-integration-ClyZoxnG.js",
     "name": "printess-shopware-integration",
     "src": "main.js",
     "isEntry": true,
@@ -10,6 +10,7 @@
       "printess-photobook-theme-select/index.js",
       "printess-imposition-select/index.js",
       "printess-dropshipping-select/index.js",
+      "printess-pdf-metadata-config/index.js",
       "printess-order-line-item-production/index.js",
       "printess-production-batch-list/index.js",
       "printess-template-check/index.js",
@@ -42,6 +43,15 @@
     "isDynamicEntry": true,
     "css": [
       "assets/index-CkrXdPre.css"
+    ]
+  },
+  "printess-pdf-metadata-config/index.js": {
+    "file": "assets/index-CF_T3Sro.js",
+    "name": "index",
+    "src": "printess-pdf-metadata-config/index.js",
+    "isDynamicEntry": true,
+    "css": [
+      "assets/index-C08cmjKe.css"
     ]
   },
   "printess-photobook-theme-select/index.js": {
@@ -99,12 +109,12 @@
     ]
   },
   "sw-product-detail-printess/index.js": {
-    "file": "assets/index-CU8R28Qb.js",
+    "file": "assets/index-jrNLTRFf.js",
     "name": "index",
     "src": "sw-product-detail-printess/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-BhLaifDO.css"
+      "assets/index-CCxJJADU.css"
     ]
   }
 }

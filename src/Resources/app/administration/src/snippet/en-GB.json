@@ -98,6 +98,8 @@
             "productionCardTitle": "Production",
             "printSettingLabel": "Print setting",
             "dropshippingLabel": "Dropshipping",
+            "pdfMetadataLabel": "PDF document properties",
+            "pdfMetadataDescription": "Title, subject and author written into the produced PDF. Empty values use the plugin setting.",
             "pricingCardTitle": "Custom pricing",
             "pricingHint": "Add a surcharge based on the book's page count and/or on specific form field value combinations (e.g. paper material, binding type). Leave everything empty for plain product pricing.",
             "includedPageCountLabel": "Included page count",
@@ -323,6 +325,80 @@
             "startNowText": "The personalization was updated. Should production be started with the new design now?",
             "startNowConfirmButton": "Start production now",
             "startNowDeclineButton": "Not now"
+        },
+        "pdfMetadataConfig": {
+            "requirement": "The Printess template needs form fields named exactly {fields} (case-sensitive). Only the values whose form field exists in the template are written into the PDF; the others are ignored.",
+            "help": {
+                "toggle": "How do I write these values?",
+                "intro": "Each value is a normal text that is written into the document properties of the produced PDF (shown e.g. in Acrobat under File > Properties). You can mix your own text with placeholders for order, product and customer data. This only works if the template has a form field with exactly the matching name: PDF_Title, PDF_Subject or PDF_Author.",
+                "insert": "To add a placeholder, put the cursor where it should go, click \"Insert variable\" and pick a value from the list. It is inserted as {example}. You can also type placeholders yourself: two curly braces, the variable name, two curly braces.",
+                "exampleLabel": "Example:",
+                "options": "Variant options: {optionExample} inserts the value the customer chose for that option (e.g. the color). Use the option name as shown in the list; upper/lower case does not matter. \"Variant (all option values)\" inserts all chosen values at once.",
+                "empty": "The placeholders are filled in when production starts. A placeholder the order has no value for (e.g. no company) stays empty. If a whole value ends up empty, it is not sent, and the value stored in the Printess template applies.",
+                "productOverride": "A value entered here replaces the plugin setting for this product - each of the three values on its own. Leave a value empty to use the plugin setting, which is shown greyed out in the field.",
+                "pluginLevel": "These values apply to all products. Each product can override them on its Printess tab (\"Production\" card).",
+                "noLogic": "Only placeholders are supported - no conditions, filters or other Twig logic."
+            },
+            "fields": {
+                "title": "PDF title",
+                "subject": "PDF subject",
+                "author": "PDF author"
+            },
+            "placeholders": {
+                "example": "e.g. {example}"
+            },
+            "pluginDefaultPlaceholder": "Plugin setting: {value}",
+            "insertVariable": "Insert variable",
+            "searchPlaceholder": "Search variables...",
+            "noVariableFound": "No variable matches your search.",
+            "unknownVariables": "Unknown placeholder(s), will stay empty: {variables}",
+            "unclosedPlaceholder": "A placeholder is not closed - it needs two closing curly braces.",
+            "previewLabel": "Preview with sample data:",
+            "previewPluginDefaultLabel": "Plugin setting applies, preview with sample data:",
+            "optionVariableLabel": "Option \"{name}\"",
+            "groups": {
+                "order": "Order",
+                "lineItem": "Order line item",
+                "product": "Product",
+                "options": "Variant options",
+                "customer": "Customer",
+                "shipping": "Shipping address",
+                "production": "Production"
+            },
+            "variables": {
+                "order_number": "Order number",
+                "order_id": "Order ID",
+                "order_date": "Order date (YYYY-MM-DD)",
+                "order_customerComment": "Customer comment",
+                "order_salesChannel": "Sales channel name",
+                "lineItem_id": "Line item ID",
+                "lineItem_position": "Position in the order",
+                "lineItem_quantity": "Quantity",
+                "product_name": "Product name (as ordered)",
+                "product_number": "Product number (SKU)",
+                "product_variant": "Variant (all option values)",
+                "product_options": "Variant options with names",
+                "customer_name": "Customer name",
+                "customer_firstName": "Customer first name",
+                "customer_lastName": "Customer last name",
+                "customer_company": "Customer company",
+                "customer_email": "Customer email",
+                "customer_number": "Customer number",
+                "shipping_name": "Recipient name",
+                "shipping_company": "Recipient company",
+                "shipping_zip": "Postal code",
+                "shipping_city": "City",
+                "shipping_country": "Country",
+                "shipping_method": "Shipping method",
+                "production_date": "Production date (YYYY-MM-DD)"
+            },
+            "sample": {
+                "productName": "Coffee mug",
+                "option1": "Red",
+                "option2": "Large",
+                "customerComment": "Please wrap as a gift",
+                "country": "Germany"
+            }
         }
     }
 }

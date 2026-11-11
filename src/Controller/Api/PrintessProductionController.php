@@ -241,6 +241,7 @@ class PrintessProductionController extends AbstractController
         $criteria->addAssociation('billingAddress.country');
         $criteria->addAssociation('billingAddress.countryState');
         $criteria->addAssociation('orderCustomer');
+        $criteria->addAssociation('salesChannel');
 
         // See the same fix in `OrderTransactionPaidSubscriber` - without inheritance, a variant
         // product's own (empty) dropshipping/print-setting custom fields shadow the parent

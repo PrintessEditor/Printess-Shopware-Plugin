@@ -1,0 +1,165 @@
+{#
+The MIT License (MIT)
+
+Copyright (c) 2026 Printess GmbH & Co. Kg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Printess GmbH & Co. Kg does not provide any support for this plugin.
+#}
+
+{% block printess_pdf_metadata_config %}
+<div class="printess-pdf-metadata-config">
+    {% block printess_pdf_metadata_config_requirement %}
+    <mt-banner variant="attention" class="printess-pdf-metadata-config__requirement">
+        {{ $t('printess-shopware-integration.pdfMetadataConfig.requirement', { fields: 'PDF_Title, PDF_Subject, PDF_Author' }) }}
+    </mt-banner>
+    {% endblock %}
+
+    {% block printess_pdf_metadata_config_help %}
+    <div class="printess-pdf-metadata-config__help">
+        <button
+            type="button"
+            class="printess-pdf-metadata-config__help-toggle"
+            :aria-expanded="showHelp ? 'true' : 'false'"
+            @click="showHelp = !showHelp"
+        >
+            <mt-icon :name="showHelp ? 'regular-chevron-down-xs' : 'regular-chevron-right-xs'" size="12px" />
+            {{ $t('printess-shopware-integration.pdfMetadataConfig.help.toggle') }}
+        </button>
+
+        <div v-if="showHelp" class="printess-pdf-metadata-config__help-body">
+            <p>{{ $t('printess-shopware-integration.pdfMetadataConfig.help.intro') }}</p>
+            <p>{{ $t('printess-shopware-integration.pdfMetadataConfig.help.insert', helpParams) }}</p>
+
+            <div class="printess-pdf-metadata-config__help-example">
+                <span class="printess-pdf-metadata-config__help-example-label">
+                    {{ $t('printess-shopware-integration.pdfMetadataConfig.help.exampleLabel') }}
+                </span>
+                <code>{{ helpParams.exampleInput }}</code>
+                <mt-icon name="regular-long-arrow-right" size="12px" />
+                <span>{{ helpParams.exampleOutput }}</span>
+            </div>
+
+            <ul>
+                <li>{{ $t('printess-shopware-integration.pdfMetadataConfig.help.options', helpParams) }}</li>
+                <li>{{ $t('printess-shopware-integration.pdfMetadataConfig.help.empty') }}</li>
+                <li v-if="showPluginDefaults">{{ $t('printess-shopware-integration.pdfMetadataConfig.help.productOverride') }}</li>
+                <li v-else>{{ $t('printess-shopware-integration.pdfMetadataConfig.help.pluginLevel') }}</li>
+                <li>{{ $t('printess-shopware-integration.pdfMetadataConfig.help.noLogic') }}</li>
+            </ul>
+        </div>
+    </div>
+    {% endblock %}
+
+    {% block printess_pdf_metadata_config_fields %}
+    <div
+        v-for="field in fields"
+        :key="field.key"
+        class="printess-pdf-metadata-config__field"
+        :data-pdf-metadata-field="field.key"
+    >
+        <div class="printess-pdf-metadata-config__field-header">
+            <label class="printess-pdf-metadata-config__field-label">{{ fieldLabel(field) }}</label>
+            <code class="printess-pdf-metadata-config__form-field-name">{{ field.formField }}</code>
+        </div>
+
+        <div class="printess-pdf-metadata-config__input-row">
+            <div
+                class="printess-pdf-metadata-config__input"
+                @keyup="rememberCursor(field, $event)"
+                @click="rememberCursor(field, $event)"
+                @input="rememberCursor(field, $event)"
+                @focusout="rememberCursor(field, $event)"
+            >
+                <mt-text-field
+                    :model-value="values[field.key]"
+                    :name="`printess-pdf-metadata-${field.key}`"
+                    :placeholder="fieldPlaceholder(field)"
+                    :disabled="disabled"
+                    @update:model-value="(value) => onInput(field, value)"
+                />
+            </div>
+
+            <mt-button
+                class="printess-pdf-metadata-config__insert-button"
+                variant="secondary"
+                size="small"
+                :disabled="disabled"
+                @click="togglePicker(field)"
+            >
+                {{ $t('printess-shopware-integration.pdfMetadataConfig.insertVariable') }}
+            </mt-button>
+        </div>
+
+        <div v-if="pickerFieldKey === field.key" class="printess-pdf-metadata-config__picker">
+            <mt-text-field
+                v-model="pickerSearch"
+                class="printess-pdf-metadata-config__picker-search"
+                :name="`printess-pdf-metadata-search-${field.key}`"
+                :placeholder="$t('printess-shopware-integration.pdfMetadataConfig.searchPlaceholder')"
+            />
+
+            <div class="printess-pdf-metadata-config__picker-groups">
+                <div
+                    v-for="group in filteredVariableGroups"
+                    :key="group.key"
+                    class="printess-pdf-metadata-config__picker-group"
+                >
+                    <div class="printess-pdf-metadata-config__picker-group-title">{{ group.label }}</div>
+
+                    <button
+                        v-for="entry in group.variables"
+                        :key="entry.variable"
+                        type="button"
+                        class="printess-pdf-metadata-config__picker-item"
+                        @mousedown.prevent
+                        @click="insertVariable(field, entry)"
+                    >
+                        <span class="printess-pdf-metadata-config__picker-item-label">{{ entry.label }}</span>
+                        <code class="printess-pdf-metadata-config__picker-item-token">{{ entry.token }}</code>
+                    </button>
+                </div>
+
+                <p v-if="!filteredVariableGroups.length" class="printess-pdf-metadata-config__picker-empty">
+                    {{ $t('printess-shopware-integration.pdfMetadataConfig.noVariableFound') }}
+                </p>
+            </div>
+        </div>
+
+        <p v-if="unknownVariables(field).length" class="printess-pdf-metadata-config__warning">
+            {{ $t('printess-shopware-integration.pdfMetadataConfig.unknownVariables', { variables: unknownVariables(field).join(', ') }) }}
+        </p>
+
+        <p v-if="hasUnclosedPlaceholder(field)" class="printess-pdf-metadata-config__warning">
+            {{ $t('printess-shopware-integration.pdfMetadataConfig.unclosedPlaceholder') }}
+        </p>
+
+        <p v-if="preview(field) !== ''" class="printess-pdf-metadata-config__preview">
+            <span class="printess-pdf-metadata-config__preview-label">
+                {{ usesPluginDefault(field)
+                    ? $t('printess-shopware-integration.pdfMetadataConfig.previewPluginDefaultLabel')
+                    : $t('printess-shopware-integration.pdfMetadataConfig.previewLabel') }}
+            </span>
+            {{ preview(field) }}
+        </p>
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}

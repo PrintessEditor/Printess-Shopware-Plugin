@@ -132,6 +132,14 @@ class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
      * identically-named feature, where it must be opt-in because live shops rely on those thumbnails
      * switching nothing but the theme's own image.
      */
+    /**
+     * PDF document properties written into the produced PDF, as `{title, subject, author}` texts
+     * with `{{ variable }}` placeholders. A non-empty entry overrides the plugin-wide `pdfMetadata`
+     * setting for this product - see `PdfMetadataResolver`.
+     */
+    private const PDF_METADATA_FIELD_ID = 'DCD8203BD0CEB7B42BD857E2EF1135E7';
+    private const PDF_METADATA_FIELD_NAME = 'PrintessPdfMetadata';
+
     public const SLIM_UI_FEATURE_KEYS = [
         'pageNavigation',
         'thumbnailNavigation',
@@ -396,6 +404,22 @@ class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
                                 'de-DE' => 'Optionale SlimUi-Zusatzfunktionen für dieses Produkt, als Liste von Funktionsschlüsseln (verfügbar: "pageNavigation", "thumbnailNavigation"). Gilt nur, solange der SlimUi-Editor aktiviert ist. Wird über den Printess-Tab verwaltet.',
                             ],
                             'customFieldPosition' => 14,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::PDF_METADATA_FIELD_ID),
+                        'name' => self::PDF_METADATA_FIELD_NAME,
+                        'type' => CustomFieldTypes::JSON,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'PDF document properties',
+                                'de-DE' => 'PDF-Dokumenteigenschaften',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Title, subject and author written into the produced PDF, as {"title": "...", "subject": "...", "author": "..."} texts with {{ variable }} placeholders. A value set here overrides the plugin setting for this product. Only works if the Printess template has form fields named exactly PDF_Title, PDF_Subject and PDF_Author (case-sensitive); a value whose form field the template lacks is ignored. Managed via the Printess tab.',
+                                'de-DE' => 'Titel, Thema und Autor, die in das produzierte PDF geschrieben werden, als {"title": "...", "subject": "...", "author": "..."}-Texte mit {{ variable }}-Platzhaltern. Ein hier gesetzter Wert überschreibt für dieses Produkt die Plugin-Einstellung. Funktioniert nur, wenn das Printess-Template Formularfelder mit genau den Namen PDF_Title, PDF_Subject und PDF_Author hat (Groß-/Kleinschreibung beachten); ein Wert, dessen Formularfeld im Template fehlt, wird ignoriert. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 15,
                         ],
                     ],
                 ],

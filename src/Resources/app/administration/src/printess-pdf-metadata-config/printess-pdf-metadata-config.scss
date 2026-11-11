@@ -1,0 +1,203 @@
+/**
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2026 Printess GmbH & Co. Kg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * Printess GmbH & Co. Kg does not provide any support for this plugin.
+ */
+
+.printess-pdf-metadata-config {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    &__help {
+        border: 1px solid var(--color-border-primary-default, #d1d9e0);
+        border-radius: 4px;
+        background: var(--color-background-secondary-default, #f9fafb);
+        padding: 10px 14px;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    &__help-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 0;
+        background: none;
+        padding: 0;
+        font-weight: 600;
+        color: var(--color-text-brand-default, #0870ff);
+        cursor: pointer;
+    }
+
+    &__help-body {
+        margin-top: 10px;
+
+        p {
+            margin-bottom: 8px;
+        }
+
+        ul {
+            margin: 8px 0 0 18px;
+            list-style: disc;
+
+            li {
+                margin-bottom: 4px;
+            }
+        }
+    }
+
+    &__help-example {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 4px;
+        background: var(--color-background-primary-default, #fff);
+        border: 1px solid var(--color-border-primary-default, #d1d9e0);
+    }
+
+    &__help-example-label {
+        font-weight: 600;
+    }
+
+    &__field-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    &__field-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--color-text-primary-default, #1c1c1c);
+    }
+
+    &__form-field-name,
+    &__picker-item-token {
+        font-size: 12px;
+        color: var(--color-text-secondary-default, #52667a);
+    }
+
+    &__input-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    &__input {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        .mt-field--text {
+            margin-bottom: 0;
+        }
+    }
+
+    &__insert-button {
+        flex: 0 0 auto;
+        margin-top: 4px;
+        white-space: nowrap;
+    }
+
+    &__picker {
+        margin-top: 8px;
+        border: 1px solid var(--color-border-primary-default, #d1d9e0);
+        border-radius: 4px;
+        padding: 10px;
+        background: var(--color-background-primary-default, #fff);
+
+        .mt-field--text {
+            margin-bottom: 8px;
+        }
+    }
+
+    &__picker-groups {
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    &__picker-group + &__picker-group {
+        margin-top: 10px;
+    }
+
+    &__picker-group-title {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--color-text-secondary-default, #52667a);
+        margin-bottom: 4px;
+    }
+
+    &__picker-item {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        border: 0;
+        border-radius: 4px;
+        background: none;
+        padding: 5px 8px;
+        text-align: left;
+        font-size: 13px;
+        cursor: pointer;
+
+        &:hover,
+        &:focus-visible {
+            background: var(--color-interaction-secondary-hover, #f1f3f5);
+        }
+    }
+
+    &__picker-item-token {
+        flex: 0 1 auto;
+        overflow-wrap: anywhere;
+        text-align: right;
+    }
+
+    &__picker-empty {
+        font-size: 13px;
+        color: var(--color-text-secondary-default, #52667a);
+    }
+
+    &__warning {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--color-text-critical-default, #de294c);
+    }
+
+    &__preview {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--color-text-primary-default, #1c1c1c);
+        overflow-wrap: anywhere;
+    }
+
+    &__preview-label {
+        color: var(--color-text-secondary-default, #52667a);
+        margin-right: 4px;
+    }
+}

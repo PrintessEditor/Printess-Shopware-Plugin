@@ -1,30 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!--
-The MIT License (MIT)
-
-Copyright (c) 2026 Printess GmbH & Co. Kg
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-Printess GmbH & Co. Kg does not provide any support for this plugin.
--->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
     <card>
@@ -1113,6 +1087,19 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <helpText lang="de-DE">Wenn aktiviert, müssen Designs in bezahlten Bestellpositionen manuell freigegeben werden, bevor die PDF-/Bildproduktion startet.</helpText>
             <defaultValue>false</defaultValue>
         </input-field>
+    </card>
+
+    <card>
+        <title>PDF document properties</title>
+        <title lang="de-DE">PDF-Dokumenteigenschaften</title>
+
+        <component name="printess-pdf-metadata-config">
+            <name>pdfMetadata</name>
+            <label>Title, subject and author of produced PDFs</label>
+            <label lang="de-DE">Titel, Thema und Autor der produzierten PDFs</label>
+            <helpText>Written into the document properties of every PDF produced for an order (sent to Printess as the form fields PDF_Title, PDF_Subject and PDF_Author). Placeholders (e.g. for the order number or the product name) are filled in when production starts. A product can override each value on its Printess tab. Only works if the Printess template has form fields named exactly PDF_Title, PDF_Subject and PDF_Author (case-sensitive); a value whose form field the template lacks is ignored.</helpText>
+            <helpText lang="de-DE">Wird in die Dokumenteigenschaften jedes für eine Bestellung produzierten PDFs geschrieben (an Printess als Formularfelder PDF_Title, PDF_Subject und PDF_Author übergeben). Platzhalter (z. B. für die Bestellnummer oder den Produktnamen) werden beim Start der Produktion ausgefüllt. Ein Produkt kann jeden Wert in seinem Printess-Tab überschreiben. Funktioniert nur, wenn das Printess-Template Formularfelder mit genau den Namen PDF_Title, PDF_Subject und PDF_Author hat (Groß-/Kleinschreibung beachten); ein Wert, dessen Formularfeld im Template fehlt, wird ignoriert.</helpText>
+        </component>
     </card>
 
     <card>

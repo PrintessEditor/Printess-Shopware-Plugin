@@ -1,3 +1,7 @@
+# 1.3.0
+- Neue Einstellung "PDF-Dokumenteigenschaften": Titel, Thema und Autor der produzierten PDFs (übergeben als Formularfelder PDF_Title, PDF_Subject und PDF_Author) lassen sich in den Plugin-Einstellungen festlegen und pro Produkt im Printess-Tab überschreiben. Die Texte können Platzhalter für Bestell-, Positions-, Produkt-, Variantenoptions-, Kunden- und Lieferdaten enthalten, die beim Start der Produktion ausgefüllt werden. Der Editor erklärt die Schreibweise, fügt Platzhalter aus einer durchsuchbaren Liste ein und zeigt eine Vorschau. Das Template braucht Formularfelder mit genau diesen Namen.
+- Behoben: Ab Shopware 6.7.16 ließ sich das Theme nicht mehr kompilieren, weil die config.xml des Plugins einen Kommentar enthielt.
+
 # 1.2.8
 - Behoben: Die Installation oder Neuinstallation des Plugins schlug mit einem Fehler wegen doppelter Einträge fehl, wenn noch Zusatzfelder einer früheren Installation in der Datenbank vorhanden waren. Bestehende Printess-Zusatzfelder, -Zusatzfeld-Sets und deren Zuordnungen werden jetzt weiterverwendet.
 

@@ -98,6 +98,8 @@
             "productionCardTitle": "Produktion",
             "printSettingLabel": "Druckeinstellung",
             "dropshippingLabel": "Dropshipping",
+            "pdfMetadataLabel": "PDF-Dokumenteigenschaften",
+            "pdfMetadataDescription": "Titel, Thema und Autor, die in das produzierte PDF geschrieben werden. Leere Werte verwenden die Plugin-Einstellung.",
             "pricingCardTitle": "Individuelle Preisgestaltung",
             "pricingHint": "Fügt einen Zuschlag basierend auf der Seitenzahl des Buchs und/oder bestimmten Formularfeld-Wertkombinationen hinzu (z. B. Papiermaterial, Bindungsart). Alles leer lassen für die reguläre Produktpreisgestaltung.",
             "includedPageCountLabel": "Enthaltene Seitenzahl",
@@ -323,6 +325,80 @@
             "startNowText": "Die Personalisierung wurde aktualisiert. Soll die Produktion jetzt mit dem neuen Design gestartet werden?",
             "startNowConfirmButton": "Produktion jetzt starten",
             "startNowDeclineButton": "Jetzt nicht"
+        },
+        "pdfMetadataConfig": {
+            "requirement": "Das Printess-Template braucht Formularfelder mit genau den Namen {fields} (Groß-/Kleinschreibung beachten). Nur Werte, deren Formularfeld im Template vorhanden ist, werden in das PDF geschrieben; die anderen werden ignoriert.",
+            "help": {
+                "toggle": "Wie schreibe ich diese Werte?",
+                "intro": "Jeder Wert ist ein normaler Text, der in die Dokumenteigenschaften des produzierten PDFs geschrieben wird (z. B. in Acrobat unter Datei > Eigenschaften zu sehen). Du kannst eigenen Text mit Platzhaltern für Bestell-, Produkt- und Kundendaten kombinieren. Das funktioniert nur, wenn das Template ein Formularfeld mit genau dem passenden Namen hat: PDF_Title, PDF_Subject bzw. PDF_Author.",
+                "insert": "Um einen Platzhalter einzufügen, setze den Cursor an die gewünschte Stelle, klicke auf \"Variable einfügen\" und wähle einen Wert aus der Liste. Er wird als {example} eingefügt. Du kannst Platzhalter auch selbst tippen: zwei geschweifte Klammern, der Variablenname, zwei geschweifte Klammern.",
+                "exampleLabel": "Beispiel:",
+                "options": "Variantenoptionen: {optionExample} fügt den Wert ein, den der Kunde für diese Option gewählt hat (z. B. die Farbe). Verwende den Optionsnamen wie in der Liste angezeigt; Groß-/Kleinschreibung spielt keine Rolle. \"Variante (alle Optionswerte)\" fügt alle gewählten Werte auf einmal ein.",
+                "empty": "Die Platzhalter werden beim Start der Produktion ausgefüllt. Ein Platzhalter, für den die Bestellung keinen Wert hat (z. B. keine Firma), bleibt leer. Ist ein ganzer Wert am Ende leer, wird er nicht übergeben, und es gilt der im Printess-Template hinterlegte Wert.",
+                "productOverride": "Ein hier eingetragener Wert ersetzt für dieses Produkt die Plugin-Einstellung - jeder der drei Werte für sich. Lass einen Wert leer, um die Plugin-Einstellung zu verwenden; sie wird im Feld ausgegraut angezeigt.",
+                "pluginLevel": "Diese Werte gelten für alle Produkte. Jedes Produkt kann sie in seinem Printess-Tab (Karte \"Produktion\") überschreiben.",
+                "noLogic": "Es werden nur Platzhalter unterstützt - keine Bedingungen, Filter oder sonstige Twig-Logik."
+            },
+            "fields": {
+                "title": "PDF-Titel",
+                "subject": "PDF-Thema",
+                "author": "PDF-Autor"
+            },
+            "placeholders": {
+                "example": "z. B. {example}"
+            },
+            "pluginDefaultPlaceholder": "Plugin-Einstellung: {value}",
+            "insertVariable": "Variable einfügen",
+            "searchPlaceholder": "Variablen suchen...",
+            "noVariableFound": "Keine Variable passt zur Suche.",
+            "unknownVariables": "Unbekannte(r) Platzhalter, bleibt leer: {variables}",
+            "unclosedPlaceholder": "Ein Platzhalter ist nicht geschlossen - er braucht zwei schließende geschweifte Klammern.",
+            "previewLabel": "Vorschau mit Beispieldaten:",
+            "previewPluginDefaultLabel": "Plugin-Einstellung gilt, Vorschau mit Beispieldaten:",
+            "optionVariableLabel": "Option \"{name}\"",
+            "groups": {
+                "order": "Bestellung",
+                "lineItem": "Bestellposition",
+                "product": "Produkt",
+                "options": "Variantenoptionen",
+                "customer": "Kunde",
+                "shipping": "Lieferadresse",
+                "production": "Produktion"
+            },
+            "variables": {
+                "order_number": "Bestellnummer",
+                "order_id": "Bestell-ID",
+                "order_date": "Bestelldatum (JJJJ-MM-TT)",
+                "order_customerComment": "Kundenkommentar",
+                "order_salesChannel": "Name des Verkaufskanals",
+                "lineItem_id": "Positions-ID",
+                "lineItem_position": "Position in der Bestellung",
+                "lineItem_quantity": "Menge",
+                "product_name": "Produktname (wie bestellt)",
+                "product_number": "Produktnummer (SKU)",
+                "product_variant": "Variante (alle Optionswerte)",
+                "product_options": "Variantenoptionen mit Namen",
+                "customer_name": "Kundenname",
+                "customer_firstName": "Vorname des Kunden",
+                "customer_lastName": "Nachname des Kunden",
+                "customer_company": "Firma des Kunden",
+                "customer_email": "E-Mail des Kunden",
+                "customer_number": "Kundennummer",
+                "shipping_name": "Name des Empfängers",
+                "shipping_company": "Firma des Empfängers",
+                "shipping_zip": "Postleitzahl",
+                "shipping_city": "Ort",
+                "shipping_country": "Land",
+                "shipping_method": "Versandart",
+                "production_date": "Produktionsdatum (JJJJ-MM-TT)"
+            },
+            "sample": {
+                "productName": "Kaffeebecher",
+                "option1": "Rot",
+                "option2": "Groß",
+                "customerComment": "Bitte als Geschenk verpacken",
+                "country": "Deutschland"
+            }
         }
     }
 }

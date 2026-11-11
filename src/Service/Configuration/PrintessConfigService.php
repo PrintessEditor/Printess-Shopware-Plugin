@@ -147,6 +147,15 @@ class PrintessConfigService
         return $this->systemConfigService->getString(self::CONFIG_PREFIX . 'printSettingName', $salesChannelId);
     }
 
+    /**
+     * The plugin-wide PDF document properties, as `{title, subject, author}` texts with
+     * `{{ variable }}` placeholders - see `PdfMetadataResolver`.
+     */
+    public function getPdfMetadata(?string $salesChannelId = null): mixed
+    {
+        return $this->systemConfigService->get(self::CONFIG_PREFIX . 'pdfMetadata', $salesChannelId);
+    }
+
     public function shouldApproveDesignsBeforeProduction(?string $salesChannelId = null): bool
     {
         return $this->systemConfigService->getBool(self::CONFIG_PREFIX . 'approveDesignsBeforeProduction', $salesChannelId);
