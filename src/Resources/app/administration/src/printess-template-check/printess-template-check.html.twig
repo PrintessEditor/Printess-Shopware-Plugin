@@ -103,6 +103,34 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
         </li>
     </ul>
 
+    <div
+        v-if="!checkError && cartDisplayFields.length"
+        class="printess-template-check__cart-fields"
+    >
+        <p class="printess-template-check__cart-fields-heading">
+            {{ $t('printess-shopware-integration.productDetail.templateCheck.cartFieldsHeading') }}
+        </p>
+
+        <ul class="printess-template-check__groups">
+            <li
+                v-for="entry in cartDisplayFields"
+                :key="entry.field"
+                class="printess-template-check__group"
+            >
+                <p
+                    class="printess-template-check__line"
+                    :class="`printess-template-check__line--${entry.headline.tone}`"
+                >
+                    <mt-icon
+                        :name="entry.headline.tone === 'success' ? 'regular-checkmark-xs' : 'regular-exclamation-triangle'"
+                        size="14px"
+                    />
+                    <span>{{ headlineText(entry.headline) }}</span>
+                </p>
+            </li>
+        </ul>
+    </div>
+
     <div class="printess-template-check__actions">
         <mt-button
             variant="secondary"

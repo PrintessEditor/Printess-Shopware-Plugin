@@ -9,6 +9,10 @@
             },
             "priceBreakdown": {
                 "additionalPages": "{1} 1 zusätzliche Seite|[0,Inf[ %count% zusätzliche Seiten"
+            },
+            "displayField": {
+                "yes": "Ja",
+                "no": "Nein"
             }
         },
         "cartItemEditor": {

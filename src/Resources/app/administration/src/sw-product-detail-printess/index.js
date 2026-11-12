@@ -326,6 +326,21 @@ export default Shopware.Component.wrapComponentConfig({
             insidePageCountEnabled: false,
             magicPhotobookEnabled: false,
             slimUiEnabled: false,
+            hideQuantitySelector: false,
+
+            /**
+             * "Shopping cart" card: form field values shown under the item in the cart
+             * (`PrintessCartDisplayFields`), as `{clientId, formField, labelByLanguageId}` rows.
+             */
+            cartDisplayRows: [],
+            cartDisplayRowIdSeed: 0,
+
+            /** The selected template's form fields (`{name, label, isPriceRelevant}`) for the row pickers. */
+            templateFormFields: [],
+            templateFormFieldsLoaded: false,
+            templateFormFieldsError: null,
+            isLoadingTemplateFormFields: false,
+            templateFormFieldsRequestId: 0,
 
             /**
              * Which of the two mutually-exclusive cards ('insidePageCount' or 'magicPhotobook') the
@@ -466,6 +481,18 @@ export default Shopware.Component.wrapComponentConfig({
                 label: this.slimUiFeatureSnippet(key, 'Label'),
                 hint: this.slimUiFeatureSnippet(key, 'Hint'),
             }));
+        },
+
+        /** Names configured in the "Shopping cart" card, for the template check card. */
+        cartDisplayFieldNames() {
+            return [...new Set(this.cartDisplayRows
+                .map((row) => (row.formField || '').trim())
+                .filter((name) => name !== ''))];
+        },
+
+        /** Pick from the template's fields unless they couldn't be loaded - then type the name. */
+        useTemplateFormFieldSelect() {
+            return this.templateFormFieldsLoaded && !this.templateFormFieldsError;
         },
 
         filteredTemplates() {
@@ -633,10 +660,19 @@ export default Shopware.Component.wrapComponentConfig({
                     this.initInsidePageCountEnabled();
                     this.initMagicPhotobookEnabled();
                     this.initSlimUiEnabled();
+                    this.initHideQuantitySelector();
+                    this.initCartDisplayRows();
                     this.loadConfiguratorGroupNames();
                     this.loadPropertyGroupOptions();
                     this.maybeLoadDefaultLanguageFields();
                 }
+            },
+        },
+
+        selectedTemplateName: {
+            immediate: true,
+            handler() {
+                this.loadTemplateFormFields();
             },
         },
 
@@ -1198,6 +1234,202 @@ export default Shopware.Component.wrapComponentConfig({
             }
         },
 
+        initHideQuantitySelector() {
+            const stored = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessHideQuantitySelector
+                : this.defaultLanguageFields.PrintessHideQuantitySelector;
+
+            this.hideQuantitySelector = stored === true;
+        },
+
+        /** Toggle-driven, so saved immediately - same as `updateSlimUiEnabled()`. */
+        updateHideQuantitySelector(value) {
+            this.hideQuantitySelector = !!value;
+
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessHideQuantitySelector = this.hideQuantitySelector;
+            } else {
+                this.saveDefaultLanguageField('PrintessHideQuantitySelector', this.hideQuantitySelector);
+            }
+        },
+
+        initCartDisplayRows() {
+            const stored = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessCartDisplayFields
+                : this.defaultLanguageFields.PrintessCartDisplayFields;
+
+            this.cartDisplayRows = Array.isArray(stored)
+                ? stored
+                    .filter((entry) => entry && typeof entry === 'object')
+                    .map((entry) => this.createCartDisplayRow(entry))
+                : [];
+        },
+
+        createCartDisplayRow(entry) {
+            this.cartDisplayRowIdSeed += 1;
+
+            return {
+                clientId: this.cartDisplayRowIdSeed,
+                formField: typeof entry?.formField === 'string' ? entry.formField : '',
+                labelByLanguageId: normalizePriceRuleLabel(entry?.label, this.systemLanguageId),
+            };
+        },
+
+        addCartDisplayRow() {
+            this.cartDisplayRows.push(this.createCartDisplayRow(null));
+        },
+
+        removeCartDisplayRow(clientId) {
+            this.cartDisplayRows = this.cartDisplayRows.filter((row) => row.clientId !== clientId);
+            this.syncCartDisplayRows();
+        },
+
+        updateCartDisplayRowFormField(clientId, value) {
+            const row = this.cartDisplayRows.find((candidate) => candidate.clientId === clientId);
+
+            if (!row) {
+                return;
+            }
+
+            row.formField = value ?? '';
+            this.syncCartDisplayRows();
+        },
+
+        updateCartDisplayRowLabel(clientId, languageId, value) {
+            const row = this.cartDisplayRows.find((candidate) => candidate.clientId === clientId);
+
+            if (!row) {
+                return;
+            }
+
+            row.labelByLanguageId = { ...row.labelByLanguageId, [languageId]: value ?? '' };
+            this.syncCartDisplayRows();
+        },
+
+        /** Rows without a form field are kept on screen but not stored, like `syncPriceConfig()`. */
+        syncCartDisplayRows() {
+            const serialized = this.cartDisplayRows
+                .map((row) => {
+                    const formField = (row.formField || '').trim();
+
+                    if (formField === '') {
+                        return null;
+                    }
+
+                    const label = Object.fromEntries(
+                        Object.entries(row.labelByLanguageId || {})
+                            .filter(([, labelValue]) => typeof labelValue === 'string' && labelValue.trim() !== '')
+                            .map(([languageId, labelValue]) => [languageId, labelValue.trim()]),
+                    );
+
+                    return { formField, label };
+                })
+                .filter(Boolean);
+
+            const value = serialized.length > 0 ? serialized : null;
+
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessCartDisplayFields = value;
+            } else {
+                this.persistDefaultLanguageFieldDebounced('PrintessCartDisplayFields', value);
+            }
+        },
+
+        loadTemplateFormFields() {
+            const templateName = (this.selectedTemplateName || '').trim();
+            const requestId = ++this.templateFormFieldsRequestId;
+
+            this.templateFormFieldsError = null;
+
+            if (!templateName) {
+                this.templateFormFields = [];
+                this.templateFormFieldsLoaded = false;
+                this.isLoadingTemplateFormFields = false;
+
+                return Promise.resolve();
+            }
+
+            this.isLoadingTemplateFormFields = true;
+
+            return this.printessTemplateService.getTemplateFormFields(templateName)
+                .then((response) => {
+                    if (requestId !== this.templateFormFieldsRequestId) {
+                        return;
+                    }
+
+                    this.templateFormFields = Array.isArray(response?.fields) ? response.fields : [];
+                    this.templateFormFieldsLoaded = true;
+                })
+                .catch((error) => {
+                    if (requestId !== this.templateFormFieldsRequestId) {
+                        return;
+                    }
+
+                    this.templateFormFields = [];
+                    this.templateFormFieldsLoaded = true;
+                    this.templateFormFieldsError = error?.response?.data?.error ?? error?.message ?? '';
+                })
+                .finally(() => {
+                    if (requestId === this.templateFormFieldsRequestId) {
+                        this.isLoadingTemplateFormFields = false;
+                    }
+                });
+        },
+
+        /**
+         * The template's fields as select options, flagged when not price relevant (their values
+         * never reach the cart). A configured name the template doesn't have is kept as an option, so
+         * the select still shows it instead of silently looking empty.
+         */
+        cartDisplayFormFieldOptions(row) {
+            const options = this.templateFormFields.map((field) => {
+                const name = field.label && field.label !== field.name ? `${field.label} (${field.name})` : field.name;
+                const suffix = field.isPriceRelevant
+                    ? ''
+                    : ` – ${this.$t('printess-shopware-integration.productDetail.cart.displayFieldNotPriceRelevantSuffix')}`;
+
+                return { value: field.name, label: `${name}${suffix}` };
+            });
+
+            if (row.formField && !this.templateFormFields.some((field) => field.name === row.formField)) {
+                options.unshift({
+                    value: row.formField,
+                    label: `${row.formField} – ${this.$t('printess-shopware-integration.productDetail.cart.displayFieldNotInTemplateSuffix')}`,
+                });
+            }
+
+            return options;
+        },
+
+        /** Inline warning under a row, or null - only once the template's fields are known. */
+        cartDisplayRowWarning(row) {
+            const name = (row.formField || '').trim();
+
+            if (!name || !this.useTemplateFormFieldSelect) {
+                return null;
+            }
+
+            const field = this.templateFormFields.find((candidate) => candidate.name === name);
+
+            if (!field) {
+                return this.$t('printess-shopware-integration.productDetail.cart.displayFieldMissing', { field: name });
+            }
+
+            if (!field.isPriceRelevant) {
+                return this.$t('printess-shopware-integration.productDetail.cart.displayFieldNotPriceRelevant', { field: name });
+            }
+
+            return null;
+        },
+
         /**
          * Rejects a toggle attempt made while the other card is already enabled. `mt-switch` binds
          * its native `<input type="checkbox">` `checked` state directly to the `modelValue` prop with
@@ -1537,6 +1769,8 @@ export default Shopware.Component.wrapComponentConfig({
                     this.initInsidePageCountEnabled();
                     this.initMagicPhotobookEnabled();
                     this.initSlimUiEnabled();
+                    this.initHideQuantitySelector();
+                    this.initCartDisplayRows();
                 })
                 .catch(() => {
                     this.defaultLanguageFields = {};

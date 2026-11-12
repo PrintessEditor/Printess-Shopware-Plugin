@@ -29,6 +29,7 @@ import './sw-order-line-item-printess-editor.scss';
 
 const SAVE_TOKEN_PAYLOAD_KEY = '_printessSaveToken';
 const THUMBNAIL_URL_PAYLOAD_KEY = '_printessThumbnailUrl';
+const PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY = '_printessPriceRelevantFormFields';
 
 /**
  * Full-page (not nested in `sw-order-detail`'s own tabs) view for editing the personalized design
@@ -56,6 +57,10 @@ export default Shopware.Component.wrapComponentConfig({
             isStartingNow: false,
             // For a dropshipped line item: everything "start now" sends along (its dropship group).
             startNowBatch: null,
+            // `{name: value}` of the price-relevant form fields, as last reported by the editor's
+            // `priceChangeCallback` - stored with the design so the cart display rows ("Number Of
+            // Tiles: 10") follow it. Null until the editor reported anything.
+            priceRelevantFormFields: null,
         };
     },
 
@@ -130,6 +135,10 @@ export default Shopware.Component.wrapComponentConfig({
                 backButtonCallback: () => {
                     this.goBackToOrder();
                 },
+                // Only read for the form field values; the order's price and variant stay as they are.
+                priceChangeCallback: (priceInfo) => {
+                    this.priceRelevantFormFields = this.extractFormFieldValues(priceInfo);
+                },
             };
 
             // BCUI takes the API domain as `domain`; falls back to api.printess.com if unset.
@@ -165,6 +174,13 @@ export default Shopware.Component.wrapComponentConfig({
                 [THUMBNAIL_URL_PAYLOAD_KEY]: thumbnailUrl,
             };
 
+            if (this.priceRelevantFormFields) {
+                payload[PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY] = {
+                    ...this.parseFormFieldValues(this.lineItem.payload?.[PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY]),
+                    ...this.priceRelevantFormFields,
+                };
+            }
+
             // The previous production run (if any) was for the design being replaced - it no
             // longer applies, and re-submitting the corrected design always needs an explicit
             // human approval click again, regardless of the plugin-wide auto/manual setting.
@@ -177,6 +193,14 @@ export default Shopware.Component.wrapComponentConfig({
             };
 
             await this.saveLineItemPersonalization(payload, customFields);
+
+            // Rebuilds the "Number Of Tiles: 10" rows the customer sees on the order from the
+            // values just saved. Cosmetic - a failure here must not block the production prompt.
+            try {
+                await this.printessProductionService.refreshCartDisplay(this.orderId, this.lineItemId);
+            } catch (error) {
+                // The rows simply keep their previous values.
+            }
 
             // The editor's own UI otherwise stays on top of the page (it isn't a normal DOM
             // element the modal's overlay would stack above), hiding the confirm dialog behind it.
@@ -236,6 +260,36 @@ export default Shopware.Component.wrapComponentConfig({
                 payload,
                 customFields,
             }, { headers });
+        },
+
+        /**
+         * `iExternalProductPriceInfo.priceRelevantFormFields` is `{ [name]: { value, tag } }` -
+         * flattened to `{ [name]: value }`, the shape stored in the line item payload (same as the
+         * storefront plugins' `_extractFormFieldValues()`).
+         */
+        extractFormFieldValues(priceInfo) {
+            const result = {};
+
+            Object.entries(priceInfo?.priceRelevantFormFields ?? {}).forEach(([name, field]) => {
+                result[name] = String(field?.value ?? '');
+            });
+
+            return result;
+        },
+
+        /** The stored payload value is a JSON string when added from the product page form. */
+        parseFormFieldValues(raw) {
+            if (typeof raw === 'string') {
+                try {
+                    const parsed = JSON.parse(raw);
+
+                    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+                } catch (error) {
+                    return {};
+                }
+            }
+
+            return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
         },
 
         goBackToOrder() {

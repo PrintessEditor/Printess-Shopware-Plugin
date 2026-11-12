@@ -26,6 +26,31 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
 
 {% sw_extends '@Storefront/storefront/component/line-item/type/product.html.twig' %}
 
+{# The form field value rows sit directly under the variant options and product properties
+   ("features"). Core only renders each of those blocks when it has content, so the rows go after
+   whichever of label -> variant options -> features is the last one actually rendered. #}
+{% block component_line_item_type_product_label %}
+    {{ parent() }}
+
+    {% if lineItem.payload.options is empty and lineItem.payload.features is empty %}
+        {% sw_include '@PrintessShopwareIntegration/storefront/component/line-item/element/printess-display-fields.html.twig' %}
+    {% endif %}
+{% endblock %}
+
+{% block component_line_item_type_product_variant_characteristics %}
+    {{ parent() }}
+
+    {% if lineItem.payload.features is empty %}
+        {% sw_include '@PrintessShopwareIntegration/storefront/component/line-item/element/printess-display-fields.html.twig' %}
+    {% endif %}
+{% endblock %}
+
+{% block component_line_item_type_product_features %}
+    {{ parent() }}
+
+    {% sw_include '@PrintessShopwareIntegration/storefront/component/line-item/element/printess-display-fields.html.twig' %}
+{% endblock %}
+
 {% block component_line_item_type_product_details_container %}
     {{ parent() }}
 
@@ -112,5 +137,16 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 </li>
             {% endfor %}
         </ul>
+    {% endif %}
+{% endblock %}
+
+{# "Hide quantity selector" (Printess tab): the amount lives in the variant, so the quantity (locked
+   to 1 by `PrintessCartDisplayCollector`) isn't shown in any line item view. The empty container
+   keeps the row's grid columns aligned with the other items. #}
+{% block component_line_item_type_product_col_quantity %}
+    {% if lineItem.payload is defined and lineItem.payload._printessHideQuantity is defined and lineItem.payload._printessHideQuantity %}
+        <div class="line-item-quantity printess-line-item-quantity-hidden"></div>
+    {% else %}
+        {{ parent() }}
     {% endif %}
 {% endblock %}

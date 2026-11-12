@@ -26,6 +26,21 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
 
 {% sw_extends '@Storefront/storefront/component/buy-widget/buy-widget-form.html.twig' %}
 
+{# "Hide quantity selector" (Printess tab): for products whose amount is chosen inside the template
+   and mapped to a variant - the variant already carries the price, so a quantity selector next to
+   it would be misleading. Always adds exactly one; `PrintessCartDisplayCollector` additionally
+   locks the resulting cart line item to quantity 1. #}
+{% block buy_widget_buy_quantity_container %}
+    {% set printessHideQuantity = printess_product_custom_field(product, 'PrintessTemplateName')
+        and printess_product_custom_field(product, 'PrintessHideQuantitySelector') == true %}
+
+    {% if printessHideQuantity %}
+        <input type="hidden" name="lineItems[{{ product.id }}][quantity]" value="1">
+    {% else %}
+        {{ parent() }}
+    {% endif %}
+{% endblock %}
+
 {% block buy_widget_buy_button %}
     {% set printessTemplateName = printess_product_custom_field(product, 'PrintessTemplateName') %}
 
@@ -108,7 +123,11 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
     {% set printessInsidePageCountEnabled = (printessTemplateName and not printessSlimUiEnabled) ? printess_product_custom_field(product, 'PrintessBookInsidePageCountEnabled') : false %}
     {% set printessInsidePageCount = printessInsidePageCountEnabled ? printess_product_custom_field(product, 'PrintessBookInsidePageCount') : null %}
 
-    <div class="{% if showQuantitySelect %}col-8{% else %}col-12{% endif %}">
+    {# Twig `set` doesn't carry over from the quantity block above, so the flag is read again here
+       to give the buy button the full width the hidden quantity selector left. #}
+    {% set printessHideQuantity = printessTemplateName and printess_product_custom_field(product, 'PrintessHideQuantitySelector') == true %}
+
+    <div class="{% if showQuantitySelect and not printessHideQuantity %}col-8{% else %}col-12{% endif %}">
         {% block buy_widget_buy_button_add_to_cart %}
             <div class="d-grid{% if printessTemplateName %} d-none{% endif %}">
                 <button class="btn btn-primary btn-buy"

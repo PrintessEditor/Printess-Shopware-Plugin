@@ -28,6 +28,7 @@
 
 namespace PrintessShopwareIntegration\Service\Cart;
 
+use PrintessShopwareIntegration\Service\Pricing\PrintessPriceConfigCollector;
 use PrintessShopwareIntegration\Service\Product\ProductConfiguratorGroupNameResolver;
 use PrintessShopwareIntegration\Service\Product\ProductOptionFormFieldService;
 use Shopware\Core\Checkout\Cart\Cart;
@@ -225,7 +226,13 @@ class PrintessCartLineItemService
         }
 
         $payload[self::PAGE_COUNT_PAYLOAD_KEY] = $pageCount;
-        $payload[self::PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY] = $priceRelevantFormFields;
+        // Merged over the original's values rather than replacing them: the SlimUi cart item editor
+        // only reports fields the shopper changed in this session, so an untouched field would
+        // otherwise lose its value (and with it its surcharge and cart display row).
+        $payload[self::PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY] = array_merge(
+            PrintessPriceConfigCollector::decodeFormFieldValues($payload[self::PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY] ?? null),
+            $priceRelevantFormFields,
+        );
 
         $replacement->setPayload($payload);
 
@@ -255,7 +262,13 @@ class PrintessCartLineItemService
         SalesChannelContext $context,
     ): Cart {
         $referencedId = $this->resolveVariantId((string) $original->getReferencedId(), $options, $context);
-        $isSlimUiItem = (($original->getPayload() ?? [])[self::SLIM_UI_ITEM_PAYLOAD_KEY] ?? false) === true;
+        $originalPayload = $original->getPayload() ?? [];
+        $isSlimUiItem = ($originalPayload[self::SLIM_UI_ITEM_PAYLOAD_KEY] ?? false) === true;
+        // Merged over the ordered item's values, same reasoning as in `replaceLineItem()`.
+        $priceRelevantFormFields = array_merge(
+            PrintessPriceConfigCollector::decodeFormFieldValues($originalPayload[self::PRICE_RELEVANT_FORM_FIELDS_PAYLOAD_KEY] ?? null),
+            $priceRelevantFormFields,
+        );
         $lineItem = $this->buildPersonalizedLineItem($referencedId, $saveToken, $thumbnailUrl, $pageCount, $priceRelevantFormFields, $isSlimUiItem);
 
         return $this->cartService->add($cart, $lineItem, $context);

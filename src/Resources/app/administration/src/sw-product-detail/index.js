@@ -26,28 +26,35 @@
 
 import template from './sw-product-detail.html.twig';
 
-const { Criteria } = Shopware.Data;
-
 /**
  * Matches `ProductCustomFieldsInstaller::CUSTOM_FIELD_SET_NAME` - the Printess fields are already
- * fully managed on their own "Printess" tab (including a proper JSON editor for
- * `PrintessFormFields`), so showing the same raw custom field set again in the generic
- * "Specifications" tab is redundant and, for the JSON field, actively broken: the generic
- * custom-field renderer has no widget for JSON arrays-of-objects and just stringifies each entry
- * (`[object Object],[object Object]`).
+ * fully managed on their own "Printess" tab, so showing the same raw custom field set again in the
+ * generic "Specifications" tab is redundant and confusing, and for the JSON fields actively broken:
+ * the generic custom-field renderer has no widget for JSON arrays-of-objects and just stringifies
+ * each entry (`[object Object],[object Object]`).
  */
 const PRINTESS_CUSTOM_FIELD_SET_NAME = 'Printess';
 
 Shopware.Component.override('sw-product-detail', {
     template,
 
-    computed: {
-        customFieldSetCriteria() {
-            const criteria = this.$super('customFieldSetCriteria');
+    methods: {
+        /**
+         * Since Shopware 6.7 the sets come from `customFieldDataProviderService.getCustomFieldSets()`
+         * (cached, keyed by entity and language) instead of a component criteria, so they're filtered
+         * after loading. `filter()` returns a new array, leaving the service's cached result intact.
+         * Only hides the set in this view - the custom fields themselves stay assigned to products,
+         * so the API, import/export and the rule builder keep seeing them.
+         */
+        loadAttributeSet() {
+            return this.$super('loadAttributeSet').then(() => {
+                const store = Shopware.Store.get('swProductDetail');
 
-            criteria.addFilter(Criteria.not('AND', [Criteria.equals('name', PRINTESS_CUSTOM_FIELD_SET_NAME)]));
-
-            return criteria;
+                if (Array.isArray(store.customFieldSets)) {
+                    store.customFieldSets = store.customFieldSets
+                        .filter((set) => set?.name !== PRINTESS_CUSTOM_FIELD_SET_NAME);
+                }
+            });
         },
     },
 });

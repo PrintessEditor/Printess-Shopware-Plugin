@@ -1,3 +1,10 @@
+# 1.3.1
+- New "Shopping cart" card on the Printess tab, for products whose amount is chosen inside the template (e.g. a number of tiles mapped to a variant):
+  - "Hide quantity selector" hides the quantity selector on the product page and the quantity in the cart, offcanvas cart, checkout and order views, and keeps the cart item at quantity 1.
+  - "Show form field values" lists form fields whose values are shown under the item, e.g. "Number Of Tiles: 10", with a label per language. The form field is picked from the template's form fields and must be marked Price Relevant; the template check warns about fields that are not, or that the template doesn't have. The values follow every change: editing the item in the cart, reordering, and editing the design of an order item in the administration.
+- Editing a SlimUi cart item or reordering an item no longer drops the values of price-relevant form fields that were not changed in the editor, so their price surcharges are kept.
+- The Printess custom fields are hidden again in the "Specifications" tab of a product in the administration (since Shopware 6.7 they were shown there in addition to the Printess tab). They are only managed on the Printess tab.
+
 # 1.3.0
 - New setting "PDF document properties": title, subject and author of the produced PDFs (sent as the form fields PDF_Title, PDF_Subject and PDF_Author) can be configured in the plugin settings and overridden per product on the Printess tab. The texts can contain placeholders for order, line item, product, variant option, customer and shipping data, which are filled in when production starts. The editor explains the syntax, inserts placeholders from a searchable list and shows a preview. The template needs form fields with exactly these names.
 - Fixed: the theme could no longer be compiled on Shopware 6.7.16 because the plugin's config.xml contained a comment.

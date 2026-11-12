@@ -64,6 +64,43 @@ class TemplateCheckService
     }
 
     /**
+     * One entry per form field configured to be shown in the cart (`PrintessCartDisplayFields`).
+     * Only price-relevant form fields reach the cart, and the cart looks them up by their exact
+     * name, so anything else never shows up there.
+     *
+     * @param list<array<string, mixed>> $fields the `fields` of `PrintessFormFieldsClient::load()`
+     * @param list<string>               $names  the configured form field names
+     *
+     * @return list<array{field: string, headline: array<string, mixed>}>
+     */
+    public function checkCartDisplayFields(array $fields, array $names): array
+    {
+        $byName = [];
+
+        foreach ($fields as $field) {
+            $byName[(string) $field['name']] = $field;
+        }
+
+        $result = [];
+
+        foreach (array_values(array_unique($names)) as $name) {
+            $field = $byName[$name] ?? null;
+
+            if ($field === null) {
+                $headline = ['code' => 'cartFieldMissing', 'tone' => 'warning', 'field' => $name];
+            } elseif (!$field['isPriceRelevant']) {
+                $headline = ['code' => 'cartFieldNotPriceRelevant', 'tone' => 'warning', 'field' => $name];
+            } else {
+                $headline = ['code' => 'cartFieldOk', 'tone' => 'success', 'field' => $name];
+            }
+
+            $result[] = ['field' => $name, 'headline' => $headline];
+        }
+
+        return $result;
+    }
+
+    /**
      * @param list<array<string, mixed>>                                                            $fields
      * @param array{id: string, name: string, options: list<array{id: string, name: string}>}       $group
      *

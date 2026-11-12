@@ -70,6 +70,13 @@ export default Shopware.Component.wrapComponentConfig({
             required: false,
             default: false,
         },
+
+        /** Form fields the product shows in the cart (Printess tab, "Shopping cart" card). */
+        cartDisplayFieldNames: {
+            type: Array,
+            required: false,
+            default: () => [],
+        },
     },
 
     data() {
@@ -77,6 +84,7 @@ export default Shopware.Component.wrapComponentConfig({
             isChecking: false,
             checkError: null,
             groups: [],
+            cartDisplayFields: [],
             // The base template the check read along with the template, and why it could not be.
             baseTemplate: '',
             baseTemplateError: '',
@@ -91,6 +99,11 @@ export default Shopware.Component.wrapComponentConfig({
     computed: {
         trimmedTemplateName() {
             return (this.templateName || '').trim();
+        },
+
+        /** Stable key, so re-rendering the parent with an equal list doesn't re-run the check. */
+        cartDisplayFieldNamesKey() {
+            return JSON.stringify(this.cartDisplayFieldNames ?? []);
         },
 
         checkedAtLabel() {
@@ -115,6 +128,18 @@ export default Shopware.Component.wrapComponentConfig({
         productId() {
             this.runCheck();
         },
+
+        // Debounced: with the free-text fallback the names change on every keystroke.
+        cartDisplayFieldNamesKey() {
+            clearTimeout(this._cartFieldsCheckTimer);
+            this._cartFieldsCheckTimer = setTimeout(() => {
+                this.runCheck();
+            }, 600);
+        },
+    },
+
+    beforeUnmount() {
+        clearTimeout(this._cartFieldsCheckTimer);
     },
 
     methods: {
@@ -128,6 +153,7 @@ export default Shopware.Component.wrapComponentConfig({
 
             if (!templateName || !this.productId) {
                 this.groups = [];
+                this.cartDisplayFields = [];
                 this.checkedAt = null;
 
                 return;
@@ -136,7 +162,7 @@ export default Shopware.Component.wrapComponentConfig({
             this.isChecking = true;
 
             try {
-                const result = await this.printessTemplateService.checkTemplate(this.productId, templateName);
+                const result = await this.printessTemplateService.checkTemplate(this.productId, templateName, this.cartDisplayFieldNames ?? []);
 
                 // A newer check (another template picked meanwhile) wins.
                 if (requestId !== this.requestId) {
@@ -144,6 +170,7 @@ export default Shopware.Component.wrapComponentConfig({
                 }
 
                 this.groups = Array.isArray(result?.groups) ? result.groups : [];
+                this.cartDisplayFields = Array.isArray(result?.cartDisplayFields) ? result.cartDisplayFields : [];
                 this.isVariant = !!result?.isVariant;
                 this.baseTemplate = result?.baseTemplate ?? '';
                 this.baseTemplateError = result?.baseTemplateError ?? '';

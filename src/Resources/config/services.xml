@@ -80,6 +80,20 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <tag name="shopware.cart.processor" priority="4950"/>
         </service>
 
+        <service id="PrintessShopwareIntegration\Service\Cart\PrintessCartDisplayResolver"/>
+
+        <!--
+        Must collect AFTER `ProductCartProcessor` (collector priority 5000 in Shopware core's cart.xml),
+        which enriches the line item payload's `options` with the current variant and applies its own
+        quantity corrections - this then locks the quantity and builds the cart display rows on top.
+        -->
+        <service id="PrintessShopwareIntegration\Service\Cart\PrintessCartDisplayCollector">
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Cart\PrintessCartDisplayResolver"/>
+            <tag name="shopware.cart.collector" priority="4990"/>
+        </service>
+
         <service id="PrintessShopwareIntegration\Service\Cart\PrintessCartLineItemService">
             <argument type="service" id="Shopware\Core\Checkout\Cart\SalesChannel\CartService"/>
             <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\FindVariant\FindProductVariantRoute"/>
@@ -256,6 +270,9 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <argument type="service" id="order.repository"/>
             <argument type="service" id="order_line_item.repository"/>
             <argument type="service" id="PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver"/>
+            <argument type="service" id="PrintessShopwareIntegration\Service\Cart\PrintessCartDisplayResolver"/>
+            <argument type="service" id="product.repository"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>

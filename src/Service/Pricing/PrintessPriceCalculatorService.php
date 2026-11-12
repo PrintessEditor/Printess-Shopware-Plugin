@@ -28,7 +28,6 @@
 
 namespace PrintessShopwareIntegration\Service\Pricing;
 
-use Shopware\Core\Defaults;
 
 /**
  * Computes the per-unit Printess pricing surcharge (page-count-based and/or form-field-combination
@@ -154,7 +153,7 @@ class PrintessPriceCalculatorService
      */
     private function resolveRuleLabel(array $rule, array $conditions, string $languageId): string
     {
-        $translated = $this->resolveLabelTranslation($rule['label'] ?? null, $languageId);
+        $translated = PrintessLabelTranslation::resolve($rule['label'] ?? null, $languageId);
 
         if ($translated !== null) {
             return $translated;
@@ -198,43 +197,6 @@ class PrintessPriceCalculatorService
             'lessThanOrEqual' => '≤',
             default => '=',
         };
-    }
-
-    /**
-     * Picks one label out of a rule's `label` config: the current language's translation, falling
-     * back to Shopware's default/system language, falling back to whichever translation happens to
-     * be first (in stored order) rather than showing nothing. A plain string (pre-dating per-language
-     * display names) is used as-is regardless of language, matching its original behavior exactly.
-     */
-    private function resolveLabelTranslation(mixed $label, string $languageId): ?string
-    {
-        if (\is_string($label)) {
-            return trim($label) !== '' ? trim($label) : null;
-        }
-
-        if (!\is_array($label) || $label === []) {
-            return null;
-        }
-
-        $current = $label[$languageId] ?? null;
-
-        if (\is_string($current) && trim($current) !== '') {
-            return trim($current);
-        }
-
-        $default = $label[Defaults::LANGUAGE_SYSTEM] ?? null;
-
-        if (\is_string($default) && trim($default) !== '') {
-            return trim($default);
-        }
-
-        foreach ($label as $value) {
-            if (\is_string($value) && trim($value) !== '') {
-                return trim($value);
-            }
-        }
-
-        return null;
     }
 
     /**

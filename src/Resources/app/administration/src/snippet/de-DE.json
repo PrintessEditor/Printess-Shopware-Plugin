@@ -188,7 +188,11 @@
                 "freeField": "„{option}“ ist im Template keine Liste, daher werden die Werte nicht verglichen.",
                 "applied": "Fertig: {created} Varianten erstellt, {updated} aktualisiert, {deleted} gelöscht.",
                 "nameTranslation": "Die Eigenschaft „{option}“ heißt im Template „{spelled}“ – so heißt sie in einer anderen Sprache. Die Storefront vergleicht Namen in der Standardsprache des Shops, daher wird die Option nicht an den Editor übergeben.",
-                "valueTranslation": "Nur in einer anderen Sprache gleich benannt: {pairs}. Die Storefront vergleicht Werte in der Standardsprache des Shops, daher stimmen diese nicht überein."
+                "valueTranslation": "Nur in einer anderen Sprache gleich benannt: {pairs}. Die Storefront vergleicht Werte in der Standardsprache des Shops, daher stimmen diese nicht überein.",
+                "cartFieldsHeading": "Im Warenkorb angezeigte Formularfeldwerte",
+                "cartFieldOk": "„{field}“ ist preisrelevant, daher wird sein Wert im Warenkorb angezeigt.",
+                "cartFieldNotPriceRelevant": "„{field}“ ist nicht als preisrelevant (Price Relevant) markiert, daher gelangt sein Wert nie in den Warenkorb.",
+                "cartFieldMissing": "Das Template hat kein Formularfeld namens „{field}“, daher wird dafür nichts im Warenkorb angezeigt."
             },
             "variantSync": {
                 "openButton": "Varianten aus dem Template erstellen…",
@@ -241,6 +245,26 @@
                 "apply": "Änderungen übernehmen",
                 "noteSharedGroupTranslation": "Die Eigenschaft „{group}“ wird für das Template-Feld „{spelled}“ wiederverwendet, das ihrem Namen in einer anderen Sprache entspricht. Die Storefront vergleicht die Standardsprache des Shops: Benennen Sie sie unter Kataloge › Eigenschaften um, sonst folgt der Editor ihr nicht.",
                 "noteSharedValueTranslation": "„{value}“ in der Eigenschaft „{group}“ wird für den Template-Wert „{spelled}“ wiederverwendet, der ihrem Namen in einer anderen Sprache entspricht, statt ein Duplikat anzulegen. Die Storefront vergleicht die Standardsprache des Shops: Benennen Sie sie unter Kataloge › Eigenschaften um, sonst folgt der Editor ihr nicht."
+            },
+            "cart": {
+                "cardTitle": "Warenkorb",
+                "hint": "Wie dieses Produkt im Warenkorb, im Checkout und in den Bestellungen erscheint.",
+                "hideQuantityLabel": "Mengenauswahl ausblenden",
+                "hideQuantityHint": "Blendet die Mengenauswahl auf der Produktseite sowie die Menge im Warenkorb, Checkout und in den Bestellungen aus und hält die Warenkorbposition bei Menge 1. Für Produkte, deren Anzahl im Template gewählt (z. B. Anzahl Fliesen) und auf eine Variante abgebildet wird, sodass die Variante den Preis bestimmt.",
+                "displayFieldsLabel": "Formularfeldwerte anzeigen",
+                "displayFieldsHint": "Jede Zeile wird unter der Position als „Bezeichnung: Wert“ angezeigt, z. B. „Anzahl Fliesen: 10“. Nur Formularfelder, die im Template als preisrelevant (Price Relevant) markiert sind, gelangen in den Warenkorb. Wurde ein Feld im Editor nicht geändert, wird stattdessen die Variantenoption mit demselben Namen verwendet.",
+                "displayFieldFormFieldLabel": "Formularfeld",
+                "displayFieldFormFieldPlaceholder": "Formularfeld auswählen…",
+                "displayFieldLabelLabel": "Bezeichnung",
+                "displayFieldLabelPlaceholder": "z. B. Anzahl Fliesen",
+                "displayFieldNotPriceRelevantSuffix": "nicht preisrelevant",
+                "displayFieldNotInTemplateSuffix": "nicht im Template",
+                "addDisplayFieldButton": "Formularfeld hinzufügen",
+                "displayFieldNotPriceRelevant": "„{field}“ ist im Template nicht als preisrelevant (Price Relevant) markiert, daher gelangt sein Wert nie in den Warenkorb.",
+                "displayFieldMissing": "Das Template hat kein Formularfeld namens „{field}“.",
+                "formFieldsLoadError": "Die Formularfelder des Templates konnten nicht geladen werden ({error}). Geben Sie den Namen des Formularfelds von Hand ein.",
+                "formFieldsLoading": "Formularfelder des Templates werden geladen…",
+                "noTemplate": "Wählen Sie zuerst ein Template, um aus seinen Formularfeldern zu wählen."
             }
         },
         "printSettingSelect": {

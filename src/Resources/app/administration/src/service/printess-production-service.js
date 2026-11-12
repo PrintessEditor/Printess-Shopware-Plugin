@@ -36,6 +36,12 @@ export default class PrintessProductionService extends Shopware.Classes.ApiServi
             .then((response) => Shopware.Classes.ApiService.handleResponse(response));
     }
 
+    refreshCartDisplay(orderId, lineItemId) {
+        return this.httpClient
+            .post(`/_action/printess/orders/${orderId}/line-items/${lineItemId}/refresh-cart-display`, {}, { headers: this.getBasicHeaders() })
+            .then((response) => Shopware.Classes.ApiService.handleResponse(response));
+    }
+
     checkLineItemStatus(orderId, lineItemId) {
         return this.httpClient
             .post(`/_action/printess/orders/${orderId}/line-items/${lineItemId}/check-status`, {}, { headers: this.getBasicHeaders() })

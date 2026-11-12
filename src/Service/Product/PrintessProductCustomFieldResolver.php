@@ -72,6 +72,8 @@ class PrintessProductCustomFieldResolver
         'PrintessSlimUiMergeTemplate',
         'PrintessSlimUiFeatures',
         'PrintessPdfMetadata',
+        'PrintessHideQuantitySelector',
+        'PrintessCartDisplayFields',
     ];
 
     public function __construct(
@@ -87,6 +89,36 @@ class PrintessProductCustomFieldResolver
         }
 
         return $this->resolveDefaultLanguage($productId, $fieldName);
+    }
+
+    /**
+     * Same as `resolve()` for several fields at once - in default-language mode this loads the
+     * product only once instead of once per field, for callers running on every cart calculation.
+     *
+     * @param list<string> $fieldNames
+     *
+     * @return array<string, mixed> field name => value
+     */
+    public function resolveMany(?ProductEntity $product, string $productId, array $fieldNames): array
+    {
+        if (!$this->printessConfigService->isPerLanguageProductSettingsEnabled()) {
+            $context = Context::createDefaultContext();
+
+            $product = $context->enableInheritance(
+                fn (Context $inheritanceContext) => $this->productRepository
+                    ->search(new Criteria([$productId]), $inheritanceContext)
+                    ->getEntities()
+                    ->first()
+            );
+        }
+
+        $values = [];
+
+        foreach ($fieldNames as $fieldName) {
+            $values[$fieldName] = $product?->getCustomFieldsValue($fieldName);
+        }
+
+        return $values;
     }
 
     /**

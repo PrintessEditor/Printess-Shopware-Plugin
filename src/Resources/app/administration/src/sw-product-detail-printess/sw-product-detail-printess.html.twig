@@ -393,6 +393,7 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                 :template-name="selectedTemplateName"
                 :product="product"
                 :can-edit="canEdit"
+                :cart-display-field-names="cartDisplayFieldNames"
             />
         </mt-card>
 
@@ -530,6 +531,135 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             >
                 {{ $t('printess-shopware-integration.productDetail.addFormFieldButton') }}
             </mt-button>
+        </mt-card>
+
+        <mt-card
+            class="sw-product-detail-printess__cart-card"
+            position-identifier="sw-product-detail-printess-cart"
+            :title="$t('printess-shopware-integration.productDetail.cart.cardTitle')"
+        >
+            <p class="sw-product-detail-printess__cart-hint">
+                {{ $t('printess-shopware-integration.productDetail.cart.hint') }}
+            </p>
+
+            <div class="sw-product-detail-printess__cart-hide-quantity">
+                <mt-switch
+                    :model-value="hideQuantitySelector"
+                    class="sw-product-detail-printess__cart-hide-quantity-toggle"
+                    :label="$t('printess-shopware-integration.productDetail.cart.hideQuantityLabel')"
+                    :disabled="!canEdit"
+                    @update:model-value="updateHideQuantitySelector"
+                />
+
+                <p class="sw-product-detail-printess__cart-hide-quantity-hint">
+                    {{ $t('printess-shopware-integration.productDetail.cart.hideQuantityHint') }}
+                </p>
+            </div>
+
+            <div class="sw-product-detail-printess__cart-display-fields">
+                <label class="sw-product-detail-printess__cart-display-fields-label">
+                    {{ $t('printess-shopware-integration.productDetail.cart.displayFieldsLabel') }}
+                </label>
+
+                <p class="sw-product-detail-printess__cart-display-fields-hint">
+                    {{ $t('printess-shopware-integration.productDetail.cart.displayFieldsHint') }}
+                </p>
+
+                <p
+                    v-if="!selectedTemplateName"
+                    class="sw-product-detail-printess__cart-display-fields-status"
+                >
+                    {{ $t('printess-shopware-integration.productDetail.cart.noTemplate') }}
+                </p>
+
+                <p
+                    v-else-if="isLoadingTemplateFormFields"
+                    class="sw-product-detail-printess__cart-display-fields-status"
+                >
+                    {{ $t('printess-shopware-integration.productDetail.cart.formFieldsLoading') }}
+                </p>
+
+                <p
+                    v-else-if="templateFormFieldsError !== null"
+                    class="sw-product-detail-printess__cart-display-fields-status sw-product-detail-printess__cart-display-fields-status--warning"
+                >
+                    {{ $t('printess-shopware-integration.productDetail.cart.formFieldsLoadError', { error: templateFormFieldsError }) }}
+                </p>
+
+                <div
+                    v-for="row in cartDisplayRows"
+                    :key="row.clientId"
+                    class="sw-product-detail-printess__cart-display-field-row"
+                >
+                    <div class="sw-product-detail-printess__cart-display-field-inputs">
+                        <mt-select
+                            v-if="useTemplateFormFieldSelect"
+                            :model-value="row.formField"
+                            class="sw-product-detail-printess__cart-display-field-form-field"
+                            :label="$t('printess-shopware-integration.productDetail.cart.displayFieldFormFieldLabel')"
+                            :placeholder="$t('printess-shopware-integration.productDetail.cart.displayFieldFormFieldPlaceholder')"
+                            :options="cartDisplayFormFieldOptions(row)"
+                            :disabled="!canEdit"
+                            @update:model-value="(value) => updateCartDisplayRowFormField(row.clientId, value)"
+                        />
+
+                        <mt-text-field
+                            v-else
+                            :model-value="row.formField"
+                            class="sw-product-detail-printess__cart-display-field-form-field"
+                            :name="`sw-field--printess-cart-display-field-${row.clientId}`"
+                            :label="$t('printess-shopware-integration.productDetail.cart.displayFieldFormFieldLabel')"
+                            :disabled="!canEdit"
+                            @update:model-value="(value) => updateCartDisplayRowFormField(row.clientId, value)"
+                        />
+
+                        <mt-button
+                            class="sw-product-detail-printess__cart-display-field-remove"
+                            variant="ghost"
+                            size="small"
+                            :disabled="!canEdit"
+                            @click="removeCartDisplayRow(row.clientId)"
+                        >
+                            <mt-icon name="regular-trash" size="16px" />
+                        </mt-button>
+                    </div>
+
+                    <p
+                        v-if="cartDisplayRowWarning(row)"
+                        class="sw-product-detail-printess__cart-display-field-warning"
+                    >
+                        {{ cartDisplayRowWarning(row) }}
+                    </p>
+
+                    <div class="sw-product-detail-printess__cart-display-field-labels">
+                        <label class="sw-product-detail-printess__cart-display-field-labels-label">
+                            {{ $t('printess-shopware-integration.productDetail.cart.displayFieldLabelLabel') }}
+                        </label>
+
+                        <mt-text-field
+                            v-for="language in shopLanguages"
+                            :key="language.id"
+                            :model-value="row.labelByLanguageId[language.id]"
+                            class="sw-product-detail-printess__cart-display-field-label-input"
+                            :name="`sw-field--printess-cart-display-label-${row.clientId}-${language.id}`"
+                            :label="language.name"
+                            :placeholder="$t('printess-shopware-integration.productDetail.cart.displayFieldLabelPlaceholder')"
+                            :disabled="!canEdit"
+                            @update:model-value="(value) => updateCartDisplayRowLabel(row.clientId, language.id, value)"
+                        />
+                    </div>
+                </div>
+
+                <mt-button
+                    class="sw-product-detail-printess__cart-display-field-add"
+                    variant="secondary"
+                    size="small"
+                    :disabled="!canEdit"
+                    @click="addCartDisplayRow"
+                >
+                    {{ $t('printess-shopware-integration.productDetail.cart.addDisplayFieldButton') }}
+                </mt-button>
+            </div>
         </mt-card>
 
         <mt-card

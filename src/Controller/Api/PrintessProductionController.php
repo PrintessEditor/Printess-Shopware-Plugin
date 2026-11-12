@@ -28,11 +28,15 @@
 
 namespace PrintessShopwareIntegration\Controller\Api;
 
+use PrintessShopwareIntegration\Service\Cart\PrintessCartDisplayResolver;
+use PrintessShopwareIntegration\Service\Product\PrintessProductCustomFieldResolver;
 use PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackException;
 use PrintessShopwareIntegration\Service\Production\PrintessDropshipCallbackService;
 use PrintessShopwareIntegration\Service\Production\PrintessProductionActionException;
 use PrintessShopwareIntegration\Service\Production\PrintessProductionService;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -51,6 +55,9 @@ class PrintessProductionController extends AbstractController
         private readonly EntityRepository $orderRepository,
         private readonly EntityRepository $orderLineItemRepository,
         private readonly PrintessDropshipCallbackService $dropshipCallbackService,
+        private readonly PrintessProductCustomFieldResolver $productCustomFieldResolver,
+        private readonly PrintessCartDisplayResolver $cartDisplayResolver,
+        private readonly EntityRepository $productRepository,
     ) {
     }
 
@@ -211,6 +218,67 @@ class PrintessProductionController extends AbstractController
         }
 
         return new JsonResponse($this->printessProductionService->checkStatus($lineItem, $context));
+    }
+
+    /**
+     * Rebuilds the line item's cart display rows ("Number Of Tiles: 10") from its stored form field
+     * values - called by the admin order line item editor after it saved a re-designed item. An order
+     * never runs through the cart again, so `PrintessCartDisplayCollector` can't do it there. Labels
+     * are resolved in the order's language, matching what the customer saw when ordering.
+     */
+    #[Route(
+        path: '/api/_action/printess/orders/{orderId}/line-items/{lineItemId}/refresh-cart-display',
+        name: 'api.action.printess.order_line_item.refresh_cart_display',
+        defaults: [PlatformRequest::ATTRIBUTE_ACL => ['order:update']],
+        methods: ['POST'],
+    )]
+    public function refreshCartDisplay(string $orderId, string $lineItemId, Context $context): JsonResponse
+    {
+        $order = $this->orderRepository->search(new Criteria([$orderId]), $context)->getEntities()->first();
+        /** @var OrderLineItemEntity|null $lineItem */
+        $lineItem = $this->orderLineItemRepository->search(new Criteria([$lineItemId]), $context)->getEntities()->first();
+
+        if (!$order instanceof OrderEntity || $lineItem === null || $lineItem->getOrderId() !== $orderId) {
+            return new JsonResponse(['error' => 'Order or line item not found.'], 404);
+        }
+
+        $productId = $lineItem->getProductId();
+
+        if ($productId === null) {
+            return new JsonResponse(['cartDisplay' => []]);
+        }
+
+        $orderLanguageContext = new Context(
+            $context->getSource(),
+            [],
+            $order->getCurrencyId(),
+            array_values(array_unique([$order->getLanguageId(), Defaults::LANGUAGE_SYSTEM])),
+        );
+
+        $product = $orderLanguageContext->enableInheritance(
+            fn (Context $inheritanceContext) => $this->productRepository->search(new Criteria([$productId]), $inheritanceContext)->getEntities()->first()
+        );
+
+        $config = $this->productCustomFieldResolver->resolveMany($product, $productId, [PrintessCartDisplayResolver::CONFIG_FIELD_NAME]);
+        $payload = $lineItem->getPayload() ?? [];
+        $rows = $this->cartDisplayResolver->buildRows($config[PrintessCartDisplayResolver::CONFIG_FIELD_NAME], $payload, $order->getLanguageId());
+
+        if ($rows !== []) {
+            $payload[PrintessCartDisplayResolver::DISPLAY_PAYLOAD_KEY] = $rows;
+        } else {
+            unset($payload[PrintessCartDisplayResolver::DISPLAY_PAYLOAD_KEY]);
+        }
+
+        // Shopware's product line item consistency check rejects a payload write without
+        // productId/referencedId in the same write - see `sw-order-line-item-printess-editor`.
+        $this->orderLineItemRepository->update([[
+            'id' => $lineItem->getId(),
+            'productId' => $productId,
+            'referencedId' => $lineItem->getReferencedId(),
+            'payload' => $payload,
+        ]], $context);
+
+        return new JsonResponse(['cartDisplay' => $rows]);
     }
 
     /**

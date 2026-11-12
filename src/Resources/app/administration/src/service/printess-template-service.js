@@ -127,9 +127,15 @@ export default class PrintessTemplateService extends Shopware.Classes.ApiService
             .then((response) => Shopware.Classes.ApiService.handleResponse(response));
     }
 
-    checkTemplate(productId, templateName) {
+    checkTemplate(productId, templateName, cartDisplayFields = []) {
         return this.httpClient
-            .post(`/_action/printess/products/${productId}/template-check`, { templateName }, { headers: this.getBasicHeaders() })
+            .post(`/_action/printess/products/${productId}/template-check`, { templateName, cartDisplayFields }, { headers: this.getBasicHeaders() })
+            .then((response) => Shopware.Classes.ApiService.handleResponse(response));
+    }
+
+    getTemplateFormFields(templateName) {
+        return this.httpClient
+            .post('/_action/printess/template-form-fields', { templateName }, { headers: this.getBasicHeaders() })
             .then((response) => Shopware.Classes.ApiService.handleResponse(response));
     }
 

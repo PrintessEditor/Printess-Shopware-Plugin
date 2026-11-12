@@ -140,6 +140,24 @@ class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
     private const PDF_METADATA_FIELD_ID = 'DCD8203BD0CEB7B42BD857E2EF1135E7';
     private const PDF_METADATA_FIELD_NAME = 'PrintessPdfMetadata';
 
+    /**
+     * Hides the quantity selector on the product page and the quantity column of the line item in
+     * the storefront's cart/checkout/order views, and locks the cart line item to quantity 1 (see
+     * `PrintessCartDisplayCollector`). Meant for products whose amount is chosen inside the template
+     * (e.g. "number of tiles") and mapped to a variant, so the variant already carries the price.
+     */
+    private const HIDE_QUANTITY_SELECTOR_FIELD_ID = 'DADFF45A23FF5AD4828817A6AF38F21C';
+    private const HIDE_QUANTITY_SELECTOR_FIELD_NAME = 'PrintessHideQuantitySelector';
+
+    /**
+     * Form field values shown under the line item in the cart, checkout and order views, as a list
+     * of `{"formField": "...", "label": {"<languageId>": "..."}}` rows - e.g. "Number Of Tiles: 10".
+     * Only price-relevant form fields reach the cart, so only those can be shown - see
+     * `PrintessCartDisplayResolver`.
+     */
+    private const CART_DISPLAY_FIELDS_FIELD_ID = '7BB8A1C684C5A06E2A0EECAA1716695C';
+    private const CART_DISPLAY_FIELDS_FIELD_NAME = 'PrintessCartDisplayFields';
+
     public const SLIM_UI_FEATURE_KEYS = [
         'pageNavigation',
         'thumbnailNavigation',
@@ -420,6 +438,38 @@ class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
                                 'de-DE' => 'Titel, Thema und Autor, die in das produzierte PDF geschrieben werden, als {"title": "...", "subject": "...", "author": "..."}-Texte mit {{ variable }}-Platzhaltern. Ein hier gesetzter Wert überschreibt für dieses Produkt die Plugin-Einstellung. Funktioniert nur, wenn das Printess-Template Formularfelder mit genau den Namen PDF_Title, PDF_Subject und PDF_Author hat (Groß-/Kleinschreibung beachten); ein Wert, dessen Formularfeld im Template fehlt, wird ignoriert. Wird über den Printess-Tab verwaltet.',
                             ],
                             'customFieldPosition' => 15,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::HIDE_QUANTITY_SELECTOR_FIELD_ID),
+                        'name' => self::HIDE_QUANTITY_SELECTOR_FIELD_NAME,
+                        'type' => CustomFieldTypes::BOOL,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'Hide quantity selector',
+                                'de-DE' => 'Mengenauswahl ausblenden',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Hides the quantity selector on the product page and the quantity in the cart, checkout and order views, and keeps the cart item at quantity 1. Use this when the amount is chosen in the template and mapped to a variant. Managed via the Printess tab.',
+                                'de-DE' => 'Blendet die Mengenauswahl auf der Produktseite sowie die Menge im Warenkorb, Checkout und in den Bestellungen aus und hält die Warenkorbposition bei Menge 1. Für Produkte, deren Anzahl im Template gewählt und auf eine Variante abgebildet wird. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 16,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::CART_DISPLAY_FIELDS_FIELD_ID),
+                        'name' => self::CART_DISPLAY_FIELDS_FIELD_NAME,
+                        'type' => CustomFieldTypes::JSON,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'Form field values in the cart',
+                                'de-DE' => 'Formularfeldwerte im Warenkorb',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Form field values shown under the item in the cart, checkout and order views, as a list of {"formField": "...", "label": {"<languageId>": "..."}} rows, e.g. "Number Of Tiles: 10". Only price-relevant form fields can be shown. Managed via the Printess tab.',
+                                'de-DE' => 'Formularfeldwerte, die unter der Position im Warenkorb, Checkout und in den Bestellungen angezeigt werden, als Liste von {"formField": "...", "label": {"<languageId>": "..."}}-Zeilen, z. B. "Anzahl Fliesen: 10". Nur preisrelevante Formularfelder können angezeigt werden. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 17,
                         ],
                     ],
                 ],

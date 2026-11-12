@@ -188,7 +188,11 @@
                 "freeField": "“{option}” is not a list in the template, so its values are not compared.",
                 "applied": "Done: {created} variants created, {updated} updated, {deleted} deleted.",
                 "nameTranslation": "The property “{option}” is called “{spelled}” in the template, which is its name in another language. The storefront compares names in the shop's default language, so the option is not passed to the editor.",
-                "valueTranslation": "Named in another language only: {pairs}. The storefront compares values in the shop's default language, so these do not match."
+                "valueTranslation": "Named in another language only: {pairs}. The storefront compares values in the shop's default language, so these do not match.",
+                "cartFieldsHeading": "Form field values shown in the cart",
+                "cartFieldOk": "“{field}” is price relevant, so its value is shown in the cart.",
+                "cartFieldNotPriceRelevant": "“{field}” is not marked Price Relevant, so its value never reaches the cart.",
+                "cartFieldMissing": "The template has no form field called “{field}”, so nothing is shown in the cart for it."
             },
             "variantSync": {
                 "openButton": "Build variants from the template…",
@@ -241,6 +245,26 @@
                 "apply": "Apply changes",
                 "noteSharedGroupTranslation": "The property “{group}” is reused for the template field “{spelled}”, which matches its name in another language. The storefront compares the shop's default language, so rename it under Catalogues › Properties, or the editor will not follow it.",
                 "noteSharedValueTranslation": "“{value}” in the property “{group}” is reused for the template value “{spelled}”, which matches its name in another language, instead of creating a duplicate. The storefront compares the shop's default language, so rename it under Catalogues › Properties, or the editor will not follow it."
+            },
+            "cart": {
+                "cardTitle": "Shopping cart",
+                "hint": "How this product appears in the cart, checkout and order views.",
+                "hideQuantityLabel": "Hide quantity selector",
+                "hideQuantityHint": "Hides the quantity selector on the product page and the quantity in the cart, checkout and orders, and keeps the cart item at quantity 1. Use this when the amount is chosen in the template (e.g. a number of tiles) and mapped to a variant, so the variant carries the price.",
+                "displayFieldsLabel": "Show form field values",
+                "displayFieldsHint": "Each row is shown under the item as “Label: value”, e.g. “Number Of Tiles: 10”. Only form fields marked Price Relevant in the template reach the cart. If a field was not changed in the editor, the variant option with the same name is used instead.",
+                "displayFieldFormFieldLabel": "Form field",
+                "displayFieldFormFieldPlaceholder": "Select a form field…",
+                "displayFieldLabelLabel": "Label",
+                "displayFieldLabelPlaceholder": "e.g. Number Of Tiles",
+                "displayFieldNotPriceRelevantSuffix": "not price relevant",
+                "displayFieldNotInTemplateSuffix": "not in template",
+                "addDisplayFieldButton": "Add form field",
+                "displayFieldNotPriceRelevant": "“{field}” is not marked Price Relevant in the template, so its value never reaches the cart.",
+                "displayFieldMissing": "The template has no form field called “{field}”.",
+                "formFieldsLoadError": "The template’s form fields could not be loaded ({error}). Enter the form field name by hand.",
+                "formFieldsLoading": "Loading the template’s form fields…",
+                "noTemplate": "Select a template first to choose from its form fields."
             }
         },
         "printSettingSelect": {

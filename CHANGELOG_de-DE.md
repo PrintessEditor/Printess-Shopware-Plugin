@@ -1,3 +1,10 @@
+# 1.3.1
+- Neue Karte "Warenkorb" im Printess-Tab, für Produkte, deren Anzahl im Template gewählt wird (z. B. eine Anzahl Fliesen, die auf eine Variante abgebildet ist):
+  - "Mengenauswahl ausblenden" blendet die Mengenauswahl auf der Produktseite sowie die Menge im Warenkorb, Offcanvas-Warenkorb, Checkout und in den Bestellungen aus und hält die Warenkorbposition bei Menge 1.
+  - "Formularfeldwerte anzeigen" listet Formularfelder, deren Werte unter der Position angezeigt werden, z. B. "Anzahl Fliesen: 10", mit einer Bezeichnung pro Sprache. Das Formularfeld wird aus den Formularfeldern des Templates gewählt und muss als preisrelevant (Price Relevant) markiert sein; die Template-Prüfung warnt bei Feldern, die das nicht sind oder die das Template nicht hat. Die Werte folgen jeder Änderung: beim Bearbeiten im Warenkorb, beim erneuten Bestellen und beim Bearbeiten des Designs einer Bestellposition in der Administration.
+- Beim Bearbeiten eines SlimUi-Warenkorbartikels oder beim erneuten Bestellen gehen die Werte preisrelevanter Formularfelder, die im Editor nicht geändert wurden, nicht mehr verloren; ihre Preisaufschläge bleiben erhalten.
+- Die Printess-Zusatzfelder werden im Tab "Spezifikationen" eines Produkts in der Administration wieder ausgeblendet (seit Shopware 6.7 wurden sie dort zusätzlich zum Printess-Tab angezeigt). Sie werden nur im Printess-Tab verwaltet.
+
 # 1.3.0
 - Neue Einstellung "PDF-Dokumenteigenschaften": Titel, Thema und Autor der produzierten PDFs (übergeben als Formularfelder PDF_Title, PDF_Subject und PDF_Author) lassen sich in den Plugin-Einstellungen festlegen und pro Produkt im Printess-Tab überschreiben. Die Texte können Platzhalter für Bestell-, Positions-, Produkt-, Variantenoptions-, Kunden- und Lieferdaten enthalten, die beim Start der Produktion ausgefüllt werden. Der Editor erklärt die Schreibweise, fügt Platzhalter aus einer durchsuchbaren Liste ein und zeigt eine Vorschau. Das Template braucht Formularfelder mit genau diesen Namen.
 - Behoben: Ab Shopware 6.7.16 ließ sich das Theme nicht mehr kompilieren, weil die config.xml des Plugins einen Kommentar enthielt.

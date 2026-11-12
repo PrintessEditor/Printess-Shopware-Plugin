@@ -85,8 +85,14 @@ class PrintessTemplateCheckController extends AbstractController
             return new JsonResponse(['error' => $exception->getMessage()], 502);
         }
 
+        $cartDisplayFields = $request->request->all()['cartDisplayFields'] ?? [];
+        $cartDisplayFields = \is_array($cartDisplayFields)
+            ? array_values(array_filter(array_map(static fn ($name) => \is_string($name) ? trim($name) : '', $cartDisplayFields)))
+            : [];
+
         return new JsonResponse([
             'groups' => $this->templateCheckService->check($loaded['fields'], $state['groups']),
+            'cartDisplayFields' => $this->templateCheckService->checkCartDisplayFields($loaded['fields'], $cartDisplayFields),
             'isVariant' => $state['isVariant'],
             // Named so the card can say that the base template's form fields were compared too,
             // or why they could not be.
@@ -100,6 +106,39 @@ class PrintessTemplateCheckController extends AbstractController
      * Preview (`apply: false`) and apply (`apply: true`) take the same choices and compute the
      * same plan; the browser never sends a list of changes.
      */
+    /**
+     * The template's form fields (including its base template's) for the Printess tab's pickers,
+     * e.g. which form field values to show in the cart.
+     */
+    #[Route(
+        path: '/api/_action/printess/template-form-fields',
+        name: 'api.action.printess.template_form_fields',
+        defaults: [PlatformRequest::ATTRIBUTE_ACL => ['product:read']],
+        methods: ['POST'],
+    )]
+    public function formFields(Request $request): JsonResponse
+    {
+        $templateName = trim((string) $request->request->get('templateName', ''));
+
+        if ($templateName === '') {
+            return new JsonResponse(['error' => 'No template is set for this product.'], 400);
+        }
+
+        try {
+            $fields = $this->formFieldsClient->load($templateName)['fields'];
+        } catch (PrintessFormFieldsException $exception) {
+            return new JsonResponse(['error' => $exception->getMessage()], 502);
+        }
+
+        return new JsonResponse([
+            'fields' => array_map(static fn (array $field) => [
+                'name' => $field['name'],
+                'label' => $field['label'],
+                'isPriceRelevant' => $field['isPriceRelevant'],
+            ], $fields),
+        ]);
+    }
+
     #[Route(
         path: '/api/_action/printess/products/{productId}/variant-sync',
         name: 'api.action.printess.product.variant_sync',

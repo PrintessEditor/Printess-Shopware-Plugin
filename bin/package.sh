@@ -66,6 +66,8 @@ STAGE_DIR="${WORK_DIR}/${PLUGIN_NAME}"
 mkdir -p "$STAGE_DIR"
 
 rsync -a \
+    --exclude='.git/' \
+    --exclude='.gitignore' \
     --exclude='bin/' \
     --exclude='build/' \
     --exclude='src/printess-integration-skills/' \
