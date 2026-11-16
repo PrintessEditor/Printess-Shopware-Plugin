@@ -444,6 +444,24 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
                     @update:value="updatePdfMetadata"
                 />
             </div>
+
+            <div class="sw-product-detail-printess__order-metadata-field">
+                <label class="sw-product-detail-printess__order-metadata-label">
+                    {{ $t('printess-shopware-integration.productDetail.orderMetaDataLabel') }}
+                </label>
+                <p class="sw-product-detail-printess__order-metadata-description">
+                    {{ $t('printess-shopware-integration.productDetail.orderMetaDataDescription', { metaKey: '{meta.key}' }) }}
+                </p>
+
+                <printess-order-metadata-config
+                    :value="orderMetaData"
+                    :disabled="!canEdit"
+                    :option-group-names="configuratorGroupNames"
+                    :preview-product="pdfMetadataPreviewProduct"
+                    show-plugin-defaults
+                    @update:value="updateOrderMetaData"
+                />
+            </div>
         </mt-card>
 
         <mt-card

@@ -80,85 +80,17 @@ Printess GmbH & Co. Kg does not provide any support for this plugin.
             <code class="printess-pdf-metadata-config__form-field-name">{{ field.formField }}</code>
         </div>
 
-        <div class="printess-pdf-metadata-config__input-row">
-            <div
-                class="printess-pdf-metadata-config__input"
-                @keyup="rememberCursor(field, $event)"
-                @click="rememberCursor(field, $event)"
-                @input="rememberCursor(field, $event)"
-                @focusout="rememberCursor(field, $event)"
-            >
-                <mt-text-field
-                    :model-value="values[field.key]"
-                    :name="`printess-pdf-metadata-${field.key}`"
-                    :placeholder="fieldPlaceholder(field)"
-                    :disabled="disabled"
-                    @update:model-value="(value) => onInput(field, value)"
-                />
-            </div>
-
-            <mt-button
-                class="printess-pdf-metadata-config__insert-button"
-                variant="secondary"
-                size="small"
-                :disabled="disabled"
-                @click="togglePicker(field)"
-            >
-                {{ $t('printess-shopware-integration.pdfMetadataConfig.insertVariable') }}
-            </mt-button>
-        </div>
-
-        <div v-if="pickerFieldKey === field.key" class="printess-pdf-metadata-config__picker">
-            <mt-text-field
-                v-model="pickerSearch"
-                class="printess-pdf-metadata-config__picker-search"
-                :name="`printess-pdf-metadata-search-${field.key}`"
-                :placeholder="$t('printess-shopware-integration.pdfMetadataConfig.searchPlaceholder')"
-            />
-
-            <div class="printess-pdf-metadata-config__picker-groups">
-                <div
-                    v-for="group in filteredVariableGroups"
-                    :key="group.key"
-                    class="printess-pdf-metadata-config__picker-group"
-                >
-                    <div class="printess-pdf-metadata-config__picker-group-title">{{ group.label }}</div>
-
-                    <button
-                        v-for="entry in group.variables"
-                        :key="entry.variable"
-                        type="button"
-                        class="printess-pdf-metadata-config__picker-item"
-                        @mousedown.prevent
-                        @click="insertVariable(field, entry)"
-                    >
-                        <span class="printess-pdf-metadata-config__picker-item-label">{{ entry.label }}</span>
-                        <code class="printess-pdf-metadata-config__picker-item-token">{{ entry.token }}</code>
-                    </button>
-                </div>
-
-                <p v-if="!filteredVariableGroups.length" class="printess-pdf-metadata-config__picker-empty">
-                    {{ $t('printess-shopware-integration.pdfMetadataConfig.noVariableFound') }}
-                </p>
-            </div>
-        </div>
-
-        <p v-if="unknownVariables(field).length" class="printess-pdf-metadata-config__warning">
-            {{ $t('printess-shopware-integration.pdfMetadataConfig.unknownVariables', { variables: unknownVariables(field).join(', ') }) }}
-        </p>
-
-        <p v-if="hasUnclosedPlaceholder(field)" class="printess-pdf-metadata-config__warning">
-            {{ $t('printess-shopware-integration.pdfMetadataConfig.unclosedPlaceholder') }}
-        </p>
-
-        <p v-if="preview(field) !== ''" class="printess-pdf-metadata-config__preview">
-            <span class="printess-pdf-metadata-config__preview-label">
-                {{ usesPluginDefault(field)
-                    ? $t('printess-shopware-integration.pdfMetadataConfig.previewPluginDefaultLabel')
-                    : $t('printess-shopware-integration.pdfMetadataConfig.previewLabel') }}
-            </span>
-            {{ preview(field) }}
-        </p>
+        <printess-placeholder-input
+            :value="values[field.key]"
+            :name="`printess-pdf-metadata-${field.key}`"
+            :placeholder="fieldPlaceholder(field)"
+            :disabled="disabled"
+            :group-names="groupNames"
+            :preview-product="previewProduct"
+            :preview-source="effectiveText(field)"
+            :preview-label="previewLabel(field)"
+            @update:value="(value) => onInput(field, value)"
+        />
     </div>
     {% endblock %}
 </div>

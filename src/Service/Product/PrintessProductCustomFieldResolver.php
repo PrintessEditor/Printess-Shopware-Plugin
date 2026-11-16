@@ -74,6 +74,7 @@ class PrintessProductCustomFieldResolver
         'PrintessPdfMetadata',
         'PrintessHideQuantitySelector',
         'PrintessCartDisplayFields',
+        'PrintessOrderMetaData',
     ];
 
     public function __construct(

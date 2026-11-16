@@ -265,7 +265,9 @@
                 "formFieldsLoadError": "Die Formularfelder des Templates konnten nicht geladen werden ({error}). Geben Sie den Namen des Formularfelds von Hand ein.",
                 "formFieldsLoading": "Formularfelder des Templates werden geladen…",
                 "noTemplate": "Wählen Sie zuerst ein Template, um aus seinen Formularfeldern zu wählen."
-            }
+            },
+            "orderMetaDataLabel": "Printess-Bestellmetadaten",
+            "orderMetaDataDescription": "Schlüssel/Wert-Paare, die beim Start der Produktion mit der Printess-Bestellung gespeichert werden und in Dropship-Produktdefinitionen als {metaKey} nutzbar sind. Einträge hier überschreiben Plugin-Einträge mit demselben Schlüssel."
         },
         "printSettingSelect": {
             "noSettingOption": "Keine Einstellung",
@@ -422,6 +424,31 @@
                 "option2": "Groß",
                 "customerComment": "Bitte als Geschenk verpacken",
                 "country": "Deutschland"
+            },
+            "closePicker": "Schließen"
+        },
+        "orderMetaDataConfig": {
+            "keyLabel": "Schlüssel",
+            "keyPlaceholder": "z. B. orderNumber",
+            "valueLabel": "Wert",
+            "valuePlaceholder": "z. B. {example}",
+            "addEntry": "Eintrag hinzufügen",
+            "removeEntry": "Eintrag entfernen",
+            "empty": "Noch keine Einträge.",
+            "keyMissing": "Geben Sie einen Schlüssel ein, sonst wird dieser Eintrag nicht gespeichert.",
+            "keyInvalid": "Nur Buchstaben, Ziffern, „_“ und „-“ sind erlaubt, damit Printess den Schlüssel als {metaKey} verwenden kann.",
+            "keyDuplicate": "Der Schlüssel „{key}“ wird mehrfach verwendet; nur der letzte Eintrag wird übergeben.",
+            "pluginRowsTitle": "Aus den Plugin-Einstellungen (gelten, solange hier nicht überschrieben):",
+            "overridden": "von diesem Produkt überschrieben",
+            "help": {
+                "toggle": "Wie funktioniert das?",
+                "intro": "Beim Start der Produktion werden diese Einträge als Bestellmetadaten an Printess übergeben und mit der Printess-Bestellung gespeichert. Sie werden nicht gedruckt und ändern das Design nicht.",
+                "usage": "Dropship-Produktdefinitionen können einen Eintrag als {metaPlaceholder} verwenden, z. B. in Dateinamen, Ordnern oder E-Mail-Texten. Beispiel: Schlüssel „{key}“ mit dem Wert „{variable}“ macht aus {metaPlaceholder} die Bestellnummer.",
+                "keys": "Schlüssel dürfen nur Buchstaben, Ziffern, „_“ und „-“ enthalten. Werte können Platzhalter enthalten, eingefügt über „Variable einfügen“.",
+                "knownKeys": "Schlüssel, die andere Printess-Integrationen bereits übergeben und die bestehende Produktdefinitionen verwenden könnten: {keys}.",
+                "empty": "Ein Eintrag, dessen Wert leer bleibt (z. B. kein Kundenkommentar), wird nicht übergeben.",
+                "productOverride": "Die Einträge aus den Plugin-Einstellungen gelten auch für dieses Produkt. Ein Eintrag hier mit demselben Schlüssel ersetzt ihn; neue Schlüssel kommen hinzu.",
+                "pluginLevel": "Jedes Produkt kann in seinem Printess-Tab Einträge überschreiben und eigene hinzufügen."
             }
         }
     }

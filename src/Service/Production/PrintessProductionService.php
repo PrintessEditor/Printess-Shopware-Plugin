@@ -101,6 +101,7 @@ class PrintessProductionService
         private readonly PrintessOrderReproductionService $orderReproductionService,
         private readonly EntityRepository $orderRepository,
         private readonly PdfMetadataResolver $pdfMetadataResolver,
+        private readonly OrderMetaDataResolver $orderMetaDataResolver,
     ) {
     }
 
@@ -503,7 +504,8 @@ class PrintessProductionService
         $meta = ['orderId' => $order->getId(), 'orderLineItemId' => $lineItem->getId()];
         // The number the merchant knows the order by; the callback finds the line item via `meta`.
         $orderNumber = $order->getOrderNumber() ?? $order->getId();
-        $vdpValues = $this->vdpValues($order, $lineItem, $saveToken, $orderNumber, $context);
+        $delivery = $this->resolveDeliveryForLineItem($order, $lineItem);
+        $vdpValues = $this->vdpValues($order, $lineItem, $delivery, $saveToken, $orderNumber, $context);
 
         $data = [
             'templateName' => $saveToken,
@@ -520,6 +522,14 @@ class PrintessProductionService
 
         if ($printSettingName !== '') {
             $data['printSettingsTemplate'] = $printSettingName;
+        }
+
+        // Stored on the Printess order, usable as `{meta.<key>}` in dropship product definitions -
+        // unlike `meta` above, which only comes back in the callback. See `OrderMetaDataResolver`.
+        $orderMetaData = $this->orderMetaDataResolver->resolve($order, $lineItem, $delivery, $context);
+
+        if ($orderMetaData !== []) {
+            $data['orderMetaData'] = json_encode($orderMetaData, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
         }
 
         $endpoint = '/production/produce';
@@ -598,11 +608,10 @@ class PrintessProductionService
      *
      * @return array<string, string>
      */
-    private function vdpValues(OrderEntity $order, OrderLineItemEntity $lineItem, string $saveToken, string $orderNumber, Context $context): array
+    private function vdpValues(OrderEntity $order, OrderLineItemEntity $lineItem, ?OrderDeliveryEntity $delivery, string $saveToken, string $orderNumber, Context $context): array
     {
         $product = $lineItem->getProduct();
         $productNumber = $product?->getProductNumber() ?? (($lineItem->getPayload() ?? [])['productNumber'] ?? null);
-        $delivery = $this->resolveDeliveryForLineItem($order, $lineItem);
         $customer = $order->getOrderCustomer();
 
         $values = [

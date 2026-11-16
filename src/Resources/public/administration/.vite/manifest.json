@@ -1,6 +1,10 @@
 {
+  "_printess-placeholder-variables-0Yj0oCcO.js": {
+    "file": "assets/printess-placeholder-variables-0Yj0oCcO.js",
+    "name": "printess-placeholder-variables"
+  },
   "main.js": {
-    "file": "assets/printess-shopware-integration-DEtOrbAc.js",
+    "file": "assets/printess-shopware-integration-K1h7cvCQ.js",
     "name": "printess-shopware-integration",
     "src": "main.js",
     "isEntry": true,
@@ -11,6 +15,8 @@
       "printess-imposition-select/index.js",
       "printess-dropshipping-select/index.js",
       "printess-pdf-metadata-config/index.js",
+      "printess-placeholder-input/index.js",
+      "printess-order-metadata-config/index.js",
       "printess-order-line-item-production/index.js",
       "printess-production-batch-list/index.js",
       "printess-template-check/index.js",
@@ -45,13 +51,28 @@
       "assets/index-CkrXdPre.css"
     ]
   },
+  "printess-order-metadata-config/index.js": {
+    "file": "assets/index-BMTZ0fkN.js",
+    "name": "index",
+    "src": "printess-order-metadata-config/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_printess-placeholder-variables-0Yj0oCcO.js"
+    ],
+    "css": [
+      "assets/index-CRaUhV4J.css"
+    ]
+  },
   "printess-pdf-metadata-config/index.js": {
-    "file": "assets/index-CF_T3Sro.js",
+    "file": "assets/index-1z9kYvee.js",
     "name": "index",
     "src": "printess-pdf-metadata-config/index.js",
     "isDynamicEntry": true,
+    "imports": [
+      "_printess-placeholder-variables-0Yj0oCcO.js"
+    ],
     "css": [
-      "assets/index-C08cmjKe.css"
+      "assets/index-DOC641ab.css"
     ]
   },
   "printess-photobook-theme-select/index.js": {
@@ -61,6 +82,18 @@
     "isDynamicEntry": true,
     "css": [
       "assets/index-D392Wr4Z.css"
+    ]
+  },
+  "printess-placeholder-input/index.js": {
+    "file": "assets/index-CeDB2hO-.js",
+    "name": "index",
+    "src": "printess-placeholder-input/index.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_printess-placeholder-variables-0Yj0oCcO.js"
+    ],
+    "css": [
+      "assets/index-CwoNd4lE.css"
     ]
   },
   "printess-print-setting-select/index.js": {
@@ -109,12 +142,12 @@
     ]
   },
   "sw-product-detail-printess/index.js": {
-    "file": "assets/index-D6zhGeM2.js",
+    "file": "assets/index-BJDiBi9Z.js",
     "name": "index",
     "src": "sw-product-detail-printess/index.js",
     "isDynamicEntry": true,
     "css": [
-      "assets/index-mDjJCa4_.css"
+      "assets/index-Dlcd5FjB.css"
     ]
   }
 }

@@ -156,6 +156,15 @@ class PrintessConfigService
         return $this->systemConfigService->get(self::CONFIG_PREFIX . 'pdfMetadata', $salesChannelId);
     }
 
+    /**
+     * The plugin-wide Printess order metadata, as `[{key, value}]` rows whose values may contain
+     * `{{ variable }}` placeholders - see `OrderMetaDataResolver`.
+     */
+    public function getOrderMetaData(?string $salesChannelId = null): mixed
+    {
+        return $this->systemConfigService->get(self::CONFIG_PREFIX . 'orderMetaData', $salesChannelId);
+    }
+
     public function shouldApproveDesignsBeforeProduction(?string $salesChannelId = null): bool
     {
         return $this->systemConfigService->getBool(self::CONFIG_PREFIX . 'approveDesignsBeforeProduction', $salesChannelId);

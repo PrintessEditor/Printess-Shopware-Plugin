@@ -265,7 +265,9 @@
                 "formFieldsLoadError": "The template’s form fields could not be loaded ({error}). Enter the form field name by hand.",
                 "formFieldsLoading": "Loading the template’s form fields…",
                 "noTemplate": "Select a template first to choose from its form fields."
-            }
+            },
+            "orderMetaDataLabel": "Printess order metadata",
+            "orderMetaDataDescription": "Key/value pairs stored with the Printess order when production starts, usable as {metaKey} in dropship product definitions. Entries here override plugin entries with the same key."
         },
         "printSettingSelect": {
             "noSettingOption": "No setting",
@@ -422,6 +424,31 @@
                 "option2": "Large",
                 "customerComment": "Please wrap as a gift",
                 "country": "Germany"
+            },
+            "closePicker": "Close"
+        },
+        "orderMetaDataConfig": {
+            "keyLabel": "Key",
+            "keyPlaceholder": "e.g. orderNumber",
+            "valueLabel": "Value",
+            "valuePlaceholder": "e.g. {example}",
+            "addEntry": "Add entry",
+            "removeEntry": "Remove entry",
+            "empty": "No entries yet.",
+            "keyMissing": "Enter a key, otherwise this entry is not saved.",
+            "keyInvalid": "Only letters, digits, “_” and “-” are allowed, so Printess can use the key as {metaKey}.",
+            "keyDuplicate": "The key “{key}” is used more than once; only the last entry is sent.",
+            "pluginRowsTitle": "From the plugin settings (apply unless overridden here):",
+            "overridden": "overridden by this product",
+            "help": {
+                "toggle": "How does this work?",
+                "intro": "When production starts, these entries are sent to Printess as the order metadata and stored with the Printess order. They are not printed and do not change the design.",
+                "usage": "Dropship product definitions can use an entry as {metaPlaceholder}, e.g. in file names, folders or mail texts. Example: key “{key}” with the value “{variable}” turns {metaPlaceholder} into the order number.",
+                "keys": "Keys may only contain letters, digits, “_” and “-”. Values can contain placeholders, inserted with “Insert variable”.",
+                "knownKeys": "Keys other Printess integrations already send, which existing product definitions may use: {keys}.",
+                "empty": "An entry whose value ends up empty (e.g. no customer comment) is not sent.",
+                "productOverride": "The entries from the plugin settings apply to this product too. An entry here with the same key replaces it; new keys are added.",
+                "pluginLevel": "Each product can override entries and add its own on its Printess tab."
             }
         }
     }

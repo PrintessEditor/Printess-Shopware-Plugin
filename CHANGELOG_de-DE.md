@@ -1,3 +1,7 @@
+# 1.3.2
+- Neue Einstellung "Printess-Bestellmetadaten": Schlüssel/Wert-Paare, die beim Start der Produktion als Bestellmetadaten an Printess übergeben und mit der Printess-Bestellung gespeichert werden. Dropship-Produktdefinitionen können jeden Eintrag als {meta.key} verwenden, z. B. in Dateinamen, Ordnern oder E-Mails. Die Einträge werden in den Plugin-Einstellungen festgelegt und können pro Produkt im Printess-Tab überschrieben oder ergänzt werden; beliebig viele Einträge sind möglich. Die Werte können dieselben Platzhalter wie die PDF-Dokumenteigenschaften enthalten (Bestellung, Position, Produkt, Variantenoptionen, Kunde, Versand). Schlüssel dürfen Buchstaben, Ziffern, "_" und "-" enthalten; Schlüssel, die andere Printess-Integrationen bereits übergeben, werden vorgeschlagen.
+- Die Variablenliste der PDF-Dokumenteigenschaften und der Bestellmetadaten lässt sich jetzt schließen, ohne eine Variable einzufügen, über die Schließen-Schaltfläche neben dem Suchfeld oder die Escape-Taste.
+
 # 1.3.1
 - Neue Karte "Warenkorb" im Printess-Tab, für Produkte, deren Anzahl im Template gewählt wird (z. B. eine Anzahl Fliesen, die auf eine Variante abgebildet ist):
   - "Mengenauswahl ausblenden" blendet die Mengenauswahl auf der Produktseite sowie die Menge im Warenkorb, Offcanvas-Warenkorb, Checkout und in den Bestellungen aus und hält die Warenkorbposition bei Menge 1.

@@ -1,3 +1,7 @@
+# 1.3.2
+- New setting "Printess order metadata": key/value pairs sent to Printess as the order metadata when production starts and stored with the Printess order. Dropship product definitions can use each entry as {meta.key}, e.g. in file names, folders or mails. Entries are configured in the plugin settings and can be overridden or extended per product on the Printess tab; any number of entries can be added. Values can contain the same placeholders as the PDF document properties (order, line item, product, variant options, customer, shipping). Keys may contain letters, digits, "_" and "-"; keys other Printess integrations already send are suggested.
+- The variable list of the PDF document properties and the order metadata can now be closed without inserting a variable, with the close button next to its search field or the Escape key.
+
 # 1.3.1
 - New "Shopping cart" card on the Printess tab, for products whose amount is chosen inside the template (e.g. a number of tiles mapped to a variant):
   - "Hide quantity selector" hides the quantity selector on the product page and the quantity in the cart, offcanvas cart, checkout and order views, and keeps the cart item at quantity 1.

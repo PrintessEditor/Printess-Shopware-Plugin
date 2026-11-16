@@ -85,7 +85,8 @@
         margin-top: 16px;
     }
 
-    &__pdf-metadata-field {
+    &__pdf-metadata-field,
+    &__order-metadata-field {
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -94,11 +95,13 @@
         border-top: 1px solid var(--color-border-primary-default, #d1d9e0);
     }
 
-    &__pdf-metadata-label {
+    &__pdf-metadata-label,
+    &__order-metadata-label {
         font-weight: 600;
     }
 
-    &__pdf-metadata-description {
+    &__pdf-metadata-description,
+    &__order-metadata-description {
         font-size: 13px;
         color: var(--color-text-secondary-default, #52667a);
     }

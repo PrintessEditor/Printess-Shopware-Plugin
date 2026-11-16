@@ -416,6 +416,14 @@ export default Shopware.Component.wrapComponentConfig({
             return value ?? null;
         },
 
+        orderMetaData() {
+            const value = this.perLanguageEnabled
+                ? this.product?.customFields?.PrintessOrderMetaData
+                : this.defaultLanguageFields.PrintessOrderMetaData;
+
+            return value ?? null;
+        },
+
         /**
          * The product's own name/number for the PDF document properties preview.
          */
@@ -1952,6 +1960,19 @@ export default Shopware.Component.wrapComponentConfig({
                 this.product.customFields.PrintessPdfMetadata = value || null;
             } else {
                 this.persistDefaultLanguageFieldDebounced('PrintessPdfMetadata', value || null);
+            }
+        },
+
+        /** Typed, so saved debounced - same as `updatePdfMetadata()`. */
+        updateOrderMetaData(value) {
+            if (this.perLanguageEnabled) {
+                if (!this.product.customFields) {
+                    this.product.customFields = {};
+                }
+
+                this.product.customFields.PrintessOrderMetaData = value || null;
+            } else {
+                this.persistDefaultLanguageFieldDebounced('PrintessOrderMetaData', value || null);
             }
         },
 

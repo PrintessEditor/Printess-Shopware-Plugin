@@ -4,12 +4,14 @@
     "printess-shopware-integration": {
       "css": [],
       "dynamic": [
-        "/bundles/printessshopwareintegration/administration/assets/index-D6zhGeM2.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-BJDiBi9Z.js",
         "/bundles/printessshopwareintegration/administration/assets/index-B-zu9mY0.js",
         "/bundles/printessshopwareintegration/administration/assets/index-Dy6Uv6OK.js",
         "/bundles/printessshopwareintegration/administration/assets/index-BNQgRgTU.js",
         "/bundles/printessshopwareintegration/administration/assets/index-B8xUfpDc.js",
-        "/bundles/printessshopwareintegration/administration/assets/index-CF_T3Sro.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-1z9kYvee.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-CeDB2hO-.js",
+        "/bundles/printessshopwareintegration/administration/assets/index-BMTZ0fkN.js",
         "/bundles/printessshopwareintegration/administration/assets/index-BsoreJhX.js",
         "/bundles/printessshopwareintegration/administration/assets/index-ClhVi1Nn.js",
         "/bundles/printessshopwareintegration/administration/assets/index-DvCaGUMp.js",
@@ -17,7 +19,7 @@
         "/bundles/printessshopwareintegration/administration/assets/index-3PDnZjrj.js"
       ],
       "js": [
-        "/bundles/printessshopwareintegration/administration/assets/printess-shopware-integration-DEtOrbAc.js"
+        "/bundles/printessshopwareintegration/administration/assets/printess-shopware-integration-K1h7cvCQ.js"
       ],
       "legacy": false,
       "preload": []

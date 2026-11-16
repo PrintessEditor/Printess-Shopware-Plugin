@@ -158,6 +158,14 @@ class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
     private const CART_DISPLAY_FIELDS_FIELD_ID = '7BB8A1C684C5A06E2A0EECAA1716695C';
     private const CART_DISPLAY_FIELDS_FIELD_NAME = 'PrintessCartDisplayFields';
 
+    /**
+     * Key/value rows sent to Printess as the order's `orderMetaData` when production starts, as
+     * `[{"key": "...", "value": "..."}]` with `{{ variable }}` placeholders. Rows override the
+     * plugin-wide `orderMetaData` setting per key - see `OrderMetaDataResolver`.
+     */
+    private const ORDER_META_DATA_FIELD_ID = '790F6FFF0E527FE5EFFE85523AEB9B95';
+    private const ORDER_META_DATA_FIELD_NAME = 'PrintessOrderMetaData';
+
     public const SLIM_UI_FEATURE_KEYS = [
         'pageNavigation',
         'thumbnailNavigation',
@@ -470,6 +478,22 @@ class ProductCustomFieldsInstaller extends AbstractCustomFieldsInstaller
                                 'de-DE' => 'Formularfeldwerte, die unter der Position im Warenkorb, Checkout und in den Bestellungen angezeigt werden, als Liste von {"formField": "...", "label": {"<languageId>": "..."}}-Zeilen, z. B. "Anzahl Fliesen: 10". Nur preisrelevante Formularfelder können angezeigt werden. Wird über den Printess-Tab verwaltet.',
                             ],
                             'customFieldPosition' => 17,
+                        ],
+                    ],
+                    [
+                        'id' => Uuid::fromStringToHex(self::ORDER_META_DATA_FIELD_ID),
+                        'name' => self::ORDER_META_DATA_FIELD_NAME,
+                        'type' => CustomFieldTypes::JSON,
+                        'config' => [
+                            'label' => [
+                                'en-GB' => 'Printess order metadata',
+                                'de-DE' => 'Printess-Bestellmetadaten',
+                            ],
+                            'helpText' => [
+                                'en-GB' => 'Key/value pairs stored with the Printess order when production starts, as [{"key": "...", "value": "..."}] with {{ variable }} placeholders. Dropship product definitions can use them as {meta.<key>}. Overrides the plugin setting per key. Managed via the Printess tab.',
+                                'de-DE' => 'Schlüssel/Wert-Paare, die beim Start der Produktion mit der Printess-Bestellung gespeichert werden, als [{"key": "...", "value": "..."}] mit {{ variable }}-Platzhaltern. Dropship-Produktdefinitionen können sie als {meta.<key>} verwenden. Überschreibt die Plugin-Einstellung pro Schlüssel. Wird über den Printess-Tab verwaltet.',
+                            ],
+                            'customFieldPosition' => 18,
                         ],
                     ],
                 ],

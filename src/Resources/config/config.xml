@@ -1103,6 +1103,19 @@
     </card>
 
     <card>
+        <title>Printess order metadata</title>
+        <title lang="de-DE">Printess-Bestellmetadaten</title>
+
+        <component name="printess-order-metadata-config">
+            <name>orderMetaData</name>
+            <label>Key/value pairs stored with the Printess order</label>
+            <label lang="de-DE">Schlüssel/Wert-Paare, die mit der Printess-Bestellung gespeichert werden</label>
+            <helpText>Sent to Printess as the order metadata when production starts. Dropship product definitions can use each entry as {meta.key}, e.g. in file names, folders or mails. Values can contain placeholders (e.g. for the order number or a variant option), which are filled in when production starts. A product can override entries and add its own on its Printess tab.</helpText>
+            <helpText lang="de-DE">Wird beim Start der Produktion als Bestellmetadaten an Printess übergeben. Dropship-Produktdefinitionen können jeden Eintrag als {meta.key} verwenden, z. B. in Dateinamen, Ordnern oder E-Mails. Die Werte können Platzhalter enthalten (z. B. für die Bestellnummer oder eine Variantenoption), die beim Start der Produktion ausgefüllt werden. Ein Produkt kann Einträge in seinem Printess-Tab überschreiben und eigene hinzufügen.</helpText>
+        </component>
+    </card>
+
+    <card>
         <title>Product settings</title>
         <title lang="de-DE">Produkteinstellungen</title>
 
